@@ -233,6 +233,7 @@ public class DRGClaims {
                     while ((drgfileline = reader.readLine()) != null) {
                         stringdrgxml += drgfileline;
                     }
+
                     try (FileWriter path = new FileWriter("DRG.dtd")) {
                         path.write(drgutility.DTDFilePath());
                     }

@@ -76,11 +76,13 @@ public class ValidateXMLWithDTD {
                     int lineno = exception.getLineNumber() - 6;
                     arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
+
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber();
                     arrayfatalerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
+
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber();
@@ -95,7 +97,7 @@ public class ValidateXMLWithDTD {
             CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
 
             if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
-                DRGWSResult keypervalue = vxv.ValidateXMLValues(datasource, drg, lhio, claimseries,filecontent);
+                DRGWSResult keypervalue = vxv.ValidateXMLValues(datasource, drg, lhio, claimseries, filecontent);
                 result.setMessage(keypervalue.getMessage());
                 result.setSuccess(keypervalue.isSuccess());
                 result.setResult(keypervalue.getResult());
@@ -114,12 +116,12 @@ public class ValidateXMLWithDTD {
                     }
                     xmlerrors.setErrors(errors);
                 }
-                String stats ="FAILED";
+                String stats = "FAILED";
                 String details = "XML format have errors";
                 String series = claimseries;
-                String claimnum = "";    
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource,details+" : "+utility.objectMapper().writeValueAsString(xmlerrors),stats, series, claimnum,filecontent);
-                result.setMessage(details+" Status :"+auditrail.getMessage());
+                String claimnum = "";
+                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details + " : " + utility.objectMapper().writeValueAsString(xmlerrors), stats, series, claimnum, filecontent);
+                result.setMessage(details + " Status :" + auditrail.getMessage());
                 result.setResult(utility.objectMapper().writeValueAsString(xmlerrors));
                 result.setSuccess(false);
             }
