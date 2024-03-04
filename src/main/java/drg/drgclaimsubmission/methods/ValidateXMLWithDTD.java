@@ -11,7 +11,6 @@ import drg.drgclaimsubmission.structures.dtd.CF5;
 import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.sql.SQLException;
@@ -58,12 +57,8 @@ public class ValidateXMLWithDTD {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            //Generate DTD File 
-            try (FileWriter path = new FileWriter("CF5.dtd")) {
-                path.write(drgutility.DTDFilePath());
-            }
             //End line to Generate DTD File 
-            String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + "\n<!DOCTYPE CF5 SYSTEM \"" + "CF5.dtd" + "\">\n" + stringdrgxml;
+            String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + drgutility.DTDFilePath() + "]>\n" + stringdrgxml;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setValidating(true);
             DocumentBuilder db = dbf.newDocumentBuilder();

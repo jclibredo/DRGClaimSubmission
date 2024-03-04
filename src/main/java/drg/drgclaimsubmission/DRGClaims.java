@@ -201,10 +201,15 @@ public class DRGClaims {
         result.setResult("");
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
+        
+        
+        
+        
+        
 //------------------------------------
         try {
             if (uploadeddrg == null || uploadedeclaims == null) {
-                result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
+                result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
                 result.setSuccess(false);
             } else {
@@ -233,11 +238,7 @@ public class DRGClaims {
                     while ((drgfileline = reader.readLine()) != null) {
                         stringdrgxml += drgfileline;
                     }
-
-                    try (FileWriter path = new FileWriter("DRG.dtd")) {
-                        path.write(drgutility.DTDFilePath());
-                    }
-                    String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + "\n<!DOCTYPE CF5 SYSTEM \"" + "CF5.dtd " + "\">\n" + stringdrgxml;
+                    String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + drgutility.DTDFilePath() + "]>\n" + stringdrgxml;
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     dbf.setValidating(true);
                     DocumentBuilder db;

@@ -685,8 +685,7 @@ public class DRGUtility {
 
     //DTD File in string format
     public String DTDFilePath() {
-        String DTDFile = "<?xml version='1.0' encoding='UTF-8'?>\n"
-                + "<!ELEMENT CF5 (DRGCLAIM)>\n"
+        String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)>\n"
                 + "<!ATTLIST CF5 \n"
                 + "     pHospitalCode       CDATA #REQUIRED\n"
                 + "   >\n"
