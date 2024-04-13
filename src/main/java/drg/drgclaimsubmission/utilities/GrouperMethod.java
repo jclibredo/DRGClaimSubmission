@@ -47,7 +47,7 @@ public class GrouperMethod {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            CallableStatement statement = connection.prepareCall("begin :p_validcode := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
+            CallableStatement statement = connection.prepareCall("begin :p_validcode := MINOSUN.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
             statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
             statement.setString("p_icd10_code", p_icd10_code);
             statement.execute();
@@ -77,7 +77,7 @@ public class GrouperMethod {
             result.setResult("");
             String ProcListNew = "";
             List<String> FinalNewProcList = new ArrayList<>();
-            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
             statement.registerOutParameter("converter", OracleTypes.CURSOR);
             statement.setString("rvs_code", rvs_code);
             statement.execute();
@@ -109,7 +109,7 @@ public class GrouperMethod {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            CallableStatement statement = connection.prepareCall("begin :icd10 := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_all_icd10(); end;");
+            CallableStatement statement = connection.prepareCall("begin :icd10 := MINOSUN.DRGPKGFUNCTION.get_all_icd10(); end;");
             statement.registerOutParameter("icd10", OracleTypes.CURSOR);
 
             statement.execute();
@@ -158,7 +158,7 @@ public class GrouperMethod {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            CallableStatement statement = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
+            CallableStatement statement = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
             statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
             statement.setString("pdx", pdx);
             statement.execute();
@@ -196,7 +196,7 @@ public class GrouperMethod {
     public DRGWSResult GetClaimDuplication(final DataSource datasource, final String accre, final String claimnum, final String series) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
+            CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := MINOSUN.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
             getduplication.registerOutParameter("dupnclaims", OracleTypes.CURSOR);
             getduplication.setString("accre", accre);
             getduplication.setString("claimnum", claimnum);
@@ -220,7 +220,7 @@ public class GrouperMethod {
     public int CountProc(final DataSource datasource, final String codes) {
         int icd9 = 0;
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getResult = connection.prepareCall("begin :count_output := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
+            CallableStatement getResult = connection.prepareCall("begin :count_output := MINOSUN.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
             getResult.registerOutParameter("count_output", OracleTypes.CURSOR);
             getResult.setString("codes", codes);
             getResult.execute();
@@ -247,7 +247,7 @@ public class GrouperMethod {
 
             SimpleDateFormat sdf = utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
             Date date = new Date();
-            CallableStatement auditrail = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:datein,:discreption,:stats,:seriesnum,:claimnum,:filecontent)");
+            CallableStatement auditrail = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:datein,:discreption,:stats,:seriesnum,:claimnum,:filecontent)");
             auditrail.registerOutParameter("Message", OracleTypes.VARCHAR);
             auditrail.registerOutParameter("Code", OracleTypes.INTEGER);
             //=====================================================================End Process SDx duplication================================ 
@@ -286,7 +286,7 @@ public class GrouperMethod {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
             String tagss = "FG";
-            CallableStatement grouperdata = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_RESULT(:Message,:Code,:claimNum,:rest_id,:series,:tags,:lhio,:pdx,:sdx,:proc)");
+            CallableStatement grouperdata = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_RESULT(:Message,:Code,:claimNum,:rest_id,:series,:tags,:lhio,:pdx,:sdx,:proc)");
             grouperdata.registerOutParameter("Message", OracleTypes.VARCHAR);
             grouperdata.registerOutParameter("Code", OracleTypes.INTEGER);
             //=====================================================================Process SDx duplication================================
@@ -389,7 +389,7 @@ public class GrouperMethod {
             final String age_min_year) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getAgeValidation = connection.prepareCall("begin :age_validation := DRG_SHADOWBILLING.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
+            CallableStatement getAgeValidation = connection.prepareCall("begin :age_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
             getAgeValidation.registerOutParameter("age_validation", OracleTypes.CURSOR);
             getAgeValidation.setString("p_pdx_code", p_pdx_code);
             getAgeValidation.setString("age_day", age_day);
@@ -414,7 +414,7 @@ public class GrouperMethod {
             final String gender) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getSexValidation = connection.prepareCall("begin :gender_validation := DRG_SHADOWBILLING.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
+            CallableStatement getSexValidation = connection.prepareCall("begin :gender_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
             getSexValidation.registerOutParameter("gender_validation", OracleTypes.CURSOR);
             getSexValidation.setString("p_pdx_code", p_pdx_code);
             getSexValidation.setString("gender", gender);
@@ -438,7 +438,7 @@ public class GrouperMethod {
             final String gender) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getSexProcValidation = connection.prepareCall("begin :age_proc_validation := DRG_SHADOWBILLING.DRGPKGFUNCTION.PROC_AGE_VALIDATION(:procode,:gender); end;");
+            CallableStatement getSexProcValidation = connection.prepareCall("begin :age_proc_validation := MINOSUN.DRGPKGFUNCTION.PROC_AGE_VALIDATION(:procode,:gender); end;");
             getSexProcValidation.registerOutParameter("age_proc_validation", OracleTypes.CURSOR);
             getSexProcValidation.setString("procode", procode);
             getSexProcValidation.setString("gender", gender);
@@ -462,7 +462,7 @@ public class GrouperMethod {
             final String rvs) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getResult = connection.prepareCall("begin :icd9code_output := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD9(:rvs); end;");
+            CallableStatement getResult = connection.prepareCall("begin :icd9code_output := MINOSUN.DRGPKGFUNCTION.GET_ICD9(:rvs); end;");
             getResult.registerOutParameter("icd9code_output", OracleTypes.CURSOR);
             getResult.setString("rvs", rvs);
             getResult.execute();

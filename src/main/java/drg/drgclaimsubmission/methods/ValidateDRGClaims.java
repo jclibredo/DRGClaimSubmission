@@ -50,8 +50,8 @@ public class ValidateDRGClaims {
         String[] gender = {"M", "F"};
         String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase();
         DRGWSResult NewResult = gm.GetICD10(datasource, PDx);
-        
-      //  System.out.println(utility.objectMapper().writeValueAsString(nclaimsdata));
+        System.out.println(NewResult);
+        //  System.out.println(utility.objectMapper().writeValueAsString(nclaimsdata));
         try {
             result.setMessage("");
             result.setResult("");
@@ -80,7 +80,7 @@ public class ValidateDRGClaims {
             } else if (!Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
                 // errors.add("Patient sex " + nclaimsdata.getGender() + " is not valid");
                 errors.add("209");
-            } 
+            }
 //----------------------------------------------------------------
             //LOS VALIDATION MUST NOT BE LESS THAN 6 HOURS
             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
