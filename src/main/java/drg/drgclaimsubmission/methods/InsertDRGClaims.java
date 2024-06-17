@@ -71,6 +71,12 @@ public class InsertDRGClaims {
             //---------------------------
             String days = String.valueOf(drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
             String year = String.valueOf(drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+            int finalDays = 0;
+            if (Integer.parseInt(year) > 0) {
+                finalDays = Integer.parseInt(year) * 365;
+            } else {
+                finalDays = Integer.parseInt(days);
+            }
             //======================================================
             //Process Procedure
             ArrayList<String> procedurejoin = new ArrayList<>();
@@ -113,7 +119,7 @@ public class InsertDRGClaims {
                 String datas = drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode();
                 DRGWSResult SDxResult = gm.GetICD10(datasource, datas.replaceAll("\\.", "").toUpperCase());
                 DRGWSResult gendervalidation = gm.GenderConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
-                DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), days, year);
+                DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
                 if (datas.length() != 0) {
                     int indexvalue = duplcatesdx.indexOf(String.valueOf(second));
                     if (indexvalue >= 0) {
@@ -272,7 +278,7 @@ public class InsertDRGClaims {
 
                     DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
-                        CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                        CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
                         statement.setString("rvs_code", rvs_code.trim().replaceAll("\\.", ""));
                         statement.execute();
@@ -317,7 +323,8 @@ public class InsertDRGClaims {
                                         insertprocedure.setString("LATERALITY", procedure.getLaterality());
                                         insertprocedure.setString("EXT1_CODE", procedure.getExt1());
                                         insertprocedure.setString("EXT2_CODE", procedure.getExt2());
-                                        if (procedure.getExt2().trim().equals("1")) {
+                                        String extcom = procedure.getExt1() + "" + procedure.getExt2();
+                                        if (extcom.trim().equals("11")) {
                                             procedurejoin.add(ICD9Codes.trim());
                                             insertprocedure.setString("ICD9_CODE", ICD9Codes.trim());
                                         } else {

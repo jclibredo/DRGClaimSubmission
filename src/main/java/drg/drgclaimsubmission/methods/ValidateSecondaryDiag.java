@@ -54,6 +54,13 @@ public class ValidateSecondaryDiag {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                         String days = String.valueOf(drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
                         String year = String.valueOf(drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                        int finalDays = 0;
+                        if (Integer.parseInt(year) > 0) {
+                            finalDays = Integer.parseInt(year) * 365;
+                        } else {
+                            finalDays = Integer.parseInt(days);
+                        }
+
                         if (drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                 && drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0) {
                             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
@@ -63,7 +70,7 @@ public class ValidateSecondaryDiag {
                                     DRGWSResult SDxResult = gm.GetICD10(datasource, SDxCode);
                                     if (SDxResult.isSuccess()) {
                                         //CHECKING FOR AGE CONFLICT
-                                        DRGWSResult getAgeConfictResult = gm.AgeConfictValidation(datasource, SDxCode, days, year);
+                                        DRGWSResult getAgeConfictResult = gm.AgeConfictValidation(datasource, SDxCode, String.valueOf(finalDays), year);
                                         if (!getAgeConfictResult.isSuccess()) {
                                             //errors.add(" SDx:" + SDxCode + " conflict with age");
                                             errors.add("504");
@@ -93,10 +100,8 @@ public class ValidateSecondaryDiag {
                 validatesecondiag.setRemarks(String.join(",", errors));
             }
             result.setResult(utility.objectMapper().writeValueAsString(validatesecondiag));
-        } catch (IOException ex) {
+        } catch (IOException | ParseException ex) {
             result.setMessage(ex.toString());
-            Logger.getLogger(ValidateSecondaryDiag.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
             Logger.getLogger(ValidateSecondaryDiag.class.getName()).log(Level.SEVERE, null, ex);
         }
 

@@ -50,8 +50,6 @@ public class ValidateDRGClaims {
         String[] gender = {"M", "F"};
         String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase();
         DRGWSResult NewResult = gm.GetICD10(datasource, PDx);
-        System.out.println(NewResult);
-        //  System.out.println(utility.objectMapper().writeValueAsString(nclaimsdata));
         try {
             result.setMessage("");
             result.setResult("");
@@ -67,7 +65,7 @@ public class ValidateDRGClaims {
             if (drgclaim.getPrimaryCode().equals("")) {
                 //errors.add("PrimaryCode is required");
                 errors.add("101");
-            } else if (String.valueOf(NewResult.isSuccess()).equals("false")) {
+            } else if (!NewResult.isSuccess()) {
                 //errors.add("PrimaryCode , " + drgclaim.getPrimaryCode().trim() + ", not found");
                 errors.add("201");
             }
