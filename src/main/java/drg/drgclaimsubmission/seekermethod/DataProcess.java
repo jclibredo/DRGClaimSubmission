@@ -10,7 +10,6 @@ import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.WarningErrorList;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
@@ -42,7 +41,6 @@ public class DataProcess {
     public DataProcess() {
     }
     private final Utility utility = new Utility();
-    private final DRGUtility drgutility = new DRGUtility();
     private final GrouperMethod gm = new GrouperMethod();
 
     public DRGWSResult DataProcess(
@@ -54,8 +52,6 @@ public class DataProcess {
         result.setMessage("");
         result.setSuccess(false);
         result.setResult("");
-        String[] laterality = {"L", "R", "B"};
-        String[] exten = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         ArrayList<WarningErrorList> warningerrorlist = new ArrayList<>();
 
         GrouperParameter grouperparameterlist = utility.GrouperParameter();
@@ -190,8 +186,8 @@ public class DataProcess {
                     result.setSuccess(false);
                 }
             } else {
-                String days = String.valueOf(drgutility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
-                String year = String.valueOf(drgutility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
+                String days = String.valueOf(utility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
+                String year = String.valueOf(utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
                 //======================================================
                 ArrayList<String> procedurejoin = new ArrayList<>();
                 ArrayList<String> secondaryjoin = new ArrayList<>();
@@ -262,7 +258,7 @@ public class DataProcess {
                                 DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                                 if (!checkRVStoICD9cm.isSuccess()) {
                                     //===========================================================CONVERTER===============================
-                                    CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                                    CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                                     statement.registerOutParameter("converter", OracleTypes.CURSOR);
                                     statement.setString("rvs_code", seconds[b]);
                                     statement.execute();
@@ -272,8 +268,8 @@ public class DataProcess {
                                         String ProcList = resultset.getString("ICD9CODE");
                                         List<String> ConverterResult = Arrays.asList(ProcList.split(","));
                                         for (int g = 0; g < ConverterResult.size(); g++) {
-                                            int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
-                                            if (datafound != 0) {
+                                            // int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
+                                            if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                                 DRGWSResult procgendervalidation = gm.GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), grouperparam.getGender());
                                                 if (!procgendervalidation.isSuccess()) {
                                                     conflictcounter++;
@@ -288,8 +284,8 @@ public class DataProcess {
                                         } else {
                                             for (int g = 0; g < ConverterResult.size(); g++) {
                                                 String ICD9Codes = ConverterResult.get(g);
-                                                int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                                if (datafound != 0) {
+                                                //int datafound = gm.CountProc(datasource, ICD9Codes.trim());
+                                                if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                                     if (seconds[b + 1].equals("+11")) {
                                                         procedurejoin.add(ICD9Codes.trim());
                                                     } else {
@@ -298,7 +294,6 @@ public class DataProcess {
 
                                                 }
                                             }
-
                                         }
                                     } else {
                                         warningerror.setCode(rvs_code);
@@ -320,7 +315,7 @@ public class DataProcess {
 
                 String finalsdx = String.join(",", secondaryjoin);
                 String finalproc = String.join(",", procedurejoin);
-                System.out.println(finalproc);
+               // System.out.println(finalproc);
                 grouperparameterlist.setClaimseries("");
                 grouperparameterlist.setAdmissionDate(grouperparam.getAdmissionDate());
                 grouperparameterlist.setAdmissionWeight(grouperparam.getAdmissionWeight());

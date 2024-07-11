@@ -12,9 +12,12 @@ import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURES;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAGS;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
+//import drg.drgclaimsubmission.utilities.dtd.DRGCLAIM;
+//import drg.drgclaimsubmission.utilities.dtd.PROCEDURES;
+//import drg.drgclaimsubmission.utilities.dtd.SECONDARYDIAG;
+//import drg.drgclaimsubmission.utilities.dtd.SECONDARYDIAGS;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -35,7 +38,6 @@ public class ValidateDRGClaims {
     }
 
     private final Utility utility = new Utility();
-    private final DRGUtility drgutility = new DRGUtility();
     private final GrouperMethod gm = new GrouperMethod();
     private final ValidateSecondaryDiag VSD = new ValidateSecondaryDiag();
     private final ValidateProcedures VP = new ValidateProcedures();
@@ -84,8 +86,8 @@ public class ValidateDRGClaims {
             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                 if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
                 } else {
-                    if (drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) <= 0
-                            && drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 0) {
+                    if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) <= 0
+                            && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 0) {
                         // errors.add("DateofBirth Must be less than or equal to AdmissionDate : ");
                         errors.add("219");
                     }
@@ -98,12 +100,12 @@ public class ValidateDRGClaims {
                 if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate()) || !utility.IsValidDate(nclaimsdata.getDischargeDate())) {
                 } else if (!utility.IsValidTime(nclaimsdata.getTimeAdmission()) || !utility.IsValidTime(nclaimsdata.getTimeDischarge())) {
                 } else {
-                    int oras = drgutility.ComputeTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                    int araw = drgutility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
-                    int minuto = drgutility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                    int taon = drgutility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
+                    int oras = utility.ComputeTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+                    int araw = utility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
+                    int minuto = utility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+                    int taon = utility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
 
-                    if (drgutility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) == 0) {
+                    if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) == 0) {
                         if (araw <= 0 && oras < 0) {
                             //errors.add("AdmissionTime Greater than DischargeTime not valid in same date");
                             errors.add("220");
@@ -168,8 +170,8 @@ public class ValidateDRGClaims {
             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                 if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
                 } else {
-                    if (drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) == 0
-                            && drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 28) {
+                    if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) == 0
+                            && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 28) {
                         if (!drgclaim.getNewBornAdmWeight().equals("")) {
                             if (!utility.isValidNumeric(drgclaim.getNewBornAdmWeight())) {
                                 // errors.add("NewBordAdmWeight  value , " + drgclaim.getNewBornAdmWeight() + ", is non-numeric value");
@@ -191,6 +193,7 @@ public class ValidateDRGClaims {
             if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
             } else if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
             } else {
+
                 SECONDARYDIAGS secondarydiags = new SECONDARYDIAGS();
                 for (int a = 0; a < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); a++) {
                     DRGWSResult VSDResultS = VSD.ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);

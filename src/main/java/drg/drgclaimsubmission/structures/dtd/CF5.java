@@ -32,22 +32,18 @@ public class CF5 {
     @XmlAttribute(name = "pHospitalCode", required = true)
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     protected String pHospitalCode;
-
     @XmlElement(name = "DRGCLAIM", required = true)
     protected DRGCLAIM drgclaim;
 
     public String getpHospitalCode() {
         return pHospitalCode;
     }
-
     public void setpHospitalCode(String pHospitalCode) {
         this.pHospitalCode = pHospitalCode;
     }
-
     public DRGCLAIM getDrgclaim() {
         return drgclaim;
     }
-
     public void setDrgclaim(DRGCLAIM drgclaim) {
         this.drgclaim = drgclaim;
     }

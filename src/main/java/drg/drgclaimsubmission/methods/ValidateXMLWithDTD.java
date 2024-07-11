@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.XMLErrors;
 import drg.drgclaimsubmission.structures.dtd.CF5;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
@@ -43,7 +42,6 @@ public class ValidateXMLWithDTD {
 
     private final ValidateXMLValues vxv = new ValidateXMLValues();
     private final Utility utility = new Utility();
-    private final DRGUtility drgutility = new DRGUtility();
     private final GrouperMethod gm = new GrouperMethod();
 
     public DRGWSResult ValidateXMLWithDTD(final String stringdrgxml,
@@ -58,7 +56,7 @@ public class ValidateXMLWithDTD {
             result.setMessage("");
             result.setResult("");
             //End line to Generate DTD File 
-            String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + drgutility.DTDFilePath() + "]>\n" + stringdrgxml;
+            String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + utility.DTDFilePath() + "]>\n" + stringdrgxml;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setValidating(true);
             DocumentBuilder db = dbf.newDocumentBuilder();

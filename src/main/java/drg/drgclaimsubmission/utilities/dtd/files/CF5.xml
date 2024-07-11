@@ -1,0 +1,14 @@
+<CF5 pHospitalCode="">
+    <DRGCLAIM
+        ClaimNumber="300806-20221216-1-5"
+        PrimaryCode="K501"
+        NewBornAdmWeight=""
+        Remarks="">
+        <SECONDARYDIAGS >
+            <SECONDARYDIAG SecondaryCode="M0744" Remarks="" />
+        </SECONDARYDIAGS>
+        <PROCEDURES >
+            <PROCEDURE RvsCode="" Laterality="" Ext1="" Ext2="" Remarks="" />
+        </PROCEDURES>
+    </DRGCLAIM>
+</CF5>

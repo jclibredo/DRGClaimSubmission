@@ -19,7 +19,6 @@ import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.XMLErrors;
 import drg.drgclaimsubmission.structures.dtd.CF5;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.NamedParameterStatement;
 import drg.drgclaimsubmission.utilities.Utility;
@@ -75,7 +74,6 @@ public class DRGClaims {
     private DataSource datasource;
 
     private final Utility utility = new Utility();
-    private final DRGUtility drgutility = new DRGUtility();
     private final ValidateXMLWithDTD vxwdtd = new ValidateXMLWithDTD();
     private final RemoveTrailingSpaces removedSpace = new RemoveTrailingSpaces();
     private final ParseEClaimsDrgXML ped = new ParseEClaimsDrgXML();
@@ -136,7 +134,7 @@ public class DRGClaims {
                 result.setMessage("DRG XML File NOT FOUND");
                 result.setResult("");
                 result.setSuccess(false);
-            } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0 || ClaimSeriesNum.replaceAll("\\s+", "").length() > 14 || ClaimSeriesNum.replaceAll("\\s+", "").length() < 14) {
+            } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                 String drgfilelines = "";
                 String drgfilecontents = "";
                 try {
@@ -168,12 +166,16 @@ public class DRGClaims {
                     while ((drgfileline = reader.readLine()) != null) {
                         drgfilecontent += drgfileline;
                     }
+
                     //  METHOD THIS AREA SI TO GET DATA FROM NCLAIMS USING CLAIM SERRIES NUMBER
                     String claimsSeriesLhioNums = ClaimSeriesNum.replaceAll("\\s+", "");
+
                     String claimsSerries = claimsSeriesLhioNums.substring(0, Math.min(claimsSeriesLhioNums.length(), 13));
                     String lhio = claimsSeriesLhioNums.substring(Math.max(claimsSeriesLhioNums.length() - 2, 0));
                     DRGWSResult cleanData = removedSpace.RemoveTrailingSpaces(drgfilecontent);
+                    // System.out.println(drgfilecontent);
                     DRGWSResult validatedData = vxwdtd.ValidateXMLWithDTD(cleanData.getResult(), datasource, lhio, claimsSerries, drgfilename);
+
                     result.setResult(validatedData.getResult());
                     result.setMessage(validatedData.getMessage());
                     result.setSuccess(validatedData.isSuccess());
@@ -209,10 +211,6 @@ public class DRGClaims {
             } else {
                 String drgfilename = drgdetail.getFileName();
                 String eclaimsfilename = eclaimsdetail.getFileName();
-                //Generate DTD File
-
-//                String dtdfilepath = "DRG.dtd";
-                //End line to Generate DTD File 
                 if (drgfilename.length() == 0 && eclaimsfilename.length() == 0) {
                     result.setMessage("XML File NOT FOUND");
                     result.setResult("");
@@ -232,7 +230,7 @@ public class DRGClaims {
                     while ((drgfileline = reader.readLine()) != null) {
                         stringdrgxml += drgfileline;
                     }
-                    String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + drgutility.DTDFilePath() + "]>\n" + stringdrgxml;
+                    String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + utility.DTDFilePath() + "]>\n" + stringdrgxml;
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     dbf.setValidating(true);
                     DocumentBuilder db;
@@ -274,7 +272,6 @@ public class DRGClaims {
                     }
                     //END E-CLAIMS XML PARSING AREA
                     if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
-
                         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                         Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
@@ -304,7 +301,6 @@ public class DRGClaims {
 
                             if (nNodecf2.getNodeType() == Node.ELEMENT_NODE) {
                                 Element eElementcf2 = (Element) nNodecf2;
-
                                 nclaimsdata.setAdmissionDate(eElementcf2.getAttribute("pAdmissionDate"));
                                 nclaimsdata.setTimeAdmission(eElementcf2.getAttribute("pAdmissionTime"));
                                 nclaimsdata.setDischargeDate(eElementcf2.getAttribute("pDischargeDate"));

@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
@@ -30,7 +29,6 @@ public class ValidateSecondaryDiag {
     }
     private final Utility utility = new Utility();
     private final GrouperMethod gm = new GrouperMethod();
-    private final DRGUtility drgutility = new DRGUtility();
 
     public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata) throws IOException {
         DRGWSResult result = utility.DRGWSResult();
@@ -52,8 +50,8 @@ public class ValidateSecondaryDiag {
                     errors.add("502");
                 } else {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
-                        String days = String.valueOf(drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
-                        String year = String.valueOf(drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                        String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                        String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
                         int finalDays = 0;
                         if (Integer.parseInt(year) > 0) {
                             finalDays = Integer.parseInt(year) * 365;
@@ -61,11 +59,11 @@ public class ValidateSecondaryDiag {
                             finalDays = Integer.parseInt(days);
                         }
 
-                        if (drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
-                                && drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0) {
+                        if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
+                                && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0) {
                             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
-                                if (drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
-                                        && drgutility.ComputeDay(nclaimsdata.getDateofBirth(),
+                                if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
+                                        && utility.ComputeDay(nclaimsdata.getDateofBirth(),
                                                 nclaimsdata.getAdmissionDate()) >= 0 && !SDxCode.isEmpty()) {
                                     DRGWSResult SDxResult = gm.GetICD10(datasource, SDxCode);
                                     if (SDxResult.isSuccess()) {

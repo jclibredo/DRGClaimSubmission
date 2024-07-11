@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.seekermethod;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.KeyPerValueError;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
@@ -33,7 +32,6 @@ public class DataArrangement {
 
     private final Utility utility = new Utility();
     private final GrouperMethod gm = new GrouperMethod();
-    private final DRGUtility drgutility = new DRGUtility();
     private final DataProcess dataprocess = new DataProcess();
     // GrouperParameter newGrouperParam = utility.GrouperParameter();
 
@@ -79,8 +77,8 @@ public class DataArrangement {
             if (!grouperparam.getBirthDate().isEmpty() && !grouperparam.getAdmissionDate().isEmpty()) {
                 if (!utility.IsValidDate(grouperparam.getBirthDate()) || !utility.IsValidDate(grouperparam.getAdmissionDate())) {
                 } else {
-                    if (drgutility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) <= 0
-                            && drgutility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) < 0) {
+                    if (utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) <= 0
+                            && utility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) < 0) {
                         // errors.add("DateofBirth Must be less than or equal to AdmissionDate : ");
                         errors.add("219");
                     }
@@ -93,12 +91,12 @@ public class DataArrangement {
                 if (!utility.IsValidDate(grouperparam.getBirthDate()) || !utility.IsValidDate(grouperparam.getAdmissionDate()) || !utility.IsValidDate(grouperparam.getDischargeDate())) {
                 } else if (!utility.IsValidTime(grouperparam.getTimeAdmission()) || !utility.IsValidTime(grouperparam.getTimeDischarge())) {
                 } else {
-                    int oras = drgutility.ComputeTime(grouperparam.getAdmissionDate(), grouperparam.getTimeAdmission(), grouperparam.getDischargeDate(), grouperparam.getTimeDischarge());
-                    int araw = drgutility.ComputeDay(grouperparam.getAdmissionDate(), grouperparam.getDischargeDate());
-                    int minuto = drgutility.MinutesCompute(grouperparam.getAdmissionDate(), grouperparam.getTimeAdmission(), grouperparam.getDischargeDate(), grouperparam.getTimeDischarge());
-                    int taon = drgutility.ComputeYear(grouperparam.getAdmissionDate(), grouperparam.getDischargeDate());
+                    int oras = utility.ComputeTime(grouperparam.getAdmissionDate(), grouperparam.getTimeAdmission(), grouperparam.getDischargeDate(), grouperparam.getTimeDischarge());
+                    int araw = utility.ComputeDay(grouperparam.getAdmissionDate(), grouperparam.getDischargeDate());
+                    int minuto = utility.MinutesCompute(grouperparam.getAdmissionDate(), grouperparam.getTimeAdmission(), grouperparam.getDischargeDate(), grouperparam.getTimeDischarge());
+                    int taon = utility.ComputeYear(grouperparam.getAdmissionDate(), grouperparam.getDischargeDate());
 
-                    if (drgutility.ComputeLOS(grouperparam.getAdmissionDate(), grouperparam.getTimeAdmission(), grouperparam.getDischargeDate(), grouperparam.getTimeDischarge()) == 0) {
+                    if (utility.ComputeLOS(grouperparam.getAdmissionDate(), grouperparam.getTimeAdmission(), grouperparam.getDischargeDate(), grouperparam.getTimeDischarge()) == 0) {
                         if (araw <= 0 && oras < 0) {
                             //errors.add("AdmissionTime Greater than DischargeTime not valid in same date");
                             errors.add("220");
@@ -163,8 +161,8 @@ public class DataArrangement {
             if (!grouperparam.getBirthDate().isEmpty() && !grouperparam.getAdmissionDate().isEmpty()) {
                 if (!utility.IsValidDate(grouperparam.getBirthDate()) || !utility.IsValidDate(grouperparam.getAdmissionDate())) {
                 } else {
-                    if (drgutility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) == 0
-                            && drgutility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) < 28) {
+                    if (utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) == 0
+                            && utility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) < 28) {
                         if (!grouperparam.getAdmissionWeight().equals("")) {
                             if (!utility.isValidNumeric(grouperparam.getAdmissionWeight())) {
                                 errors.add("227");
@@ -192,7 +190,7 @@ public class DataArrangement {
                                         DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code);
                                         if (!checkRVStoICD9cm.isSuccess()) {
                                             int gendercounter = 0;
-                                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                                             statement.setString("rvs_code", rvs_code);
                                             statement.execute();
@@ -203,9 +201,8 @@ public class DataArrangement {
                                                     List<String> ConverterResult = Arrays.asList(ProcList.trim().split(","));
                                                     for (int ptr = 0; ptr < ConverterResult.size(); ptr++) {
                                                         String ICD9Codes = ConverterResult.get(ptr);
-                                                        int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                                        if (datafound == 0) {
-                                                        } else {
+                                                        //int datafound = gm.CountProc(datasource, ICD9Codes.trim());
+                                                        if (gm.CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
                                                             DRGWSResult sexvalidationresult = gm.GenderConfictValidationProc(datasource, ICD9Codes.trim(), grouperparam.getGender());
                                                             if (!sexvalidationresult.isSuccess()) {
                                                                 gendercounter++;
@@ -216,9 +213,9 @@ public class DataArrangement {
                                                     warningerror.add("203");
                                                 }
                                             } else {
-                                                if (!rvs_code.isEmpty()) {
-                                                    warningerror.add("203");
-                                                }
+                                                // if (!rvs_code.isEmpty()) {
+                                                warningerror.add("203");
+                                                // }
                                             }
                                             if (gendercounter > 0) {
                                                 warningerror.add("507");
@@ -254,13 +251,13 @@ public class DataArrangement {
                     warningerror.add("502");
                 } else {
                     if (!grouperparam.getBirthDate().isEmpty() && !grouperparam.getAdmissionDate().isEmpty()) {
-                        String days = String.valueOf(drgutility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
-                        String year = String.valueOf(drgutility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
-                        if (drgutility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0
-                                && drgutility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0) {
+                        String days = String.valueOf(utility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
+                        String year = String.valueOf(utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()));
+                        if (utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0
+                                && utility.ComputeDay(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0) {
                             if (!grouperparam.getBirthDate().isEmpty() && !grouperparam.getAdmissionDate().isEmpty()) {
-                                if (drgutility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0
-                                        && drgutility.ComputeDay(grouperparam.getBirthDate(),
+                                if (utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0
+                                        && utility.ComputeDay(grouperparam.getBirthDate(),
                                                 grouperparam.getAdmissionDate()) >= 0 && !SDxCode.isEmpty()) {
                                     DRGWSResult SDxResult = gm.GetICD10(datasource, SDxCode);
                                     if (SDxResult.isSuccess()) {

@@ -9,7 +9,6 @@ import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
@@ -39,7 +38,6 @@ public class InsertDRGClaims {
     }
 
     private final Utility utility = new Utility();
-    private final DRGUtility drgutility = new DRGUtility();
     private final GrouperMethod gm = new GrouperMethod();
 
     public DRGWSResult InsertDRGClaims(final DRGCLAIM drgclaim,
@@ -69,8 +67,8 @@ public class InsertDRGClaims {
             Date datetoday = new Date();
             String result_id = utility.RandomNumeric(6) + "" + formatter.format(datetoday);
             //---------------------------
-            String days = String.valueOf(drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
-            String year = String.valueOf(drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+            String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+            String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
             int finalDays = 0;
             if (Integer.parseInt(year) > 0) {
                 finalDays = Integer.parseInt(year) * 365;
@@ -85,7 +83,7 @@ public class InsertDRGClaims {
             //======================================================
             //INSERTION OF SECONDARY DIAGNOSIS 
             //END INSERTION OF SECONDARY DIAGNOSIS 
-            CallableStatement ps = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
+            CallableStatement ps = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
                     + ":Message, :Code, "
                     + ":PDX_CODE, :NB_TOB, "
                     + ":NB_ADMWEIGHT,:SERIES, "
@@ -105,7 +103,7 @@ public class InsertDRGClaims {
             }
 
             //====================================================== INSERTION FOR WARNING ERROR
-            CallableStatement error = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
+            CallableStatement error = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
                     + ":Message, :Code, "
                     + ":claimNum,:rest_id,:series_error, :code_error, "
                     + ":data_error,:desc_error, "
@@ -113,7 +111,7 @@ public class InsertDRGClaims {
             //=======================================================================================  
             //SECONDARY DIAGNOSIS INSERTION OF DATA TO DATABASE
             for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
-                CallableStatement insertsecondary = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
+                CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
                 String datas = drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode();
@@ -225,7 +223,7 @@ public class InsertDRGClaims {
             }
             // RVS MANIPULATION AREA ==========PROCESS FIRST THE REPITITION OF RVS 
             for (int proc = 0; proc < drgclaim.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                CallableStatement insertprocedure = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PROCEDURE("
+                CallableStatement insertprocedure = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PROCEDURE("
                         + ":Message, :Code, "
                         + ":claimNum,:RVS, "
                         + ":LATERALITY, :EXT1_CODE, "
@@ -288,8 +286,8 @@ public class InsertDRGClaims {
                             String ProcList = resultset.getString("ICD9CODE");
                             List<String> ConverterResult = Arrays.asList(ProcList.split(","));
                             for (int g = 0; g < ConverterResult.size(); g++) {
-                                int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
-                                if (datafound != 0) {
+                              //  int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
+                                if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                     DRGWSResult procgendervalidation = gm.GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
                                     if (!procgendervalidation.isSuccess()) {
                                         conflictcounter++;
@@ -312,12 +310,11 @@ public class InsertDRGClaims {
                                 if (!error.getString("Message").equals("SUCC")) {
                                     ErrMessage.add(error.getString("Message"));
                                 }
-
                             } else {
                                 for (int g = 0; g < ConverterResult.size(); g++) {
                                     String ICD9Codes = ConverterResult.get(g);
-                                    int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                    if (datafound != 0) {
+                                    //int datafound = gm.CountProc(datasource, ICD9Codes.trim());
+                                    if (gm.CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
                                         insertprocedure.setString("claimNum", drgclaim.getClaimNumber());
                                         insertprocedure.setString("RVS", procedure.getRvsCode());
                                         insertprocedure.setString("LATERALITY", procedure.getLaterality());

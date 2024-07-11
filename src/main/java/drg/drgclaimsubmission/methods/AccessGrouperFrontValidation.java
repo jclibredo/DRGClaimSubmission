@@ -5,14 +5,13 @@
  */
 package drg.drgclaimsubmission.methods;
 
-import drg.drgclaimsubmission.structures.DRGOutput;
+
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.WarningErrorList;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
-import drg.drgclaimsubmission.utilities.DRGUtility;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
@@ -44,7 +43,6 @@ public class AccessGrouperFrontValidation {
     public AccessGrouperFrontValidation() {
     }
     private final Utility utility = new Utility();
-    private final DRGUtility drgutility = new DRGUtility();
     private final GrouperMethod gm = new GrouperMethod();
 
     public DRGWSResult AccessGrouperFrontValidation(final DRGCLAIM drgclaim,
@@ -59,7 +57,6 @@ public class AccessGrouperFrontValidation {
         String[] laterality = {"L", "R", "B"};
         String[] exten = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         ArrayList<WarningErrorList> warningerrorlist = new ArrayList<>();
-
         GrouperParameter grouperparameterlist = utility.GrouperParameter();
 
         //===============================================PACKAGE CODE=======================================
@@ -68,8 +65,6 @@ public class AccessGrouperFrontValidation {
             connection.setAutoCommit(false);
             ArrayList<String> drgCode = new ArrayList<>();
             ArrayList<String> drgName = new ArrayList<>();
-            //System.out.println(errors.toString());
-            DRGOutput drgresult = utility.DRGOutput();
             if (errors.size() > 0) {
                 for (int x = 0; x < errors.size(); x++) {
                     List<String> errorlist = Arrays.asList(errors.get(x).split(","));
@@ -193,8 +188,8 @@ public class AccessGrouperFrontValidation {
                     result.setSuccess(false);
                 }
             } else {
-                String days = String.valueOf(drgutility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
-                String year = String.valueOf(drgutility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
 
                 //======================================================
                 //Process Procedure
@@ -283,7 +278,7 @@ public class AccessGrouperFrontValidation {
                         DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
-                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                             statement.setString("rvs_code", rvs_code);
                             statement.execute();
@@ -293,8 +288,8 @@ public class AccessGrouperFrontValidation {
                                 String ProcList = resultset.getString("ICD9CODE");
                                 List<String> ConverterResult = Arrays.asList(ProcList.split(","));
                                 for (int g = 0; g < ConverterResult.size(); g++) {
-                                    int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
-                                    if (datafound != 0) {
+                                    //  int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
+                                    if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                         DRGWSResult procgendervalidation = gm.GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
                                         if (!procgendervalidation.isSuccess()) {
                                             conflictcounter++;
@@ -309,14 +304,13 @@ public class AccessGrouperFrontValidation {
                                 } else {
                                     for (int g = 0; g < ConverterResult.size(); g++) {
                                         String ICD9Codes = ConverterResult.get(g);
-                                        int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                        if (datafound != 0) {
-                                            if (procedure.getExt2().trim().equals("1")) {
+                                        // int datafound = gm.CountProc(datasource, ICD9Codes.trim());
+                                        if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
+                                            if (procedure.getExt2().trim().equals("1") && procedure.getExt1().trim().equals("1")) {
                                                 procedurejoin.add(ICD9Codes.trim());
                                             } else {
                                                 procedurejoin.add(ICD9Codes.trim() + ">1");
                                             }
-
                                         }
                                     }
 
@@ -398,9 +392,9 @@ public class AccessGrouperFrontValidation {
                     result.setMessage(connections.getResponseMessage());
                 }
                 connections.disconnect();
-                
+
             }
-            
+
         } catch (MalformedURLException ex) {
             result.setMessage(ex.getMessage());
             Logger.getLogger(AccessGrouperFrontValidation.class.getName()).log(Level.SEVERE, null, ex);

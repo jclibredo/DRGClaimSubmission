@@ -79,22 +79,21 @@ public class GrouperMethod {
             List<String> FinalNewProcList = new ArrayList<>();
             CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
             statement.registerOutParameter("converter", OracleTypes.CURSOR);
-            statement.setString("rvs_code", rvs_code);
+            statement.setString("rvs_code", rvs_code.trim());
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("converter");
             if (resultset.next()) {
                 ProcListNew = resultset.getString("ICD9CODE");
                 List<String> ConverterResult = Arrays.asList(ProcListNew.split(","));
                 for (int g = 0; g < ConverterResult.size(); g++) {
-                    String ICD9Codes = ConverterResult.get(g);
+                    String ICD9Codes = ConverterResult.get(g).trim();
                     FinalNewProcList.add(ICD9Codes);
                 }
                 result.setResult(ProcListNew);
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
-
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(GrouperMethod.class.getName()).log(Level.SEVERE, null, ex);
@@ -105,13 +104,12 @@ public class GrouperMethod {
     // GET ALL ICD10
     public DRGWSResult GetAllICD10(final DataSource datasource) throws IOException {
         DRGWSResult result = utility.DRGWSResult();
+        result.setSuccess(false);
+        result.setMessage("");
+        result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            result.setSuccess(false);
-            result.setMessage("");
-            result.setResult("");
             CallableStatement statement = connection.prepareCall("begin :icd10 := MINOSUN.DRGPKGFUNCTION.get_all_icd10(); end;");
             statement.registerOutParameter("icd10", OracleTypes.CURSOR);
-
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("icd10");
             ArrayList<ValidICD10> list_icd = new ArrayList<>();
@@ -120,19 +118,18 @@ public class GrouperMethod {
                 ValidICD10 cd = new ValidICD10();
                 cd.setValidcode(resultset.getString("validcode"));
                 cd.setDescription(resultset.getString("description"));
-                cd.setCode(resultset.getString("code"));
+                cd.setCode(resultset.getString("code").trim());
                 list_icd.add(cd);
             }
 
             if (list_icd.size() > 0) {
                 String datas = utility.objectMapper().writeValueAsString(list_icd);// supplier.toString();
                 result.setResult(datas);
-                result.setMessage("Succesfully Retrieved Data");
+                result.setMessage("OK");
                 result.setSuccess(true);
             } else {
                 result.setMessage("No Record Found");
             }
-
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(GrouperMethod.class.getName()).log(Level.SEVERE, null, ex);
@@ -154,10 +151,10 @@ public class GrouperMethod {
     // GET ICD10 FOR PRE MDC VALIDATION PROCESS
     public DRGWSResult GetICD10PreMDC(final DataSource datasource, final String pdx) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setSuccess(false);
+        result.setMessage("");
+        result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            result.setSuccess(false);
-            result.setMessage("");
-            result.setResult("");
             CallableStatement statement = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
             statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
             statement.setString("pdx", pdx);
@@ -183,7 +180,7 @@ public class GrouperMethod {
                 result.setResult(utility.objectMapper().writeValueAsString(premdc));
                 result.setMessage(resultset.getString("CCROW"));
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
         } catch (SQLException | IOException ex) {
             result.setMessage(ex.toString());
@@ -195,20 +192,25 @@ public class GrouperMethod {
     //public MethodResult GET ACCPDX VALUE FROM ICD10_PREMDC TABLE
     public DRGWSResult GetClaimDuplication(final DataSource datasource, final String accre, final String claimnum, final String series) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setSuccess(false);
+        result.setMessage("");
+        result.setResult("");
+        System.out.println(accre);
+          System.out.println(claimnum);
+            System.out.println(series);
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := MINOSUN.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
             getduplication.registerOutParameter("dupnclaims", OracleTypes.CURSOR);
-            getduplication.setString("accre", accre);
-            getduplication.setString("claimnum", claimnum);
-            getduplication.setString("series", series);
+            getduplication.setString("accre", accre.trim());
+            getduplication.setString("claimnum", claimnum.trim());
+            getduplication.setString("series", series.trim());
             getduplication.execute();
             ResultSet getduplicationResult = (ResultSet) getduplication.getObject("dupnclaims");
             if (getduplicationResult.next()) {
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
-
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(GrouperMethod.class.getName()).log(Level.SEVERE, null, ex);
@@ -217,22 +219,28 @@ public class GrouperMethod {
     }
 
 //count rvs value
-    public int CountProc(final DataSource datasource, final String codes) {
-        int icd9 = 0;
+    public DRGWSResult CountProc(final DataSource datasource, final String codes) {
+        DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
+        //  int icd9 = 0;
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getResult = connection.prepareCall("begin :count_output := MINOSUN.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
             getResult.registerOutParameter("count_output", OracleTypes.CURSOR);
-            getResult.setString("codes", codes);
+            getResult.setString("codes", codes.trim());
             getResult.execute();
             ResultSet rest = (ResultSet) getResult.getObject("count_output");
-           if (rest.next()) {
-                icd9 = Integer.parseInt(rest.getString("countrest"));
+            if (rest.next()) {
+                // icd9 = Integer.parseInt(rest.getString("countrest"));
+                result.setSuccess(true);
             }
         } catch (SQLException ex) {
+            result.setMessage(ex.getLocalizedMessage());
             Logger.getLogger(GrouperMethod.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return icd9;
-        
+        return result;
+
     }
 
     //public Method for Insert DRG Auditrail
@@ -243,8 +251,10 @@ public class GrouperMethod {
             final String claimnum,
             final String filecontent) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-
             SimpleDateFormat sdf = utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
             Date date = new Date();
             CallableStatement auditrail = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:datein,:discreption,:stats,:seriesnum,:claimnum,:filecontent)");
@@ -263,10 +273,8 @@ public class GrouperMethod {
                 result.setSuccess(true);
                 result.setMessage(" Successfully save to logs Date:" + sdf.format(date));
             } else {
-                result.setSuccess(false);
                 result.setMessage(auditrail.getString("Message") + " Date:" + sdf.format(date));
             }
-
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(GrouperMethod.class.getName()).log(Level.SEVERE, null, ex);
@@ -284,6 +292,9 @@ public class GrouperMethod {
             final String proc,
             final String result_id) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
             String tagss = "FG";
             CallableStatement grouperdata = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_RESULT(:Message,:Code,:claimNum,:rest_id,:series,:tags,:lhio,:pdx,:sdx,:proc)");
@@ -340,7 +351,7 @@ public class GrouperMethod {
             if (grouperdata.getString("Message").equals("SUCC")) {
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -388,10 +399,13 @@ public class GrouperMethod {
             final String age_day,
             final String age_min_year) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getAgeValidation = connection.prepareCall("begin :age_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
             getAgeValidation.registerOutParameter("age_validation", OracleTypes.CURSOR);
-            getAgeValidation.setString("p_pdx_code", p_pdx_code);
+            getAgeValidation.setString("p_pdx_code", p_pdx_code.trim());
             getAgeValidation.setString("age_day", age_day);
             getAgeValidation.setString("age_min_year", age_min_year);
             getAgeValidation.execute();
@@ -399,7 +413,7 @@ public class GrouperMethod {
             if (getAgeValidationResult.next()) {
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -413,17 +427,20 @@ public class GrouperMethod {
             final String p_pdx_code,
             final String gender) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getSexValidation = connection.prepareCall("begin :gender_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
             getSexValidation.registerOutParameter("gender_validation", OracleTypes.CURSOR);
-            getSexValidation.setString("p_pdx_code", p_pdx_code);
+            getSexValidation.setString("p_pdx_code", p_pdx_code.trim());
             getSexValidation.setString("gender", gender);
             getSexValidation.execute();
             ResultSet getSexValidationResult = (ResultSet) getSexValidation.getObject("gender_validation");
             if (getSexValidationResult.next()) {
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -437,17 +454,20 @@ public class GrouperMethod {
             final String procode,
             final String gender) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getSexProcValidation = connection.prepareCall("begin :age_proc_validation := MINOSUN.DRGPKGFUNCTION.PROC_AGE_VALIDATION(:procode,:gender); end;");
             getSexProcValidation.registerOutParameter("age_proc_validation", OracleTypes.CURSOR);
-            getSexProcValidation.setString("procode", procode);
+            getSexProcValidation.setString("procode", procode.trim());
             getSexProcValidation.setString("gender", gender);
             getSexProcValidation.execute();
             ResultSet getSexProcValidationResult = (ResultSet) getSexProcValidation.getObject("age_proc_validation");
             if (getSexProcValidationResult.next()) {
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -461,16 +481,19 @@ public class GrouperMethod {
     public DRGWSResult CheckICD9cm(final DataSource datasource,
             final String rvs) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getResult = connection.prepareCall("begin :icd9code_output := MINOSUN.DRGPKGFUNCTION.GET_ICD9(:rvs); end;");
             getResult.registerOutParameter("icd9code_output", OracleTypes.CURSOR);
-            getResult.setString("rvs", rvs);
+            getResult.setString("rvs", rvs.trim());
             getResult.execute();
             ResultSet getResultSet = (ResultSet) getResult.getObject("icd9code_output");
             if (getResultSet.next()) {
                 result.setSuccess(true);
             } else {
-                result.setSuccess(false);
+                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());

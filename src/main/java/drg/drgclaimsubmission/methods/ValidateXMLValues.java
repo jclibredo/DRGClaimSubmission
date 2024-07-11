@@ -56,55 +56,55 @@ public class ValidateXMLValues {
 
         try (Connection connection = datasource.getConnection()) {
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
-            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := DRG_SHADOWBILLING.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
+            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
             getdrg_nclaims.registerOutParameter("nclaims", OracleTypes.CURSOR);
-            getdrg_nclaims.setString("seriesnumss", claimseries);
+            getdrg_nclaims.setString("seriesnumss", claimseries.trim());
             getdrg_nclaims.execute();
             ResultSet getdrg_nclaims_result = (ResultSet) getdrg_nclaims.getObject("nclaims");
             while (getdrg_nclaims_result.next()) {
                 NClaimsData nclaimsdata = new NClaimsData();
 
                 //EXPIREDTIME
-                if (getdrg_nclaims_result.getTime("EXPIREDTIME") == null) {
+                if (getdrg_nclaims_result.getTimestamp("EXPIREDTIME") == null) {
                     nclaimsdata.setExpiredTime("");
                 } else {
-                    nclaimsdata.setExpiredTime(timeformat.format(getdrg_nclaims_result.getTime("EXPIREDTIME")));
+                    nclaimsdata.setExpiredTime(timeformat.format(getdrg_nclaims_result.getTimestamp("EXPIREDTIME")));
                 }
                 //TIMEADMISSION
-                if (getdrg_nclaims_result.getTime("TIMEADMISSION") == null) {
+                if (getdrg_nclaims_result.getTimestamp("TIMEADMISSION") == null) {
                     nclaimsdata.setTimeAdmission("");
                 } else {
-                    nclaimsdata.setTimeAdmission(timeformat.format(getdrg_nclaims_result.getTime("TIMEADMISSION")));
+                    nclaimsdata.setTimeAdmission(timeformat.format(getdrg_nclaims_result.getTimestamp("TIMEADMISSION")));
                 }
                 //TIMEDISCHARGE
-                if (getdrg_nclaims_result.getTime("TIMEDISCHARGE") == null) {
+                if (getdrg_nclaims_result.getTimestamp("TIMEDISCHARGE") == null) {
                     nclaimsdata.setTimeDischarge("");
                 } else {
-                    nclaimsdata.setTimeDischarge(timeformat.format(getdrg_nclaims_result.getTime("TIMEDISCHARGE")));
+                    nclaimsdata.setTimeDischarge(timeformat.format(getdrg_nclaims_result.getTimestamp("TIMEDISCHARGE")));
                 }
                 //DISCHARGEDATE
-                if (getdrg_nclaims_result.getDate("DISCHARGEDATE") == null) {
+                if (getdrg_nclaims_result.getTimestamp("DISCHARGEDATE") == null) {
                     nclaimsdata.setDischargeDate("");
                 } else {
-                    nclaimsdata.setDischargeDate(dateformat.format(getdrg_nclaims_result.getDate("DISCHARGEDATE")));
+                    nclaimsdata.setDischargeDate(dateformat.format(getdrg_nclaims_result.getTimestamp("DISCHARGEDATE")));
                 }
                 //ADMISSIONDATE
-                if (getdrg_nclaims_result.getDate("ADMISSIONDATE") == null) {
+                if (getdrg_nclaims_result.getTimestamp("ADMISSIONDATE") == null) {
                     nclaimsdata.setAdmissionDate("");
                 } else {
-                    nclaimsdata.setAdmissionDate(dateformat.format(getdrg_nclaims_result.getDate("ADMISSIONDATE")));
+                    nclaimsdata.setAdmissionDate(dateformat.format(getdrg_nclaims_result.getTimestamp("ADMISSIONDATE")));
                 }
                 //EXPIREDDATE
-                if (getdrg_nclaims_result.getDate("EXPIREDDATE") == null) {
+                if (getdrg_nclaims_result.getTimestamp("EXPIREDDATE") == null) {
                     nclaimsdata.setExpiredDate("");
                 } else {
-                    nclaimsdata.setExpiredDate(dateformat.format(getdrg_nclaims_result.getDate("EXPIREDDATE")));
+                    nclaimsdata.setExpiredDate(dateformat.format(getdrg_nclaims_result.getTimestamp("EXPIREDDATE")));
                 }
                 //DATEOFBIRTH
-                if (getdrg_nclaims_result.getDate("DATEOFBIRTH") == null) {
+                if (getdrg_nclaims_result.getTimestamp("DATEOFBIRTH") == null) {
                     nclaimsdata.setDateofBirth("");
                 } else {
-                    nclaimsdata.setDateofBirth(dateformat.format(getdrg_nclaims_result.getDate("DATEOFBIRTH")));
+                    nclaimsdata.setDateofBirth(dateformat.format(getdrg_nclaims_result.getTimestamp("DATEOFBIRTH")));
                 }
                 //CLAIMNUMBER
                 nclaimsdata.setPclaimnumber(getdrg_nclaims_result.getString("CLAIMNUMBER").trim());
@@ -121,7 +121,8 @@ public class ValidateXMLValues {
                 KeyPerValueError viewerrors = utility.KeyPerValueError();
                 // VALIDATE IF CLAIMS IS EXISTED ALREADY
                 DRGWSResult getdupresults = gm.GetClaimDuplication(datasource, drg.getpHospitalCode().trim(), drg.getDrgclaim().getClaimNumber(), claimseries);
-                if (String.valueOf(getdupresults.isSuccess()).equals("false")) {
+                System.out.println(getdupresults);
+                if (!getdupresults.isSuccess()) {
                     String claimID = drg.getDrgclaim().getClaimNumber();
                     if (claimID.trim().length() > 0) {
                         xmlidlist.add(claimID);

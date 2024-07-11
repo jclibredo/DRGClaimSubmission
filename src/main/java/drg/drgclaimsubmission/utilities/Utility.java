@@ -16,7 +16,10 @@ import drg.drgclaimsubmission.structures.XMLReport;
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +29,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.sql.DataSource;
 import okhttp3.OkHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -36,6 +40,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 @ApplicationScoped
 @Singleton
 public class Utility {
+
+    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH);
 
     public Utility() {
     }
@@ -233,10 +239,10 @@ public class Utility {
     }
 
     public boolean ValidDate(String stringdate, String pattern) {
-        SimpleDateFormat sdf = this.SimpleDateFormat(pattern);
-        sdf.setLenient(false);
+        SimpleDateFormat newsdf = this.SimpleDateFormat(pattern);
+        newsdf.setLenient(false);
         try {
-            sdf.parse(stringdate);
+            newsdf.parse(stringdate);
             return true;
         } catch (ParseException e) {
             return false;
@@ -255,6 +261,209 @@ public class Utility {
             result = false;
         }
         return result;
+    }
+
+    //==============================================
+    public boolean MaxAge(String DOB, String AD) {
+        boolean result = false;
+        try {
+            java.util.Date DateOfBirth = sdf.parse(DOB);
+            java.util.Date AdmissioDate = sdf.parse(AD);//PARAM
+            long difference_In_Time = Math.abs(AdmissioDate.getTime() - DateOfBirth.getTime());
+            long AgeY = (difference_In_Time / (1000l * 60 * 60 * 24 * 365));
+            result = AgeY > 124;
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+
+    }
+
+    public int ComputeTime(String DateIn, String TimeIn, String DateOut, String TimeOut) throws ParseException {
+        String IN = DateIn + TimeIn;
+        String OUT = DateOut + TimeOut;
+        SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
+        Date AdmissionTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
+        Date DischargeTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+        long Time_difference = DischargeTime.getTime() - AdmissionTime.getTime();
+        long Hours_difference = (Time_difference / (1000 * 60 * 60)) % 24;
+        int result = (int) Hours_difference;
+
+        return result;
+    }
+
+    public int MinutesCompute(String datein, String timein, String dateout, String timeout) {
+        int result = 0;
+        try {
+            String IN = datein + timein;
+            String OUT = dateout + timeout;
+            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
+            Date AdmissionDateTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
+            Date DischargeDateTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+            long difference_In_Time = DischargeDateTime.getTime() - AdmissionDateTime.getTime();
+            long Minutes = (difference_In_Time / (1000 * 60)) % 60;
+
+            result = (int) Minutes;
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public int ComputeYear(String DOB, String AD) {
+        int result = 0;
+        try {
+            Date DateOfBirth = sdf.parse(DOB);
+            Date AdmissioDate = sdf.parse(AD);//PARAM
+            long difference_In_Time = AdmissioDate.getTime() - DateOfBirth.getTime();
+            long AgeY = (difference_In_Time / (1000l * 60 * 60 * 24 * 365));
+            result = (int) AgeY;
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+
+    }
+
+    public String Convert12to24(String times) {
+        String result = "";
+        SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mm a");
+        try {
+            Date dates = parseFormat.parse(times);
+            result = displayFormat.format(dates);
+
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public String Convert24to12(String times) {
+        String result = "";
+        SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mma");
+        try {
+            Date time24 = displayFormat.parse(times);
+            result = parseFormat.format(time24);
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public int ComputeDay(String DOB, String AD) throws ParseException {
+        Date DateOfBirth = sdf.parse(DOB);
+        Date AdmissioDate = sdf.parse(AD);//PARAM
+        long difference_In_Time = AdmissioDate.getTime() - DateOfBirth.getTime();
+        long difference_In_Days = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
+        int result = (int) difference_In_Days;
+        return result;
+    }
+
+    public int ComputeLOS(String datein, String timein, String dateout, String timeout) {
+        int result = 0;
+        try {
+            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
+            String IN = datein + timein;
+            String OUT = dateout + timeout;
+            Date AdmissioDate = times.parse(IN.replaceAll("\\s", "")); //PARAM
+            Date DischargeDate = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+            long difference_In_Time = DischargeDate.getTime() - AdmissioDate.getTime();
+            long CalLOS = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
+            result = (int) CalLOS;
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public String CodeConverter(DataSource datasouce, String rvs) {
+        GrouperMethod gm = new GrouperMethod();
+        String result = "";
+        List<String> ProcList = Arrays.asList(rvs.split(","));
+        for (int m = 0; m < ProcList.size(); m++) {
+            String rvs_code = ProcList.get(m);
+            DRGWSResult finalResult = gm.GetICD9cm(datasouce, rvs_code);
+            if (String.valueOf(finalResult.isSuccess()).equals(true)) {
+                result = finalResult.getResult();
+            }
+        }
+        return result;
+    }
+
+    public String SDxSecondary(DataSource datasouce, String icd10) {
+        GrouperMethod gm = new GrouperMethod();
+        String result = "";
+        List<String> ProcList = Arrays.asList(icd10.split(","));
+        for (int m = 0; m < ProcList.size(); m++) {
+            String rvs_code = ProcList.get(m);
+            DRGWSResult finalResult = gm.GetICD9cm(datasouce, rvs_code);
+            if (String.valueOf(finalResult.isSuccess()).equals(true)) {
+                result = finalResult.getResult();
+            }
+        }
+        return result;
+    }
+
+    //DTD File in string format
+//    public String DTDFilePath() {
+//        String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)>\n"
+//                + "<!ATTLIST CF5 \n"
+//                + "     pHospitalCode       CDATA #REQUIRED\n"
+//                + "   >\n"
+//                + "<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)>\n "
+//                + "<!ATTLIST DRGCLAIM \n"
+//                + "     PrimaryCode         CDATA #REQUIRED\n"
+//                + "     NewBornAdmWeight    CDATA #REQUIRED\n"
+//                + "     Remarks             CDATA #REQUIRED\n"
+//                + "     ClaimNumber         CDATA #REQUIRED\n"
+//                + ">\n"
+//                + "<!ELEMENT SECONDARYDIAGS (SECONDARYDIAG)+>\n"
+//                + "<!ELEMENT SECONDARYDIAG EMPTY>\n"
+//                + "<!ATTLIST SECONDARYDIAG\n"
+//                + "     SecondaryCode       CDATA #REQUIRED\n"
+//                + "     Remarks             CDATA #REQUIRED\n"
+//                + "   >\n"
+//                + "<!ELEMENT PROCEDURES (PROCEDURE)+>\n"
+//                + "<!ELEMENT PROCEDURE EMPTY>\n"
+//                + "<!ATTLIST PROCEDURE\n"
+//                + "  RvsCode 		CDATA #REQUIRED\n"
+//                + "  Laterality         CDATA #REQUIRED\n"
+//                + "  Ext1 		CDATA #REQUIRED\n"
+//                + "  Ext2 		CDATA #REQUIRED\n"
+//                + "  Remarks 		CDATA #REQUIRED\n"
+//                + "   >";
+//        return DTDFile;
+//    }
+    public String DTDFilePath() {
+        String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)*>\n"
+                + "<!ATTLIST CF5 \n"
+                + "     pHospitalCode       CDATA #REQUIRED\n"
+                + "   >\n"
+                + "<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)*>\n "
+                + "<!ATTLIST DRGCLAIM \n"
+                + "     PrimaryCode         CDATA #REQUIRED\n"
+                + "     NewBornAdmWeight    CDATA #REQUIRED\n"
+                + "     Remarks             CDATA #REQUIRED\n"
+                + "     ClaimNumber         CDATA #REQUIRED\n"
+                + ">\n"
+                + "<!ELEMENT SECONDARYDIAGS (SECONDARYDIAG)*>\n"
+                + "<!ELEMENT SECONDARYDIAG EMPTY>\n"
+                + "<!ATTLIST SECONDARYDIAG\n"
+                + "     SecondaryCode       CDATA #REQUIRED\n"
+                + "     Remarks             CDATA #REQUIRED\n"
+                + "   >\n"
+                + "<!ELEMENT PROCEDURES (PROCEDURE)*>\n"
+                + "<!ELEMENT PROCEDURE EMPTY>\n"
+                + "<!ATTLIST PROCEDURE\n"
+                + "  RvsCode 		CDATA #REQUIRED\n"
+                + "  Laterality         CDATA #REQUIRED\n"
+                + "  Ext1 		CDATA #REQUIRED\n"
+                + "  Ext2 		CDATA #REQUIRED\n"
+                + "  Remarks 		CDATA #REQUIRED\n"
+                + "   >";
+        return DTDFile;
     }
 
 }

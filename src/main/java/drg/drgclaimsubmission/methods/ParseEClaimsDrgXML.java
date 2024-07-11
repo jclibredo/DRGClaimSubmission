@@ -68,12 +68,9 @@ public class ParseEClaimsDrgXML {
                                 KeyPerValueError viewerror = utility.KeyPerValueError();
                                 ArrayList<String> errorlist = new ArrayList<>();
                                 ArrayList<String> warningerror = new ArrayList<>();
-
                                 DRGWSResult vprodResult = VDC.ValidateDRGClaims(datasource, drg.getDrgclaim(), nclaimsdatalist.get(y));
                                 DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
                                 //drgs.add(drgclaim);
-                                //---------------------------------------------------
-
                                 drgclaims.setClaimNumber(drgclaim.getClaimNumber());
                                 drgclaims.setPrimaryCode(drgclaim.getPrimaryCode());
                                 drgclaims.setNewBornAdmWeight(drgclaim.getNewBornAdmWeight());
@@ -81,11 +78,6 @@ public class ParseEClaimsDrgXML {
                                 drgclaims.setPROCEDURES(drgclaim.getPROCEDURES());
                                 drgclaims.setSECONDARYDIAGS(drgclaim.getSECONDARYDIAGS());
                                 //-----------------------------------------------------
-
-                                //-----------------------------------------------------
-//                                    if (!drgs.getDRGCLAIM().get(b).getRemarks().isEmpty()) {
-//                                        errorlist.add(drgclaim.getRemarks());
-//                                    }
                                 if (!drgclaims.getRemarks().isEmpty()) {
                                     errorlist.add(drgclaims.getRemarks());
                                 }
@@ -97,7 +89,6 @@ public class ParseEClaimsDrgXML {
                                     String lat = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality();
                                     String remarks = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks();
                                     //=========================================================================
-                                    //------------------------------------------------------------------------------
                                     if (!remarks.isEmpty()) {
                                         warningerror.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
                                     }
@@ -125,7 +116,6 @@ public class ParseEClaimsDrgXML {
                                 for (int i = 0; i < SecondaryData.size() - 1; i++) {
                                     for (int j = i + 1; j < SecondaryData.size(); j++) {
                                         if (SecondaryData.get(i).equals(SecondaryData.get(j)) && (i != j)) {
-                                            // warningerror.add(SecondaryData.get(j) + " has duplicate");
                                             warningerror.add("503");
                                             duplsdx.add(String.valueOf(j));
                                         }
@@ -135,7 +125,6 @@ public class ParseEClaimsDrgXML {
                                 for (int i = 0; i < ProcedureData.size() - 1; i++) {
                                     for (int j = i + 1; j < ProcedureData.size(); j++) {
                                         if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
-                                            // warningerror.add(ProcedureData.get(j) + " has duplicate");
                                             warningerror.add("508");
                                             duplproc.add(String.valueOf(j));
                                         }
