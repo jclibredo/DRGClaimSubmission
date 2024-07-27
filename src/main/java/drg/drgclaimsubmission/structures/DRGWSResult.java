@@ -16,4 +16,9 @@ public class DRGWSResult {
     private boolean success;
     private String message;
     private String result;
+    
+    
+    
 }
+
+

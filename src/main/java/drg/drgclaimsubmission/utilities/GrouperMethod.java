@@ -121,7 +121,6 @@ public class GrouperMethod {
                 cd.setCode(resultset.getString("code").trim());
                 list_icd.add(cd);
             }
-
             if (list_icd.size() > 0) {
                 String datas = utility.objectMapper().writeValueAsString(list_icd);// supplier.toString();
                 result.setResult(datas);
@@ -195,9 +194,6 @@ public class GrouperMethod {
         result.setSuccess(false);
         result.setMessage("");
         result.setResult("");
-        System.out.println(accre);
-          System.out.println(claimnum);
-            System.out.println(series);
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := MINOSUN.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
             getduplication.registerOutParameter("dupnclaims", OracleTypes.CURSOR);
@@ -271,7 +267,7 @@ public class GrouperMethod {
             //======================================================================
             if (auditrail.getString("Message").equals("SUCC")) {
                 result.setSuccess(true);
-                result.setMessage(" Successfully save to logs Date:" + sdf.format(date));
+                result.setMessage("success Date:" + sdf.format(date));
             } else {
                 result.setMessage(auditrail.getString("Message") + " Date:" + sdf.format(date));
             }
@@ -296,7 +292,6 @@ public class GrouperMethod {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            String tagss = "FG";
             CallableStatement grouperdata = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_RESULT(:Message,:Code,:claimNum,:rest_id,:series,:tags,:lhio,:pdx,:sdx,:proc)");
             grouperdata.registerOutParameter("Message", OracleTypes.VARCHAR);
             grouperdata.registerOutParameter("Code", OracleTypes.INTEGER);
@@ -333,25 +328,25 @@ public class GrouperMethod {
                 }
             }
             //=====================================================================End Process SDx duplication================================ 
-            grouperdata.setString("claimNum", claimnum);
-            grouperdata.setString("rest_id", result_id);
-            grouperdata.setString("series", series);
-            grouperdata.setString("tags", tagss.trim());
-            grouperdata.setString("lhio", lhio);
-            grouperdata.setString("pdx", pdx);
+            grouperdata.setString("claimNum", claimnum.trim());
+            grouperdata.setString("rest_id", result_id.trim());
+            grouperdata.setString("series", series.trim());
+            grouperdata.setString("tags", "FG");
+            grouperdata.setString("lhio", lhio.trim());
+            grouperdata.setString("pdx", pdx.trim());
             if (duplicate.isEmpty()) {
-                grouperdata.setString("sdx", sdx);
+                grouperdata.setString("sdx", sdx.trim());
             } else {
                 grouperdata.setString("sdx", String.join(",", newlist));
             }
-            grouperdata.setString("proc", proc);
+            grouperdata.setString("proc", proc.trim());
             grouperdata.executeUpdate();
             result.setMessage(grouperdata.getString("Code"));
             result.setResult(grouperdata.getString("Message"));
             if (grouperdata.getString("Message").equals("SUCC")) {
                 result.setSuccess(true);
             } else {
-                result.setMessage("N/A");
+                result.setMessage(grouperdata.getString("Message"));
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());

@@ -13,8 +13,10 @@ import lombok.Data;
  */
 @Data
 public class NClaimsData {
-    public NClaimsData(){
+
+    public NClaimsData() {
     }
+    private String hospitalcode;
     private String series;
     private String pclaimnumber;
     private String dateofBirth;

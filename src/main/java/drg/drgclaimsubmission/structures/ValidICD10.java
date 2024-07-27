@@ -5,50 +5,20 @@
  */
 package drg.drgclaimsubmission.structures;
 
-import java.io.Serializable;
-
+import lombok.Data;
 
 /**
  *
  * @author MinoSun
  */
+@Data
+public class ValidICD10 {
 
-public class ValidICD10 implements Serializable {
-    
-    public ValidICD10(){
+    public ValidICD10() {
     }
-    
-    
-    
-    private  String validcode;
+
+    private String validcode;
     private String description;
-    private String code;  
+    private String code;
 
-    public String getValidcode() {
-        return validcode;
-    }
-
-    public void setValidcode(String validcode) {
-        this.validcode = validcode;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-    
-    
-    
-    
 }

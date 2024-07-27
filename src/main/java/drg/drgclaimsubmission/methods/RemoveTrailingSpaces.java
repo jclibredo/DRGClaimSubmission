@@ -5,8 +5,6 @@
  */
 package drg.drgclaimsubmission.methods;
 
-
-
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.utilities.Utility;
 import javax.enterprise.context.RequestScoped;
@@ -22,6 +20,7 @@ public class RemoveTrailingSpaces {
 
     public RemoveTrailingSpaces() {
     }
+
     public DRGWSResult RemoveTrailingSpaces(String output) {
         DRGWSResult result = utility.DRGWSResult();
         result.setSuccess(false);
@@ -34,9 +33,11 @@ public class RemoveTrailingSpaces {
             output = output.substring(0, endtag + 6);
             result.setResult(output);
         } else if ((starttag >= 0) && (starttag < 0)) {
-            result.setMessage("XML document structures must start and end within the same entity");
+            result.setMessage("CF5 XML document structures must start and end within the same entity");
         } else if ((starttag < 0) && (endtag < 0)) {
             result.setMessage("Invalid XML");
+        } else {
+            result.setMessage("Unparsable CF5 XML File");
         }
         return result;
     }

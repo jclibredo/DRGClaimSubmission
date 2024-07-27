@@ -5,10 +5,13 @@
  */
 package drg.drgclaimsubmission.structures;
 
+import lombok.Data;
+
 /**
  *
  * @author MinoSun
  */
+@Data
 public class UploadXMLResult {
 
     public UploadXMLResult() {
@@ -19,37 +22,5 @@ public class UploadXMLResult {
     private String userid;
     private String dateuploaded;
     private String errors;
-
-    public String getTransactionno() {
-        return transactionno;
-    }
-
-    public void setTransactionno(String transactionno) {
-        this.transactionno = transactionno;
-    }
-
-    public String getUserid() {
-        return userid;
-    }
-
-    public void setUserid(String userid) {
-        this.userid = userid;
-    }
-
-    public String getDateuploaded() {
-        return dateuploaded;
-    }
-
-    public void setDateuploaded(String dateuploaded) {
-        this.dateuploaded = dateuploaded;
-    }
-
-    public String getErrors() {
-        return errors;
-    }
-
-    public void setErrors(String errors) {
-        this.errors = errors;
-    }
 
 }

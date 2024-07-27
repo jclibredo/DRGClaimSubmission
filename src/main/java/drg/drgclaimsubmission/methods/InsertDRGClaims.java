@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
-import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
@@ -47,8 +46,8 @@ public class InsertDRGClaims {
             final String series,
             final String accreno,
             final String claimnumber,
-            final String duplicateproc,
-            final String duplcatesdx,
+            final List<String> duplicateproc,
+            final List<String> duplcatesdx,
             final String filecontent) throws IOException {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
@@ -58,10 +57,8 @@ public class InsertDRGClaims {
         String[] exten = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         //===============================================PACKAGE CODE=======================================
         try (Connection connection = datasource.getConnection()) {
-            PROCEDURE procedure;
             LinkedList<String> ErrMessage = new LinkedList<>();
             connection.setAutoCommit(false);
-
             //Result ID Process Here
             SimpleDateFormat formatter = new SimpleDateFormat("MMddyyyyHHmmss");
             Date datetoday = new Date();
@@ -90,13 +87,13 @@ public class InsertDRGClaims {
                     + ":LHIO,:ACCRENO,:CLAIMNUMBER)");
             ps.registerOutParameter("Message", OracleTypes.VARCHAR);
             ps.registerOutParameter("Code", OracleTypes.INTEGER);
-            ps.setString("PDX_CODE", drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase());
+            ps.setString("PDX_CODE", drgclaim.getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
             ps.setString("NB_TOB", drgclaim.getNewBornAdmWeight());
             ps.setString("NB_ADMWEIGHT", drgclaim.getNewBornAdmWeight());
-            ps.setString("SERIES", series);
-            ps.setString("LHIO", lhio);
-            ps.setString("ACCRENO", accreno);
-            ps.setString("CLAIMNUMBER", drgclaim.getClaimNumber());
+            ps.setString("SERIES", series.trim());
+            ps.setString("LHIO", lhio.trim());
+            ps.setString("ACCRENO", accreno.trim());
+            ps.setString("CLAIMNUMBER", drgclaim.getClaimNumber().trim());
             ps.executeUpdate();
             if (!ps.getString("Message").equals("SUCC")) {
                 ErrMessage.add(ps.getString("Message"));
@@ -114,110 +111,106 @@ public class InsertDRGClaims {
                 CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
-                String datas = drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode();
-                DRGWSResult SDxResult = gm.GetICD10(datasource, datas.replaceAll("\\.", "").toUpperCase());
-                DRGWSResult gendervalidation = gm.GenderConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
-                DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
-                if (datas.length() != 0) {
-                    int indexvalue = duplcatesdx.indexOf(String.valueOf(second));
-                    if (indexvalue >= 0) {
-                        String desc_error = "SDx is the repetition with other SDx";
+                DRGWSResult SDxResult = gm.GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
+                DRGWSResult gendervalidation = gm.GenderConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
+                DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
+                if (drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().length() != 0) {
+
+                    if (duplcatesdx.contains(String.valueOf(second))) {
+                        String desc_error = "CF5 SDx is the repetition with other SDx";
                         String code_error = "503";
                         error.registerOutParameter("Message", OracleTypes.VARCHAR);
                         error.registerOutParameter("Code", OracleTypes.INTEGER);
                         error.setString("claimNum", drgclaim.getClaimNumber());
-                        error.setString("rest_id", result_id);
-                        error.setString("series_error", series);
-                        error.setString("code_error", code_error);
-                        error.setString("data_error", datas.replaceAll("\\.", "").toUpperCase());
+                        error.setString("rest_id", result_id.trim());
+                        error.setString("series_error", series.trim());
+                        error.setString("code_error", code_error.trim());
+                        error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
                         error.setString("desc_error", desc_error);
-                        error.setString("lhio_error", lhio);
+                        error.setString("lhio_error", lhio.trim());
                         error.executeUpdate();
                         if (!error.getString("Message").equals("SUCC")) {
                             ErrMessage.add(error.getString("Message"));
                         }
                     } else {
-                        if (datas.replaceAll("\\.", "").toUpperCase().equals(drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase())) {
-                            String desc_error = "Case that SDx is the repetition with PDx";
+                        if (drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().equals(drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase())) {
+                            String desc_error = "CF5 Case that SDx is the repetition with PDx";
                             String code_error = "502";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
                             error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id);
-                            error.setString("series_error", series);
-                            error.setString("code_error", code_error);
-                            error.setString("data_error", datas.replaceAll("\\.", "").toUpperCase());
+                            error.setString("rest_id", result_id.trim());
+                            error.setString("series_error", series.trim());
+                            error.setString("code_error", code_error.trim());
+                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
                             error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio);
+                            error.setString("lhio_error", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
 
                         } else if (!SDxResult.isSuccess()) {
-                            String desc_error = "SDx Invalid Code";
+                            String desc_error = "CF5 SDx Invalid Code";
                             String code_error = "501";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
                             error.setString("claimNum", drgclaim.getClaimNumber());
                             error.setString("rest_id", result_id);
-                            error.setString("series_error", series);
-                            error.setString("code_error", code_error);
-                            error.setString("data_error", datas.replaceAll("\\.", "").toUpperCase());
+                            error.setString("series_error", series.trim());
+                            error.setString("code_error", code_error.trim());
+                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
                             error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio);
+                            error.setString("lhio_error", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
 
                         } else if (!gendervalidation.isSuccess()) {
-                            String desc_error = "SDx Conflict with sex ";
+                            String desc_error = "CF5 SDx Conflict with sex ";
                             String code_error = "505";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
                             error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id);
-                            error.setString("series_error", series);
-                            error.setString("code_error", code_error);
-                            error.setString("data_error", datas.replaceAll("\\.", "").toUpperCase());
+                            error.setString("rest_id", result_id.trim());
+                            error.setString("series_error", series.trim());
+                            error.setString("code_error", code_error.trim());
+                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
                             error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio);
+                            error.setString("lhio_error", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
 
                         } else if (!agevalidation.isSuccess()) {
-                            String desc_error = "SDx Conflict with age ";
+                            String desc_error = "CF5 SDx Conflict with age ";
                             String code_error = "504";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
                             error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id);
-                            error.setString("series_error", series);
-                            error.setString("code_error", code_error);
-                            error.setString("data_error", datas.replaceAll("\\.", "").toUpperCase());
+                            error.setString("rest_id", result_id.trim());
+                            error.setString("series_error", series.trim());
+                            error.setString("code_error", code_error.trim());
+                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
                             error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio);
+                            error.setString("lhio_error", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
-
                         } else {
                             insertsecondary.setString("claimNum", drgclaim.getClaimNumber());
-                            insertsecondary.setString("SDX_CODE", datas.replaceAll("\\.", "").toUpperCase());
-                            insertsecondary.setString("SERIES", series);
-                            insertsecondary.setString("LHIO", lhio);
-                            secondaryjoin.add(datas.replaceAll("\\.", "").toUpperCase());
+                            insertsecondary.setString("SDX_CODE", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
+                            insertsecondary.setString("SERIES", series.trim());
+                            insertsecondary.setString("LHIO", lhio.trim());
+                            secondaryjoin.add(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
                             insertsecondary.executeUpdate();
                             if (!insertsecondary.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(insertsecondary.getString("Message"));
                             }
-
                         }
-
                     }
                 }
             }
@@ -231,62 +224,55 @@ public class InsertDRGClaims {
                         + ":SERIES, :LHIO)");
                 insertprocedure.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertprocedure.registerOutParameter("Code", OracleTypes.INTEGER);
-                procedure = drgclaim.getPROCEDURES().getPROCEDURE().get(proc);
-                String rvs_code = procedure.getRvsCode();
-                int indexvalue = duplicateproc.indexOf(String.valueOf(proc));
-                if (indexvalue >= 0) {
-                    String desc_error = "RVS Code has duplicate";
+                if (duplicateproc.contains(String.valueOf(proc))) {
+                    String desc_error = "CF5 RVS Code has duplicate";
                     String code_error = "508";
                     error.registerOutParameter("Message", OracleTypes.VARCHAR);
                     error.registerOutParameter("Code", OracleTypes.INTEGER);
                     error.setString("claimNum", drgclaim.getClaimNumber());
-                    error.setString("rest_id", result_id);
-                    error.setString("series_error", series);
-                    error.setString("code_error", code_error);
-                    error.setString("data_error", rvs_code);
+                    error.setString("rest_id", result_id.trim());
+                    error.setString("series_error", series.trim());
+                    error.setString("code_error", code_error.trim());
+                    error.setString("data_error", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
                     error.setString("desc_error", desc_error);
-                    error.setString("lhio_error", lhio);
+                    error.setString("lhio_error", lhio.trim());
                     error.executeUpdate();
                     if (!error.getString("Message").equals("SUCC")) {
                         ErrMessage.add(error.getString("Message"));
                     }
-
                 } else {
                     //=============================================================================
-                    if (procedure.getLaterality().trim().isEmpty()) {
-                        procedure.setLaterality("N");
-                    } else if (!Arrays.asList(laterality).contains(procedure.getLaterality().trim())) {
-                        procedure.setLaterality("N");
+                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim().isEmpty()) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setLaterality("N");
+                    } else if (!Arrays.asList(laterality).contains(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim())) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setLaterality("N");
                     }
-                    if (procedure.getExt1().trim().equals("")) {
-                        procedure.setExt1("1");
-                    } else if (!Arrays.asList(exten).contains(procedure.getExt1().trim())) {
-                        procedure.setExt1("1");
-                    } else if (procedure.getExt1().trim().length() > 1) {
-                        procedure.setExt1("1");
+                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim().equals("")) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
+                    } else if (!Arrays.asList(exten).contains(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim())) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
+                    } else if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim().length() > 1) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
                     }
-                    if (procedure.getExt2().trim().equals("")) {
-                        procedure.setExt1("1");
-                    } else if (!Arrays.asList(exten).contains(procedure.getExt2().trim())) {
-                        procedure.setExt1("1");
-                    } else if (procedure.getExt2().trim().length() > 1) {
-                        procedure.setExt1("1");
+                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim().equals("")) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
+                    } else if (!Arrays.asList(exten).contains(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim())) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
+                    } else if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim().length() > 1) {
+                        drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
                     }
                     //===========================================================CONVERTER===============================
-
-                    DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
+                    DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
                         CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
-                        statement.setString("rvs_code", rvs_code.trim().replaceAll("\\.", ""));
+                        statement.setString("rvs_code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                         statement.execute();
                         ResultSet resultset = (ResultSet) statement.getObject("converter");
                         if (resultset.next()) {
                             int conflictcounter = 0;
-                            String ProcList = resultset.getString("ICD9CODE");
-                            List<String> ConverterResult = Arrays.asList(ProcList.split(","));
+                            List<String> ConverterResult = Arrays.asList(resultset.getString("ICD9CODE").trim().split(","));
                             for (int g = 0; g < ConverterResult.size(); g++) {
-                              //  int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
                                 if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                     DRGWSResult procgendervalidation = gm.GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
                                     if (!procgendervalidation.isSuccess()) {
@@ -295,15 +281,15 @@ public class InsertDRGClaims {
                                 }
                             }
                             if (conflictcounter > 0) {
-                                String desc_error = "RVS Sex Conflict";
+                                String desc_error = "CF5 RVS Sex Conflict";
                                 String code_error = "509";
                                 error.registerOutParameter("Message", OracleTypes.VARCHAR);
                                 error.registerOutParameter("Code", OracleTypes.INTEGER);
-                                error.setString("claimNum", drgclaim.getClaimNumber());
-                                error.setString("rest_id", result_id);
-                                error.setString("series_error", series);
-                                error.setString("code_error", code_error);
-                                error.setString("data_error", procedure.getRvsCode());
+                                error.setString("claimNum", drgclaim.getClaimNumber().trim());
+                                error.setString("rest_id", result_id.trim());
+                                error.setString("series_error", series.trim());
+                                error.setString("code_error", code_error.trim());
+                                error.setString("data_error", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
                                 error.setString("desc_error", desc_error);
                                 error.setString("lhio_error", lhio);
                                 error.executeUpdate();
@@ -312,21 +298,19 @@ public class InsertDRGClaims {
                                 }
                             } else {
                                 for (int g = 0; g < ConverterResult.size(); g++) {
-                                    String ICD9Codes = ConverterResult.get(g);
-                                    //int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                    if (gm.CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
-                                        insertprocedure.setString("claimNum", drgclaim.getClaimNumber());
-                                        insertprocedure.setString("RVS", procedure.getRvsCode());
-                                        insertprocedure.setString("LATERALITY", procedure.getLaterality());
-                                        insertprocedure.setString("EXT1_CODE", procedure.getExt1());
-                                        insertprocedure.setString("EXT2_CODE", procedure.getExt2());
-                                        String extcom = procedure.getExt1() + "" + procedure.getExt2();
+                                    if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
+                                        insertprocedure.setString("claimNum", drgclaim.getClaimNumber().trim());
+                                        insertprocedure.setString("RVS", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
+                                        insertprocedure.setString("LATERALITY", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
+                                        insertprocedure.setString("EXT1_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
+                                        insertprocedure.setString("EXT2_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
+                                        String extcom = drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim() + "" + drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim();
                                         if (extcom.trim().equals("11")) {
-                                            procedurejoin.add(ICD9Codes.trim());
-                                            insertprocedure.setString("ICD9_CODE", ICD9Codes.trim());
+                                            procedurejoin.add(ConverterResult.get(g).trim());
+                                            insertprocedure.setString("ICD9_CODE", ConverterResult.get(g).trim());
                                         } else {
-                                            procedurejoin.add(ICD9Codes.trim() + ">1");
-                                            insertprocedure.setString("ICD9_CODE", ICD9Codes.trim() + ">1");
+                                            procedurejoin.add(ConverterResult.get(g).trim() + ">1");
+                                            insertprocedure.setString("ICD9_CODE", ConverterResult.get(g).trim() + ">1");
                                         }
                                         insertprocedure.setString("SERIES", series);
                                         insertprocedure.setString("LHIO", lhio);
@@ -338,56 +322,50 @@ public class InsertDRGClaims {
                                 }
                             }
                         } else {
-
-                            if (!procedure.getRvsCode().trim().isEmpty()) {
-                                String desc_error = "Invalid RVS not in the library";
+                            if (!drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().isEmpty()) {
+                                String desc_error = "CF5 Invalid RVS not in the library";
                                 String code_error = "506";
                                 error.registerOutParameter("Message", OracleTypes.VARCHAR);
                                 error.registerOutParameter("Code", OracleTypes.INTEGER);
-                                error.setString("claimNum", drgclaim.getClaimNumber());
-                                error.setString("rest_id", result_id);
-                                error.setString("series_error", series);
-                                error.setString("code_error", code_error);
-                                error.setString("data_error", procedure.getRvsCode());
+                                error.setString("claimNum", drgclaim.getClaimNumber().trim());
+                                error.setString("rest_id", result_id.trim());
+                                error.setString("series_error", series.trim());
+                                error.setString("code_error", code_error.trim());
+                                error.setString("data_error", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
                                 error.setString("desc_error", desc_error);
-                                error.setString("lhio_error", lhio);
+                                error.setString("lhio_error", lhio.trim());
                                 error.executeUpdate();
                                 if (!error.getString("Message").equals("SUCC")) {
                                     ErrMessage.add(error.getString("Message"));
                                 }
                             }
-
                         }
-
                     } else {
-                        insertprocedure.setString("claimNum", drgclaim.getClaimNumber());
-                        insertprocedure.setString("RVS", procedure.getRvsCode().trim().replaceAll("\\.", ""));
-                        insertprocedure.setString("LATERALITY", procedure.getLaterality());
-                        insertprocedure.setString("EXT1_CODE", procedure.getExt1());
-                        insertprocedure.setString("EXT2_CODE", procedure.getExt2());
-                        procedurejoin.add(rvs_code.trim().replaceAll("\\.", ""));
-                        insertprocedure.setString("ICD9_CODE", rvs_code.trim().replaceAll("\\.", ""));
+                        insertprocedure.setString("claimNum", drgclaim.getClaimNumber().trim());
+                        insertprocedure.setString("RVS", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
+                        insertprocedure.setString("LATERALITY", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
+                        insertprocedure.setString("EXT1_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
+                        insertprocedure.setString("EXT2_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
+                        procedurejoin.add(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
+                        insertprocedure.setString("ICD9_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                         insertprocedure.setString("SERIES", series);
                         insertprocedure.setString("LHIO", lhio);
                         insertprocedure.executeUpdate();
                     }
-
                 }
             }
             //END HERE
-
+            //   System.out.println(String.join(",", procedurejoin));
             if (ErrMessage.isEmpty()) {
                 connection.commit();
-                String details = "CLAIMS SUCCESSFULLY INSERTED";
-                String stats = "SUCCESS";
                 //INSERTION OF DRG RESULT
-                String finalsdx = String.join(",", secondaryjoin);
-                String finalproc = String.join(",", procedurejoin);
-                DRGWSResult gpdata = gm.InsertDRGResult(datasource, drgclaim.getClaimNumber(), series, lhio, drgclaim.getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase(), finalsdx, finalproc, result_id);
+                DRGWSResult gpdata = gm.InsertDRGResult(datasource, drgclaim.getClaimNumber(), series, lhio,
+                        drgclaim.getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase(),
+                        String.join(",", secondaryjoin), String.join(",", procedurejoin), result_id);
                 //INSERTION OF DRG RESULT
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, drgclaim.getClaimNumber(), filecontent);
+                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, "CLAIMS SUCCESSFULLY INSERTED", "SUCCESS", series, drgclaim.getClaimNumber(), filecontent);
                 if (gpdata.isSuccess() && auditrail.isSuccess()) {
-                    result.setMessage(details);
+                    result.setMessage("CF5 " + series + " CLAIMS SUCCESSFULLY INSERTED");
                 } else {
                     result.setMessage(gpdata.getMessage() + " , " + auditrail.getMessage());
                 }
@@ -396,7 +374,7 @@ public class InsertDRGClaims {
 
             } else {
                 connection.rollback();
-                String details = "CLAIMS INSERTION FAIL";
+                String details = "CF5 CLAIMS INSERTION FAIL";
                 String stats = "FAILED";
                 DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, drgclaim.getClaimNumber(), filecontent);
                 result.setMessage(details + " Claims Status:" + auditrail);

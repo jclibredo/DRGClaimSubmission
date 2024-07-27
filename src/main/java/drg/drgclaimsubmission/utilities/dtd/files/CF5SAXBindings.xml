@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE SAX-bindings PUBLIC "-//XML Module//DTD SAX Bindings 1.0//EN" "">
+<SAX-bindings version='1'>
+	<bind element='PROCEDURES' method='PROCEDURES' type='CONTAINER' ></bind>
+	<bind element='CF5' method='CF5' type='CONTAINER' ></bind>
+	<bind element='PROCEDURE' method='PROCEDURE' type='EMPTY' ></bind>
+	<bind element='SECONDARYDIAGS' method='SECONDARYDIAGS' type='CONTAINER' ></bind>
+	<bind element='DRGCLAIM' method='DRGCLAIM' type='EMPTY' ></bind>
+	<bind element='SECONDARYDIAG' method='SECONDARYDIAG' type='EMPTY' ></bind>
+</SAX-bindings>

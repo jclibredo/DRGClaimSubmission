@@ -50,11 +50,11 @@ public class ValidateXMLWithDTD {
             final String claimseries,
             final String filecontent) throws JAXBException, SQLException {
         DRGWSResult result = utility.DRGWSResult();
+        result.setSuccess(false);
+        result.setMessage("");
+        result.setResult("");
         XMLErrors xmlerrors = new XMLErrors();
         try {
-            result.setSuccess(false);
-            result.setMessage("");
-            result.setResult("");
             //End line to Generate DTD File 
             String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + utility.DTDFilePath() + "]>\n" + stringdrgxml;
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -66,7 +66,7 @@ public class ValidateXMLWithDTD {
             db.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber() - 6;
+                    int lineno = exception.getLineNumber();
                     arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
 
@@ -109,12 +109,8 @@ public class ValidateXMLWithDTD {
                     }
                     xmlerrors.setErrors(errors);
                 }
-                String stats = "FAILED";
-                String details = "XML format have errors";
-                String series = claimseries;
-                String claimnum = "";
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details + " : " + utility.objectMapper().writeValueAsString(xmlerrors), stats, series, claimnum, filecontent);
-                result.setMessage(details + " Status :" + auditrail.getMessage());
+                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, "CF5 XML format have errors : " + utility.objectMapper().writeValueAsString(xmlerrors), "FAILED", claimseries, "N/A", filecontent);
+                result.setMessage("CF5 XML format have errors , Logs Stats :" + auditrail.getMessage());
                 result.setResult(utility.objectMapper().writeValueAsString(xmlerrors));
                 result.setSuccess(false);
             }

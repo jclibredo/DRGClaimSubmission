@@ -437,11 +437,11 @@ public class Utility {
 //        return DTDFile;
 //    }
     public String DTDFilePath() {
-        String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)*>\n"
+        String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)>\n"
                 + "<!ATTLIST CF5 \n"
                 + "     pHospitalCode       CDATA #REQUIRED\n"
                 + "   >\n"
-                + "<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)*>\n "
+                + "<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)>\n "
                 + "<!ATTLIST DRGCLAIM \n"
                 + "     PrimaryCode         CDATA #REQUIRED\n"
                 + "     NewBornAdmWeight    CDATA #REQUIRED\n"

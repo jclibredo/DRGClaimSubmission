@@ -122,18 +122,13 @@ public class DRGClaims {
             DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, "FAILED", "", "", "CF5 Claim Form");
             result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
             result.setResult(" Request status :" + auditrail.getMessage());
-            result.setSuccess(false);
         } else {
             String drgfilename = drgdetail.getFileName();
             BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
             if (drgfilename.length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-                result.setMessage("DRG XML File  and ClaimSeriesNumber is Empty");
-                result.setResult("");
-                result.setSuccess(false);
+                result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
             } else if (drgfilename.length() == 0) {
-                result.setMessage("DRG XML File NOT FOUND");
-                result.setResult("");
-                result.setSuccess(false);
+                result.setMessage("CF5 DRG XML File NOT FOUND");
             } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                 String drgfilelines = "";
                 String drgfilecontents = "";
@@ -144,21 +139,18 @@ public class DRGClaims {
                     String stats = "FAILED";
                     String series = "";
                     String claimnum = "";
+                    String details = "";
                     if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-                        String details = "Claim Series Number is Empty";
-                        DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, claimnum, drgfilename);
-                        result.setMessage(details + " DRG Claims Status " + auditrail.getMessage());
+                        details = "CF5 ClaimSeriesNum is Empty";
                     } else {
-                        String details = "Claim Series size is not valid and does not match the 14 digit format";
-                        DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, claimnum, drgfilename);
-                        result.setMessage(details + " DRG Claims Status " + auditrail.getMessage());
+                        details = "CF5 Claim Series size is not valid and does not match the 14 digit format";
                     }
-                    result.setSuccess(false);
+                    DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, claimnum, drgfilename);
+                    result.setMessage(details + " DRG Claims Status " + auditrail.getMessage());
                 } catch (IOException ex) {
                     result.setMessage(ex.toString());
                     Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
                 }
-
             } else {
                 String drgfileline = "";
                 String drgfilecontent = "";
@@ -166,19 +158,27 @@ public class DRGClaims {
                     while ((drgfileline = reader.readLine()) != null) {
                         drgfilecontent += drgfileline;
                     }
-
                     //  METHOD THIS AREA SI TO GET DATA FROM NCLAIMS USING CLAIM SERRIES NUMBER
                     String claimsSeriesLhioNums = ClaimSeriesNum.replaceAll("\\s+", "");
-
                     String claimsSerries = claimsSeriesLhioNums.substring(0, Math.min(claimsSeriesLhioNums.length(), 13));
                     String lhio = claimsSeriesLhioNums.substring(Math.max(claimsSeriesLhioNums.length() - 2, 0));
                     DRGWSResult cleanData = removedSpace.RemoveTrailingSpaces(drgfilecontent);
-                    // System.out.println(drgfilecontent);
-                    DRGWSResult validatedData = vxwdtd.ValidateXMLWithDTD(cleanData.getResult(), datasource, lhio, claimsSerries, drgfilename);
+                    if (cleanData.isSuccess()) {
+                        DRGWSResult validatedData = vxwdtd.ValidateXMLWithDTD(cleanData.getResult(), datasource, lhio, claimsSerries, drgfilename);
+                        result.setResult(validatedData.getResult());
+                        result.setMessage(validatedData.getMessage());
+                        result.setSuccess(validatedData.isSuccess());
+                    } else {
+                        DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource,
+                                cleanData.getMessage(),
+                                String.valueOf(cleanData.isSuccess()).toUpperCase(),
+                                claimsSerries,
+                                claimsSeriesLhioNums,
+                                drgfilename);
+                        result.setMessage(cleanData.getMessage() + " , " + auditrail.getMessage());
+                        result.setSuccess(cleanData.isSuccess());
+                    }
 
-                    result.setResult(validatedData.getResult());
-                    result.setMessage(validatedData.getMessage());
-                    result.setSuccess(validatedData.isSuccess());
                 } catch (IOException ex) {
                     result.setMessage(ex.toString());
                     Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
@@ -193,7 +193,8 @@ public class DRGClaims {
     @Path("KeyValuePairValidation")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public DRGWSResult KeyValuePairValidation(@FormDataParam("drg") InputStream uploadeddrg,
+    public DRGWSResult KeyValuePairValidation(
+            @FormDataParam("drg") InputStream uploadeddrg,
             @FormDataParam("drg") FormDataContentDisposition drgdetail,
             @FormDataParam("eclaims") InputStream uploadedeclaims,
             @FormDataParam("eclaims") FormDataContentDisposition eclaimsdetail) throws JAXBException, SQLException {
@@ -207,34 +208,30 @@ public class DRGClaims {
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
-                result.setSuccess(false);
             } else {
                 String drgfilename = drgdetail.getFileName();
                 String eclaimsfilename = eclaimsdetail.getFileName();
-                if (drgfilename.length() == 0 && eclaimsfilename.length() == 0) {
-                    result.setMessage("XML File NOT FOUND");
+                if (drgfilename.length() == 0) {
+                    result.setMessage("CF5 XML File NOT FOUND");
                     result.setResult("");
-                    result.setSuccess(false);
-                } else if (drgfilename.length() == 0) {
-                    result.setMessage("DRG XML File NOT FOUND");
-                    result.setResult("");
-                    result.setSuccess(false);
                 } else if (eclaimsfilename.length() == 0) {
                     result.setMessage("ECLAIMS XML File NOT FOUND");
                     result.setResult("");
-                    result.setSuccess(false);
                 } else {
+
                     BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
                     String drgfileline = "";
                     String stringdrgxml = "";
                     while ((drgfileline = reader.readLine()) != null) {
                         stringdrgxml += drgfileline;
                     }
+                    //  XML CONTENT AND DTD CONTENT COMBINE AREA
                     String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + utility.DTDFilePath() + "]>\n" + stringdrgxml;
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     dbf.setValidating(true);
                     DocumentBuilder db;
                     db = dbf.newDocumentBuilder();
+                    //  END XML CONTENT AND DTD CONTENT COMBINE AREA
                     final ArrayList<String> arraywarning = new ArrayList<>();
                     final ArrayList<String> arrayerror = new ArrayList<>();
                     final ArrayList<String> arrayfatalerror = new ArrayList<>();
@@ -257,6 +254,7 @@ public class DRGClaims {
                             arrayerror.add("Line No. " + lineno + " : " + exception.getMessage());
                         }
                     });
+                    //-------------------------------------------------------
                     Document doc = db.parse(new InputSource(new StringReader(stringxml)));
                     JAXBContext jaxbcontext = JAXBContext.newInstance(CF5.class);
                     Unmarshaller jaxbnmarsaller = jaxbcontext.createUnmarshaller();
@@ -276,18 +274,32 @@ public class DRGClaims {
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                         Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
                         docs.getDocumentElement().normalize();
-                        //------------------------------------------------
-                        NodeList nList = docs.getElementsByTagName("CLAIM");
-                        ArrayList<NClaimsData> nclaimsdatalist = new ArrayList<>();
+
                         ArrayList<String> idlist = new ArrayList<>();
+                        //-----------------------------------------------
+                        NodeList eclaimspHospitalCode = docs.getElementsByTagName("eCLAIMS");
+                        //-----------------------------------------------
+                        ArrayList<NClaimsData> nclaimsdatalist = new ArrayList<>();
+                        NodeList nList = docs.getElementsByTagName("CLAIM");
+                        //------------------------------------------------
                         for (int temp = 0; temp < nList.getLength(); temp++) {
-                            Node nNodes = nList.item(temp);
                             NClaimsData nclaimsdata = new NClaimsData();
+
+                            //GET THE HOSPITAL CODE
+                            Node nNodess = eclaimspHospitalCode.item(0);
+                            if (nNodess.getNodeType() == Node.ELEMENT_NODE) {
+                                Element eElements = (Element) nNodess;
+                                nclaimsdata.setHospitalcode(eElements.getAttribute("pHospitalCode"));
+                            }
+
+                            //GET THE pClaimNumber
+                            Node nNodes = nList.item(temp);
                             if (nNodes.getNodeType() == Node.ELEMENT_NODE) {
                                 Element eElements = (Element) nNodes;
                                 nclaimsdata.setPclaimnumber(eElements.getAttribute("pClaimNumber"));
                                 idlist.add(eElements.getAttribute("pClaimNumber"));
                             }
+                            //GET DATA FROM CF1
                             NodeList cf1 = docs.getElementsByTagName("CF1");
                             Node nNodecf1 = cf1.item(temp);
                             if (nNodecf1.getNodeType() == Node.ELEMENT_NODE) {
@@ -295,10 +307,9 @@ public class DRGClaims {
                                 nclaimsdata.setDateofBirth(eElementcf1.getAttribute("pPatientBirthDate"));
                                 nclaimsdata.setGender(eElementcf1.getAttribute("pPatientSex"));
                             }
-                            //-------------------------------------------------------------CF2 Data Parsing
+                            //GET DATA FROM CF2
                             NodeList cf2 = docs.getElementsByTagName("CF2");
                             Node nNodecf2 = cf2.item(temp);
-
                             if (nNodecf2.getNodeType() == Node.ELEMENT_NODE) {
                                 Element eElementcf2 = (Element) nNodecf2;
                                 nclaimsdata.setAdmissionDate(eElementcf2.getAttribute("pAdmissionDate"));
@@ -311,10 +322,13 @@ public class DRGClaims {
                             }
                             nclaimsdatalist.add(nclaimsdata);
                         }
+
+                        //DATA VALIDATION METHOD
                         DRGWSResult pedResult = ped.ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
                         result.setResult(pedResult.getResult());
                         result.setMessage(pedResult.getMessage());
                         result.setSuccess(pedResult.isSuccess());
+                        //END DATA VALIDATION METHOD
                     } else {
                         if (arrayfatalerror.size() > 0) {
                             ArrayList<String> fatalerrors = new ArrayList<>();
@@ -343,38 +357,34 @@ public class DRGClaims {
     }
 
     //THIS AREA IS TO VALIDATE VALUE FOR DRG DATA BEFORE SUBMISSION
-    @POST
-    @Path("GetSeeker")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public DRGWSResult GetSeeker(final GrouperParameter grouperparam) throws JAXBException, SQLException {
-        DRGWSResult result = utility.DRGWSResult();
-        result.setMessage("");
-        result.setResult("");
-        result.setSuccess(false);
-        DRGWSResult resulst = dataarrange.DataArrangement(datasource, grouperparam);
-        result.setMessage(resulst.getMessage());
-        result.setResult(resulst.getResult());
-        result.setSuccess(resulst.isSuccess());
-        return result;
-    }
-
-    @POST
-    @Path("GetCF5Data")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public SeekerResult GetCF5Data(final Series series) throws JAXBException, SQLException {
-        System.out.println(series);
-        SeekerResult result = utility.SeekerResult();
-        SeekerResult resulst = gp.CombinedResult(datasource, series.getSeries());
-        result.setDxdiag(resulst.getDxdiag());
-        result.setInfo(resulst.getInfo());
-        result.setMessage(resulst.getMessage());
-        result.setProcedure(resulst.getProcedure());
-        result.setSuccess(resulst.isSuccess());
-        result.setWarning(resulst.getWarning());
-        return result;
-
-    }
-
+//    @POST
+//    @Path("GetSeeker")
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public DRGWSResult GetSeeker(final GrouperParameter grouperparam) throws JAXBException, SQLException {
+//        DRGWSResult result = utility.DRGWSResult();
+//        result.setMessage("");
+//        result.setResult("");
+//        result.setSuccess(false);
+//        DRGWSResult resulst = dataarrange.DataArrangement(datasource, grouperparam);
+//        result.setMessage(resulst.getMessage());
+//        result.setResult(resulst.getResult());
+//        result.setSuccess(resulst.isSuccess());
+//        return result;
+//    }
+//    @POST
+//    @Path("GetCF5Data")
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public SeekerResult GetCF5Data(final Series series) throws JAXBException, SQLException {
+//        SeekerResult result = utility.SeekerResult();
+//        SeekerResult resulst = gp.CombinedResult(datasource, series.getSeries());
+//        result.setDxdiag(resulst.getDxdiag());
+//        result.setInfo(resulst.getInfo());
+//        result.setMessage(resulst.getMessage());
+//        result.setProcedure(resulst.getProcedure());
+//        result.setSuccess(resulst.isSuccess());
+//        result.setWarning(resulst.getWarning());
+//        return result;
+//    }
 }

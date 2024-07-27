@@ -14,10 +14,6 @@ import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAGS;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
-//import drg.drgclaimsubmission.utilities.dtd.DRGCLAIM;
-//import drg.drgclaimsubmission.utilities.dtd.PROCEDURES;
-//import drg.drgclaimsubmission.utilities.dtd.SECONDARYDIAG;
-//import drg.drgclaimsubmission.utilities.dtd.SECONDARYDIAGS;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -42,20 +38,25 @@ public class ValidateDRGClaims {
     private final ValidateSecondaryDiag VSD = new ValidateSecondaryDiag();
     private final ValidateProcedures VP = new ValidateProcedures();
 
-    public DRGWSResult ValidateDRGClaims(final DataSource datasource, final DRGCLAIM drgclaim, final NClaimsData nclaimsdata) throws IOException {
+    public DRGWSResult ValidateDRGClaims(
+            final DataSource datasource, 
+            final DRGCLAIM drgclaim, 
+            final NClaimsData nclaimsdata) throws IOException {
         DRGWSResult result = utility.DRGWSResult();
+        
+        
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         DRGCLAIM validatedrgclaim;
         ArrayList<String> errors = new ArrayList<>();
         ArrayList<String> errorsMessage = new ArrayList<>();
-        //String[] discharges = {"1", "2", "3", "4", "5", "8", "9"};
         String[] dischargefromnclaims = {"I", "R", "H", "A", "T", "E", "O"};
         String[] gender = {"M", "F"};
-        String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase();
+        String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim();
         DRGWSResult NewResult = gm.GetICD10(datasource, PDx);
         try {
-            result.setMessage("");
-            result.setResult("");
-            result.setSuccess(false);
+
             //  DRGWSResult getvalidicd10 = gm.GetValidCodeICD10(datasource, PDx);
 //-------------------------------------------------------------------------------
             //PRIMARY CODES VALIDATION
@@ -122,7 +123,7 @@ public class ValidateDRGClaims {
             if (nclaimsdata.getAdmissionDate().isEmpty()) { //GET THE DATE OF ADMISSION
                 //errors.add("AdmissionDate is required");
                 errors.add("104");
-            } else if (!utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
+            } else if (!utility.IsValidDate(nclaimsdata.getAdmissionDate())) { //MM-dd-yyyy
                 //errors.add("AdmissionDate " + nclaimsdata.getAdmissionDate().trim() + ",is Invalid");
                 errors.add("214");
             }
@@ -194,9 +195,14 @@ public class ValidateDRGClaims {
             } else if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
             } else {
 
+                
+                
                 SECONDARYDIAGS secondarydiags = new SECONDARYDIAGS();
                 for (int a = 0; a < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); a++) {
+                    // sdx validation
                     DRGWSResult VSDResultS = VSD.ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
+                    
+                    //mapping
                     SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(VSDResultS.getResult(), SECONDARYDIAG.class);
                     secondarydiags.getSECONDARYDIAG().add(secondarydiag);
                     if (secondarydiag.getRemarks().equals("")) {
@@ -204,6 +210,10 @@ public class ValidateDRGClaims {
                     }
                 }
                 validatedrgclaim.setSECONDARYDIAGS(secondarydiags);
+                
+                
+                
+                
             }
 
             if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {

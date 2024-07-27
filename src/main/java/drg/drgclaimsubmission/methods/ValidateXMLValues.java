@@ -9,6 +9,7 @@ import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.KeyPerValueError;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.CF5;
+//import drg.drgclaimsubmission.utilities.dtd.files.CF5;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
@@ -47,13 +48,10 @@ public class ValidateXMLValues {
         DRGWSResult result = utility.DRGWSResult();
         ArrayList<KeyPerValueError> allErrorList = new ArrayList<>();
         ArrayList<NClaimsData> nclaimsdataList = new ArrayList<>();
-        ArrayList<String> xmlidlist = new ArrayList<>();
-        ArrayList<String> listid = new ArrayList<>();
-
         SimpleDateFormat timeformat = utility.SimpleDateFormat("hh:mm a");
         SimpleDateFormat dateformat = utility.SimpleDateFormat("MM-dd-yyyy");
-        String stats = "FAILED";
-
+        ArrayList<String> detailList = new ArrayList<>();
+        ArrayList<String> error = new ArrayList<>();
         try (Connection connection = datasource.getConnection()) {
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
             CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
@@ -61,9 +59,8 @@ public class ValidateXMLValues {
             getdrg_nclaims.setString("seriesnumss", claimseries.trim());
             getdrg_nclaims.execute();
             ResultSet getdrg_nclaims_result = (ResultSet) getdrg_nclaims.getObject("nclaims");
-            while (getdrg_nclaims_result.next()) {
+            if (getdrg_nclaims_result.next()) {
                 NClaimsData nclaimsdata = new NClaimsData();
-
                 //EXPIREDTIME
                 if (getdrg_nclaims_result.getTimestamp("EXPIREDTIME") == null) {
                     nclaimsdata.setExpiredTime("");
@@ -114,183 +111,178 @@ public class ValidateXMLValues {
                 //DISCHARGETYPE
                 nclaimsdata.setDischargeType(getdrg_nclaims_result.getString("DISCHARGETYPE").trim());
                 nclaimsdataList.add(nclaimsdata);
+            } else {
+                detailList.add("CF5 " + claimseries + " not found in eClaims DB");
+                // error.add("CF5 " + claimseries + " not found in eClaims DB");
+                error.add("514");
             }
 
             CF5 drgs = new CF5();
-            if (!drg.getpHospitalCode().isEmpty()) {
-                KeyPerValueError viewerrors = utility.KeyPerValueError();
-                // VALIDATE IF CLAIMS IS EXISTED ALREADY
-                DRGWSResult getdupresults = gm.GetClaimDuplication(datasource, drg.getpHospitalCode().trim(), drg.getDrgclaim().getClaimNumber(), claimseries);
-                System.out.println(getdupresults);
-                if (!getdupresults.isSuccess()) {
-                    String claimID = drg.getDrgclaim().getClaimNumber();
-                    if (claimID.trim().length() > 0) {
-                        xmlidlist.add(claimID);
-                        //---------------------------------------------------------------------
-                        for (int y = 0; y < nclaimsdataList.size(); y++) {
-                            String eclaimsid = nclaimsdataList.get(y).getPclaimnumber();
-                            //-----------------------------------------------------------
-                            if (claimID.equals(eclaimsid)) {
-                                DRGCLAIM drgclaims = new DRGCLAIM();
-                                ArrayList<String> errorlist = new ArrayList<>();
-                                ArrayList<String> SecondaryData = new ArrayList<>();
-                                ArrayList<String> ProcedureData = new ArrayList<>();
-                                ArrayList<String> warningerror = new ArrayList<>();
-                                ArrayList<String> duplproc = new ArrayList<>();
-                                ArrayList<String> duplsdx = new ArrayList<>();
-                                //VALIDATE DRG VALUES
-                                DRGWSResult vprodResult = VDC.ValidateDRGClaims(datasource, drg.getDrgclaim(), nclaimsdataList.get(y));
-                                DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
-                                drgclaims.setClaimNumber(drgclaim.getClaimNumber());
-                                drgclaims.setPrimaryCode(drgclaim.getPrimaryCode());
-                                drgclaims.setNewBornAdmWeight(drgclaim.getNewBornAdmWeight());
-                                drgclaims.setRemarks(drgclaim.getRemarks());
-                                drgclaims.setPROCEDURES(drgclaim.getPROCEDURES());
-                                drgclaims.setSECONDARYDIAGS(drgclaim.getSECONDARYDIAGS());
-                                //-----------------------------------------------------
-
-                                if (!drgclaims.getRemarks().isEmpty()) {
-                                    errorlist.add(drgclaims.getRemarks());
-                                }
-                                for (int proc = 0; proc < drgclaims.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                                    //=============================================================================
-                                    String ProcsCode = drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode();
-                                    String ext1 = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1();
-                                    String ext2 = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2();
-                                    String lat = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality();
-                                    String remarks = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks();
-                                    //=========================================================================
-                                    //------------------------------------------------------------------------------
-                                    if (!remarks.isEmpty()) {
-                                        warningerror.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
-                                    }
-                                    ProcAssign procassign = new ProcAssign();
-                                    if (ext1.isEmpty()) {
-                                        procassign.setEx1("1");
-                                    }
-                                    if (ext2.isEmpty()) {
-                                        procassign.setEx2("1");
-                                    }
-                                    if (ext2.isEmpty()) {
-                                    }
-                                    ProcedureData.add(ProcsCode + "+" + ext1 + "" + ext2);
-                                }
-                                for (int sdx = 0; sdx < drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().size(); sdx++) {
-                                    String SDxCode = drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getSecondaryCode();
-                                    if (!drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks().isEmpty()) {
-                                        warningerror.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks());
-                                    }
-                                    SecondaryData.add(SDxCode);
-                                }
-                                for (int i = 0; i < SecondaryData.size() - 1; i++) {
-                                    for (int j = i + 1; j < SecondaryData.size(); j++) {
-                                        if (SecondaryData.get(i).equals(SecondaryData.get(j)) && (i != j)) {
-                                            warningerror.add("503");
-                                            duplsdx.add(String.valueOf(j));
-                                        }
-                                    }
-                                }
-                                //==================================================================
-                                for (int i = 0; i < ProcedureData.size() - 1; i++) {
-                                    for (int j = i + 1; j < ProcedureData.size(); j++) {
-                                        if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
-                                            // warningerror.add(" RVS : " + ProcedureData.get(j) + " has duplicate");
-                                            warningerror.add("508");
-                                            duplproc.add(String.valueOf(j));
-                                        }
-                                    }
-                                }
-
-                                //  drgs.getDRGCLAIM().add(drgclaim);
-                                drgs.setDrgclaim(drgclaim);
-                                //   ================================================================== 
-                                DRGWSResult insertDRGClaimsResult = insertDRGClaims.InsertDRGClaims(drgs.getDrgclaim(),
-                                        datasource, nclaimsdataList.get(y), lhio, claimseries, drg.getpHospitalCode(),
-                                        drgs.getDrgclaim().getClaimNumber(),
-                                        String.join(",", duplproc), String.join(",", duplsdx), filecontent);
-
-                                //RETRURNING ERROR MESSAGE
-                                viewerrors.setRemarks("SAVE TO DB: " + insertDRGClaimsResult.getMessage());
-                                viewerrors.setSeries(claimseries);
-                                viewerrors.setClaimid(claimID);
-                                viewerrors.setErrors(String.join(",", errorlist));
-                                viewerrors.setWarningerror(String.join(",", warningerror));
-                                allErrorList.add(viewerrors);
-                                listid.add(nclaimsdataList.get(y).getPclaimnumber());
-                                break;
-                            }
-
-                        }
-
-                    } else {
-
-                        String details = "DRG ClaimNumber is required";
-                        String series = claimseries;
-                        String claimnum = "";
-                        DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, claimnum, filecontent);
-                        viewerrors.setClaimid(drg.getDrgclaim().getClaimNumber());
-                        viewerrors.setRemarks("");
-                        viewerrors.setSeries(claimseries);
-                        viewerrors.setErrors(details + "| logs " + auditrail.getMessage());
-                        viewerrors.setWarningerror("");
-                        allErrorList.add(viewerrors);
-
-                    }
-                } else {
-                    //DUPLICATE OF SUBMISSION
-                    String details = drg.getDrgclaim().getClaimNumber() + " Claim Number has duplicate from existing claim";
-                    String series = claimseries;
-                    String claimnum = drg.getDrgclaim().getClaimNumber();
-                    DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, claimnum, filecontent);
-                    viewerrors.setClaimid(drg.getDrgclaim().getClaimNumber());
-                    viewerrors.setRemarks("");
-                    viewerrors.setSeries(claimseries);
-                    viewerrors.setErrors("Claim Number " + details + " | " + auditrail.getMessage());
-                    viewerrors.setWarningerror("");
-                    allErrorList.add(viewerrors);
-
-                }
-                result.setSuccess(true);
-                for (int x = 0; x < xmlidlist.size(); x++) {
-                    if (!listid.contains(xmlidlist.get(x))) {
-                        KeyPerValueError viewerrorss = utility.KeyPerValueError();
-                        viewerrorss.setClaimid(xmlidlist.get(x));
-                        viewerrorss.setRemarks("");
-                        viewerrorss.setSeries(claimseries);
-                        String details = "Claim Number " + xmlidlist.get(x) + " Not Found in EClaims Database";
-                        DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, claimseries, xmlidlist.get(x), filecontent);
-                        viewerrorss.setErrors(details + " DRG Claims status " + auditrail.getMessage());
-                        viewerrorss.setWarningerror("");
-                        allErrorList.add(viewerrorss);
-                    }
-                }
-
-            } else {
-                //ACCRE NO IS EMPTY OR HOSPITAL CODE
-                String details = "Accre/Hospital is empty";
-                String series = claimseries;
-                String claimnum = "";
-                KeyPerValueError viewerrorsss = utility.KeyPerValueError();
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, claimnum, filecontent);
-                viewerrorsss.setRemarks("");
-                viewerrorsss.setClaimid(claimseries);
-                viewerrorsss.setErrors(details + " DRG Claims status " + auditrail.getMessage());
-                viewerrorsss.setWarningerror("");
-                allErrorList.add(viewerrorsss);
-                result.setSuccess(false);
-
+            DRGWSResult getdupresults = gm.GetClaimDuplication(datasource, drg.getPHospitalCode().trim(), drg.getDRGCLAIM().getClaimNumber().trim(), claimseries);
+            //-------------------------------------------
+            if (drg.getDRGCLAIM().getClaimNumber().trim().isEmpty()) {
+                detailList.add("CF5 ClaimNumber required");
+//                error.add("CF5 ClaimNumber required");
+                error.add("511");
             }
-            // END OF LINE GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
+            if (drg.getPHospitalCode().isEmpty()) {
+                detailList.add("CF5 pHospitalCode required");
+//                error.add("CF5 pHospitalCode required");
+                error.add("510");
+            }
+            if (!drg.getDRGCLAIM().getClaimNumber().trim().isEmpty()) {
+                if (getdupresults.isSuccess()) {
+                    detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber is exist already");
+                    // error.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber is exist already");
+                    error.add("513");
+                }
+                if (!nclaimsdataList.get(0).getPclaimnumber().trim().equals(drg.getDRGCLAIM().getClaimNumber().trim())) {
+                    detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber not found in Eclaims DB");
+                    //error.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber not found in Eclaims DB");
+                    error.add("512");
+                }
+            }
+//            System.out.println("NCLAIMS " + nclaimsdataList.get(0).getPclaimnumber());
+//            System.out.println("CF5 " + drg.getDRGCLAIM().getClaimNumber().trim());
+//            if (drg.getDRGCLAIM().getPrimaryCode().isEmpty()) {
+//                detailList.add("CF5 PrimaryCode required");
+//                error.add("CF5 PrimaryCode required");
+//            }
+//
+//            if (!drg.getDRGCLAIM().getPrimaryCode().trim().isEmpty()) {
+//                DRGWSResult NewResult = gm.GetICD10(datasource, drg.getDRGCLAIM().getPrimaryCode().trim());
+//                if (!NewResult.isSuccess()) {
+//                    error.add("CF5 Err. code 201 " + drg.getDRGCLAIM().getPrimaryCode().trim() + " PrimaryCode is not valid");
+//                    detailList.add("CF5 Err. code 201 " + drg.getDRGCLAIM().getPrimaryCode().trim() + " PrimaryCode is not valid");
+//                }
+//            }
+//            if (drg.getDRGCLAIM().getPrimaryCode().trim().isEmpty()) {
+//                error.add("CF5 Err. code 101 PrimaryCode is required");
+//                detailList.add("CF5 Err. code 101 PrimaryCode is required");
+//            }
+            //---------------------------------------------------------------------
+            if (error.isEmpty()) {
+                for (int y = 0; y < nclaimsdataList.size(); y++) {
+                    if (drg.getDRGCLAIM().getClaimNumber().trim().equals(nclaimsdataList.get(y).getPclaimnumber().trim())) {
+                        DRGCLAIM drgclaims = new DRGCLAIM();
+                        ArrayList<String> SecondaryData = new ArrayList<>();
+                        ArrayList<String> ProcedureData = new ArrayList<>();
+                        ArrayList<String> warningerror = new ArrayList<>();
+                        ArrayList<String> duplproc = new ArrayList<>();
+                        ArrayList<String> duplsdx = new ArrayList<>();
+                        //VALIDATE DRG VALUES
+                        DRGWSResult vprodResult = VDC.ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdataList.get(y));
+                        DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
+                        drgclaims.setClaimNumber(drgclaim.getClaimNumber());
+                        drgclaims.setPrimaryCode(drgclaim.getPrimaryCode());
+                        drgclaims.setNewBornAdmWeight(drgclaim.getNewBornAdmWeight());
+                        drgclaims.setRemarks(drgclaim.getRemarks());
+                        drgclaims.setPROCEDURES(drgclaim.getPROCEDURES());
+                        drgclaims.setSECONDARYDIAGS(drgclaim.getSECONDARYDIAGS());
+                        //-----------------------------------------------------
+                        //IDENTIFY PRIMARY DIAGNOSIS ERRORS
+                        if (!drgclaims.getRemarks().isEmpty()) {
+                            detailList.add(drgclaims.getRemarks());
+                            error.add(drgclaims.getRemarks());
+                        }
+                        //IDENTIFY PROCEDURES WARNING ERROR
+                        for (int proc = 0; proc < drgclaims.getPROCEDURES().getPROCEDURE().size(); proc++) {
+                            String ProcsCode = drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode();
+                            String ext1 = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1();
+                            String ext2 = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2();
+                            String lat = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality();
+                            String remarks = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks();
+                            //------------------------------------------------------------------------------
+                            if (!remarks.isEmpty()) {
+                                warningerror.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
+                                detailList.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
+                            }
+                            ProcAssign procassign = new ProcAssign();
+                            if (ext1.isEmpty()) {
+                                procassign.setEx1("1");
+                            }
+                            if (ext2.isEmpty()) {
+                                procassign.setEx2("1");
+                            }
+                            if (ext2.isEmpty()) {
+                            }
+                            ProcedureData.add(ProcsCode + "+" + ext1 + "" + ext2);
+                        }
+                        //IDENTIFY SECONDARY DIAGNOSIS WARNING ERROR
+                        for (int sdx = 0; sdx < drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().size(); sdx++) {
+                            String SDxCode = drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getSecondaryCode();
+                            if (!drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks().isEmpty()) {
+                                warningerror.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks());
+                                detailList.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks());
+                            }
+                            SecondaryData.add(SDxCode);
+                        }
+                        //IDENTIFY SECONDARY DIAGNOSIS DUPLICATES
+                        for (int i = 0; i < SecondaryData.size() - 1; i++) {
+                            for (int j = i + 1; j < SecondaryData.size(); j++) {
+                                if (SecondaryData.get(i).equals(SecondaryData.get(j)) && (i != j)) {
+                                    warningerror.add("503");
+                                    duplsdx.add(String.valueOf(j));
+                                    detailList.add("CF5 Warning Err. 503");
+                                }
+                            }
+                        }
+                        // IDENTIFY DUPLICATE PROCEDURES
+                        for (int i = 0; i < ProcedureData.size() - 1; i++) {
+                            for (int j = i + 1; j < ProcedureData.size(); j++) {
+                                if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
+                                    warningerror.add("508");
+                                    duplproc.add(String.valueOf(j));
+                                    detailList.add("CF5 Warning Err. 508");
+                                }
+                            }
+                        }
+                        //MAP VALIDATE DATA TO NEW CF5 OBJECT
+                        drgs.setDRGCLAIM(drgclaim);
+                        //INSERT CF5 CLAIMS DATA
 
-            //---------------------------------------------------------
-            result.setMessage("OK");
+                        DRGWSResult insertDRGClaimsResult = insertDRGClaims.InsertDRGClaims(drgs.getDRGCLAIM(),
+                                datasource, nclaimsdataList.get(y), lhio, claimseries, drg.getPHospitalCode(),
+                                drgs.getDRGCLAIM().getClaimNumber(),
+                                duplproc, duplsdx, filecontent);
+                        //System.out.println(insertDRGClaimsResult.getMessage());
+                        if (!insertDRGClaimsResult.isSuccess()) {
+                            detailList.add(insertDRGClaimsResult.getMessage());
+                            error.add(insertDRGClaimsResult.getMessage());
+                        } else {
+                            detailList.add(insertDRGClaimsResult.getMessage());
+                            result.setSuccess(true);
+                        }
+                        //SET RETURN RESULT
+                        KeyPerValueError viewerrors = utility.KeyPerValueError();
+                        viewerrors.setClaimid(drg.getDRGCLAIM().getClaimNumber());
+                        viewerrors.setSeries(claimseries);
+                        viewerrors.setErrors(String.join(",", error));
+                        viewerrors.setWarningerror(String.join(",", warningerror));
+                        allErrorList.add(viewerrors);
+                        //SET AUDITRAIL
+//                        DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, String.join(",", detailList),
+//                                String.valueOf(insertDRGClaimsResult.isSuccess()).toUpperCase(), claimseries, drg.getDRGCLAIM().getClaimNumber(), filecontent);
+//                        result.setMessage("SAVE CLAIMS STATS : " + insertDRGClaimsResult.getMessage() + " , LOGS STATS: " + auditrail.getMessage());
+                        break;
+                    }
+                }
+            } else {
+                KeyPerValueError viewerrors = utility.KeyPerValueError();
+                viewerrors.setClaimid(drg.getDRGCLAIM().getClaimNumber());
+                viewerrors.setSeries(claimseries + "");
+                viewerrors.setErrors(String.join(",", error));
+                viewerrors.setWarningerror("");
+                allErrorList.add(viewerrors);
+                //SET AUDITRAIL
+                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, String.join(",", detailList), "FALSE", claimseries, drg.getDRGCLAIM().getClaimNumber(), filecontent);
+                result.setMessage("CF5 XML Has an error , Logs Stats: " + auditrail.getMessage());
+            }
             result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
-
         } catch (Exception ex) {
             result.setMessage(ex.getLocalizedMessage());
             Logger.getLogger(ValidateXMLValues.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         return result;
 
     }

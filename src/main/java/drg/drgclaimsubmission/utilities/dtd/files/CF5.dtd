@@ -20,13 +20,13 @@
 -->
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT CF5 (DRGCLAIM)*>
+<!ELEMENT CF5 (DRGCLAIM|SECONDARYDIAGS|PROCEDURES)*>
 <!ATTLIST CF5
     pHospitalCode CDATA #IMPLIED
   >
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)*>
+<!ELEMENT DRGCLAIM EMPTY>
 <!ATTLIST DRGCLAIM
     ClaimNumber CDATA #IMPLIED
     PrimaryCode CDATA #IMPLIED
