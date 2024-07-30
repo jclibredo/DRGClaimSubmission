@@ -1,6 +1,5 @@
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\methods\ValidateProcedures.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\structures\dtd\CF5.java
-D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\utilities\GrouperMethod.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\utilities\dtd\files\CF5Parser.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\structures\XMLErrors.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\methods\ValidateXMLValues.java
@@ -12,6 +11,7 @@ D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\structures
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\methods\ParseEClaimsDrgXML.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\structures\ValidateXMLResult.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\structures\GrouperParameter.java
+D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\methods\CF5Method.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\structures\EncryptedXML.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\seekermethod\ENDRGINFO.java
 D:\Java Swing\DRGClaimSubmission\src\main\java\drg\drgclaimsubmission\utilities\dtd\files\CF5HandlerImpl.java

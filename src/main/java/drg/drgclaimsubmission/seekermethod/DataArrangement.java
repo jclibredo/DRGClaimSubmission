@@ -8,7 +8,7 @@ package drg.drgclaimsubmission.seekermethod;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.KeyPerValueError;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
+import drg.drgclaimsubmission.methods.CF5Method;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.sql.CallableStatement;
@@ -31,7 +31,7 @@ import oracle.jdbc.OracleTypes;
 public class DataArrangement {
 
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
     private final DataProcess dataprocess = new DataProcess();
     // GrouperParameter newGrouperParam = utility.GrouperParameter();
 

@@ -7,7 +7,6 @@ package drg.drgclaimsubmission.methods;
 
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 //import drg.drgclaimsubmission.utilities.dtd.PROCEDURE;
 import java.io.IOException;
@@ -35,7 +34,7 @@ public class ValidateProcedures {
     }
 
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult ValidateProcedures(final DataSource datasource, final PROCEDURE procedure, final String gender) {
         DRGWSResult result = utility.DRGWSResult();

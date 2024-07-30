@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.XMLErrors;
 import drg.drgclaimsubmission.structures.dtd.CF5;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.io.StringReader;
@@ -42,7 +41,7 @@ public class ValidateXMLWithDTD {
 
     private final ValidateXMLValues vxv = new ValidateXMLValues();
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult ValidateXMLWithDTD(final String stringdrgxml,
             final DataSource datasource,
@@ -69,20 +68,17 @@ public class ValidateXMLWithDTD {
                     int lineno = exception.getLineNumber();
                     arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
-
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber();
                     arrayfatalerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
-
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber();
                     arrayerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
             });
-
             Document doc = db.parse(new InputSource(new StringReader(stringxml)));
             JAXBContext jaxbcontext = JAXBContext.newInstance(CF5.class);
             Unmarshaller jaxbnmarsaller = jaxbcontext.createUnmarshaller();

@@ -31,11 +31,10 @@ public class NamedParameterStatement {
     }
     static final String parse(String query, Map paramMap) {
         int length=query.length();
-        StringBuffer parsedQuery=new StringBuffer(length);
+        StringBuilder parsedQuery=new StringBuilder(length);
         boolean inSingleQuote=false;
         boolean inDoubleQuote=false;
         int index=1;
-
         for(int i=0;i<length;i++) {
             char c=query.charAt(i);
             if(inSingleQuote) {
@@ -66,7 +65,7 @@ public class NamedParameterStatement {
                         indexList=new LinkedList();
                         paramMap.put(name, indexList);
                     }
-                    indexList.add(new Integer(index));
+                    indexList.add(index);
 
                     index++;
                 }
@@ -81,7 +80,7 @@ public class NamedParameterStatement {
             int i=0;
             for(Iterator itr2=list.iterator(); itr2.hasNext();) {
                 Integer x=(Integer)itr2.next();
-                indexes[i++]=x.intValue();
+                indexes[i++]=x;
             }
             entry.setValue(indexes);
         }

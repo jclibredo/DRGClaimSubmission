@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.sql.CallableStatement;
@@ -37,7 +36,7 @@ public class InsertDRGClaims {
     }
 
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult InsertDRGClaims(final DRGCLAIM drgclaim,
             final DataSource datasource,
@@ -98,7 +97,6 @@ public class InsertDRGClaims {
             if (!ps.getString("Message").equals("SUCC")) {
                 ErrMessage.add(ps.getString("Message"));
             }
-
             //====================================================== INSERTION FOR WARNING ERROR
             CallableStatement error = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
                     + ":Message, :Code, "
@@ -115,7 +113,6 @@ public class InsertDRGClaims {
                 DRGWSResult gendervalidation = gm.GenderConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
                 DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
                 if (drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().length() != 0) {
-
                     if (duplcatesdx.contains(String.valueOf(second))) {
                         String desc_error = "CF5 SDx is the repetition with other SDx";
                         String code_error = "503";
@@ -149,7 +146,6 @@ public class InsertDRGClaims {
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
-
                         } else if (!SDxResult.isSuccess()) {
                             String desc_error = "CF5 SDx Invalid Code";
                             String code_error = "501";

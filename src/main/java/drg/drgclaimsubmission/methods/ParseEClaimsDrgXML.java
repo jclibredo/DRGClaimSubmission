@@ -11,7 +11,6 @@ import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.CF5;
 //import drg.drgclaimsubmission.utilities.dtd.files.CF5;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +29,8 @@ public class ParseEClaimsDrgXML {
 
     private final Utility utility = new Utility();
     private final ValidateDRGClaims VDC = new ValidateDRGClaims();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
+
     //private final AccessGrouperFrontValidation accessgrouper = new AccessGrouperFrontValidation();
     public DRGWSResult ParseEClaimsDrgXML(
             final DataSource datasource,
@@ -52,7 +52,6 @@ public class ParseEClaimsDrgXML {
                     error.add("509");
                 }
             }
-
             if (drg.getPHospitalCode().isEmpty()) {
                 //error.add("CF5 pHospitalCode Code is required");
                 error.add("303");
@@ -88,32 +87,18 @@ public class ParseEClaimsDrgXML {
                 allErrorList.add(viewerrors);
             }
             if (error.isEmpty()) {
-                
-                
                 for (int y = 0; y < nclaimsdatalist.size(); y++) {
                     if (drg.getPHospitalCode().trim().equals(nclaimsdatalist.get(0).getHospitalcode().trim())) {
                         if (drg.getDRGCLAIM().getClaimNumber().trim().equals(nclaimsdatalist.get(y).getPclaimnumber().trim())) {
-                            
                             DRGCLAIM drgclaims = new DRGCLAIM();
-                            
-                            
-                            
                             ArrayList<String> SecondaryData = new ArrayList<>();
                             ArrayList<String> ProcedureData = new ArrayList<>();
                             KeyPerValueError viewerror = utility.KeyPerValueError();
                             ArrayList<String> errorlist = new ArrayList<>();
                             ArrayList<String> warningerror = new ArrayList<>();
-                            
-                            
-                            
                             //KEY VALUE PAIR VALIDATION
                             DRGWSResult vprodResult = VDC.ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdatalist.get(y));
-                             //KEY VALUE PAIR VALIDATION
-                             
-                             
-                             
-                             
-                            
+                            //KEY VALUE PAIR VALIDATION
                             DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
                             //drgs.add(drgclaim);
                             drgclaims.setClaimNumber(drgclaim.getClaimNumber());
@@ -157,9 +142,6 @@ public class ParseEClaimsDrgXML {
                                 }
                                 SecondaryData.add(SDxCode);
                             }
-                            
-                            
-                            
                             ArrayList<String> duplsdx = new ArrayList<>();
                             for (int i = 0; i < SecondaryData.size() - 1; i++) {
                                 for (int j = i + 1; j < SecondaryData.size(); j++) {
@@ -169,19 +151,17 @@ public class ParseEClaimsDrgXML {
                                     }
                                 }
                             }
-                            
-                            
-                            
                             ArrayList<String> duplproc = new ArrayList<>();
                             for (int i = 0; i < ProcedureData.size() - 1; i++) {
                                 for (int j = i + 1; j < ProcedureData.size(); j++) {
                                     if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
                                         warningerror.add("508");
                                         duplproc.add(String.valueOf(j));
+                                        System.err.println("DUPLICATE " + j);
+                                        break;
                                     }
                                 }
                             }
-
                             // drgs.getDRGCLAIM().add(drgclaim);
                             drgs.setDRGCLAIM(drgclaim);
                             ArrayList<String> drgcodelist = new ArrayList<>();

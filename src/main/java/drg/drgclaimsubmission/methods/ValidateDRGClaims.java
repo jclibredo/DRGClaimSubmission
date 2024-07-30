@@ -12,7 +12,6 @@ import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURES;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAGS;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.text.ParseException;
@@ -34,7 +33,7 @@ public class ValidateDRGClaims {
     }
 
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
     private final ValidateSecondaryDiag VSD = new ValidateSecondaryDiag();
     private final ValidateProcedures VP = new ValidateProcedures();
 

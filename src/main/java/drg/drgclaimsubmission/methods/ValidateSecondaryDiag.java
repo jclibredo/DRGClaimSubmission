@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.text.ParseException;
@@ -28,7 +27,7 @@ public class ValidateSecondaryDiag {
     public ValidateSecondaryDiag() {
     }
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata) throws IOException {
         DRGWSResult result = utility.DRGWSResult();

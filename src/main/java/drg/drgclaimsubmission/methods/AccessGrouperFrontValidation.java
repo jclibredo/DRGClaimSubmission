@@ -12,7 +12,6 @@ import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.WarningErrorList;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,7 +42,7 @@ public class AccessGrouperFrontValidation {
     public AccessGrouperFrontValidation() {
     }
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult AccessGrouperFrontValidation(final DRGCLAIM drgclaim,
             final DataSource datasource,

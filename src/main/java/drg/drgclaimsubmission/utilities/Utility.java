@@ -5,6 +5,7 @@
  */
 package drg.drgclaimsubmission.utilities;
 
+import drg.drgclaimsubmission.methods.CF5Method;
 import drg.drgclaimsubmission.seekermethod.SeekerResult;
 import drg.drgclaimsubmission.structures.DRGOutput;
 import drg.drgclaimsubmission.structures.DRGWSResult;
@@ -173,10 +174,10 @@ public class Utility {
     }
 
     public boolean IsValidDate(String string) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
-        sdf.setLenient(false);
+        SimpleDateFormat newsdf = new SimpleDateFormat("MM-dd-yyyy");
+        newsdf.setLenient(false);
         try {
-            sdf.parse(string);
+            newsdf.parse(string);
             return true;
         } catch (ParseException e) {
             return false;
@@ -379,7 +380,7 @@ public class Utility {
     }
 
     public String CodeConverter(DataSource datasouce, String rvs) {
-        GrouperMethod gm = new GrouperMethod();
+        CF5Method gm = new CF5Method();
         String result = "";
         List<String> ProcList = Arrays.asList(rvs.split(","));
         for (int m = 0; m < ProcList.size(); m++) {
@@ -393,7 +394,7 @@ public class Utility {
     }
 
     public String SDxSecondary(DataSource datasouce, String icd10) {
-        GrouperMethod gm = new GrouperMethod();
+        CF5Method gm = new CF5Method();
         String result = "";
         List<String> ProcList = Arrays.asList(icd10.split(","));
         for (int m = 0; m < ProcList.size(); m++) {

@@ -10,7 +10,7 @@ import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.WarningErrorList;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
+import drg.drgclaimsubmission.methods.CF5Method;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class DataProcess {
     public DataProcess() {
     }
     private final Utility utility = new Utility();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult DataProcess(
             final DataSource datasource,

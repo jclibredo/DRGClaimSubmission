@@ -1,7 +1,7 @@
 drg\drgclaimsubmission\seekermethod\ENRVS.class
 drg\drgclaimsubmission\structures\ValidICD10.class
+drg\drgclaimsubmission\methods\CF5Method.class
 drg\drgclaimsubmission\structures\dtd\PROCEDURE.class
-drg\drgclaimsubmission\utilities\GrouperMethod.class
 drg\drgclaimsubmission\methods\ValidateXMLValues.class
 drg\drgclaimsubmission\methods\ValidateXMLValues$ProcAssign.class
 drg\drgclaimsubmission\utilities\dtd\files\CF5HandlerImpl.class

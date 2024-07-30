@@ -9,9 +9,7 @@ import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.KeyPerValueError;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.CF5;
-//import drg.drgclaimsubmission.utilities.dtd.files.CF5;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.sql.CallableStatement;
@@ -38,7 +36,7 @@ public class ValidateXMLValues {
     private final Utility utility = new Utility();
     private final InsertDRGClaims insertDRGClaims = new InsertDRGClaims();
     private final ValidateDRGClaims VDC = new ValidateDRGClaims();
-    private final GrouperMethod gm = new GrouperMethod();
+    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult ValidateXMLValues(final DataSource datasource,
             final CF5 drg,
@@ -116,7 +114,6 @@ public class ValidateXMLValues {
                 // error.add("CF5 " + claimseries + " not found in eClaims DB");
                 error.add("514");
             }
-
             CF5 drgs = new CF5();
             DRGWSResult getdupresults = gm.GetClaimDuplication(datasource, drg.getPHospitalCode().trim(), drg.getDRGCLAIM().getClaimNumber().trim(), claimseries);
             //-------------------------------------------
@@ -179,7 +176,6 @@ public class ValidateXMLValues {
                         drgclaims.setRemarks(drgclaim.getRemarks());
                         drgclaims.setPROCEDURES(drgclaim.getPROCEDURES());
                         drgclaims.setSECONDARYDIAGS(drgclaim.getSECONDARYDIAGS());
-                        //-----------------------------------------------------
                         //IDENTIFY PRIMARY DIAGNOSIS ERRORS
                         if (!drgclaims.getRemarks().isEmpty()) {
                             detailList.add(drgclaims.getRemarks());
@@ -224,6 +220,7 @@ public class ValidateXMLValues {
                                     warningerror.add("503");
                                     duplsdx.add(String.valueOf(j));
                                     detailList.add("CF5 Warning Err. 503");
+                                    break;
                                 }
                             }
                         }
@@ -234,13 +231,13 @@ public class ValidateXMLValues {
                                     warningerror.add("508");
                                     duplproc.add(String.valueOf(j));
                                     detailList.add("CF5 Warning Err. 508");
+                                    break;
                                 }
                             }
                         }
                         //MAP VALIDATE DATA TO NEW CF5 OBJECT
                         drgs.setDRGCLAIM(drgclaim);
                         //INSERT CF5 CLAIMS DATA
-
                         DRGWSResult insertDRGClaimsResult = insertDRGClaims.InsertDRGClaims(drgs.getDRGCLAIM(),
                                 datasource, nclaimsdataList.get(y), lhio, claimseries, drg.getPHospitalCode(),
                                 drgs.getDRGCLAIM().getClaimNumber(),

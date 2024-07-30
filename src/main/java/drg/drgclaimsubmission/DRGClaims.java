@@ -10,16 +10,11 @@ import com.sun.jersey.multipart.FormDataParam;
 import drg.drgclaimsubmission.methods.ParseEClaimsDrgXML;
 import drg.drgclaimsubmission.methods.RemoveTrailingSpaces;
 import drg.drgclaimsubmission.methods.ValidateXMLWithDTD;
-import drg.drgclaimsubmission.seekermethod.DataArrangement;
-import drg.drgclaimsubmission.seekermethod.GetCF5Parameter;
-import drg.drgclaimsubmission.seekermethod.SeekerResult;
-import drg.drgclaimsubmission.seekermethod.Series;
 import drg.drgclaimsubmission.structures.DRGWSResult;
-import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.XMLErrors;
 import drg.drgclaimsubmission.structures.dtd.CF5;
-import drg.drgclaimsubmission.utilities.GrouperMethod;
+import drg.drgclaimsubmission.methods.CF5Method;
 import drg.drgclaimsubmission.utilities.NamedParameterStatement;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
@@ -77,9 +72,7 @@ public class DRGClaims {
     private final ValidateXMLWithDTD vxwdtd = new ValidateXMLWithDTD();
     private final RemoveTrailingSpaces removedSpace = new RemoveTrailingSpaces();
     private final ParseEClaimsDrgXML ped = new ParseEClaimsDrgXML();
-    private final GrouperMethod gm = new GrouperMethod();
-    private final DataArrangement dataarrange = new DataArrangement();
-    private final GetCF5Parameter gp = new GetCF5Parameter();
+    private final CF5Method gm = new CF5Method();
 
     //Gget Server Data and Time
     @GET
@@ -178,7 +171,6 @@ public class DRGClaims {
                         result.setMessage(cleanData.getMessage() + " , " + auditrail.getMessage());
                         result.setSuccess(cleanData.isSuccess());
                     }
-
                 } catch (IOException ex) {
                     result.setMessage(ex.toString());
                     Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
@@ -203,7 +195,6 @@ public class DRGClaims {
         result.setResult("");
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
-//------------------------------------
         try {
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
@@ -218,7 +209,6 @@ public class DRGClaims {
                     result.setMessage("ECLAIMS XML File NOT FOUND");
                     result.setResult("");
                 } else {
-
                     BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
                     String drgfileline = "";
                     String stringdrgxml = "";
@@ -260,7 +250,6 @@ public class DRGClaims {
                     Unmarshaller jaxbnmarsaller = jaxbcontext.createUnmarshaller();
                     StringReader readers = new StringReader(stringdrgxml);
                     CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
-
                     //E-CLAIMS XML PARSING AREA
                     BufferedReader rd = new BufferedReader(new InputStreamReader(uploadedeclaims));
                     String eclaimfileline = "";
@@ -274,7 +263,6 @@ public class DRGClaims {
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                         Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
                         docs.getDocumentElement().normalize();
-
                         ArrayList<String> idlist = new ArrayList<>();
                         //-----------------------------------------------
                         NodeList eclaimspHospitalCode = docs.getElementsByTagName("eCLAIMS");
@@ -291,7 +279,6 @@ public class DRGClaims {
                                 Element eElements = (Element) nNodess;
                                 nclaimsdata.setHospitalcode(eElements.getAttribute("pHospitalCode"));
                             }
-
                             //GET THE pClaimNumber
                             Node nNodes = nList.item(temp);
                             if (nNodes.getNodeType() == Node.ELEMENT_NODE) {
@@ -322,7 +309,6 @@ public class DRGClaims {
                             }
                             nclaimsdatalist.add(nclaimsdata);
                         }
-
                         //DATA VALIDATION METHOD
                         DRGWSResult pedResult = ped.ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
                         result.setResult(pedResult.getResult());
