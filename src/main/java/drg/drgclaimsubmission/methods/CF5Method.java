@@ -48,9 +48,9 @@ public class CF5Method {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            CallableStatement statement = connection.prepareCall("begin :p_validcode := MINOSUN.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
+            CallableStatement statement = connection.prepareCall("begin :p_validcode := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
             statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
-            statement.setString("p_icd10_code", p_icd10_code);
+            statement.setString("p_icd10_code", p_icd10_code.trim());
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
             if (resultset.next()) {
@@ -78,7 +78,7 @@ public class CF5Method {
             result.setResult("");
             String ProcListNew = "";
             List<String> FinalNewProcList = new ArrayList<>();
-            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
             statement.registerOutParameter("converter", OracleTypes.CURSOR);
             statement.setString("rvs_code", rvs_code.trim());
             statement.execute();
@@ -103,13 +103,13 @@ public class CF5Method {
     }
 
     // GET ALL ICD10
-    public DRGWSResult GetAllICD10(final DataSource datasource) throws IOException {
+    public DRGWSResult GetAllICD10(final DataSource datasource){
         DRGWSResult result = utility.DRGWSResult();
         result.setSuccess(false);
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :icd10 := MINOSUN.DRGPKGFUNCTION.get_all_icd10(); end;");
+            CallableStatement statement = connection.prepareCall("begin :icd10 := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_all_icd10(); end;");
             statement.registerOutParameter("icd10", OracleTypes.CURSOR);
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("icd10");
@@ -130,7 +130,7 @@ public class CF5Method {
             } else {
                 result.setMessage("No Record Found");
             }
-        } catch (SQLException ex) {
+        } catch (SQLException | IOException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -155,7 +155,7 @@ public class CF5Method {
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
+            CallableStatement statement = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
             statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
             statement.setString("pdx", pdx);
             statement.execute();
@@ -196,7 +196,7 @@ public class CF5Method {
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := MINOSUN.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
+            CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
             getduplication.registerOutParameter("dupnclaims", OracleTypes.CURSOR);
             getduplication.setString("accre", accre.trim());
             getduplication.setString("claimnum", claimnum.trim());
@@ -223,7 +223,7 @@ public class CF5Method {
         result.setSuccess(false);
         //  int icd9 = 0;
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getResult = connection.prepareCall("begin :count_output := MINOSUN.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
+            CallableStatement getResult = connection.prepareCall("begin :count_output := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
             getResult.registerOutParameter("count_output", OracleTypes.CURSOR);
             getResult.setString("codes", codes.trim());
             getResult.execute();
@@ -254,7 +254,7 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             SimpleDateFormat sdf = utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
             Date date = new Date();
-            CallableStatement auditrail = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:datein,:discreption,:stats,:seriesnum,:claimnum,:filecontent)");
+            CallableStatement auditrail = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:datein,:discreption,:stats,:seriesnum,:claimnum,:filecontent)");
             auditrail.registerOutParameter("Message", OracleTypes.VARCHAR);
             auditrail.registerOutParameter("Code", OracleTypes.INTEGER);
             //=====================================================================End Process SDx duplication================================ 
@@ -293,7 +293,7 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement grouperdata = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_RESULT(:Message,:Code,:claimNum,:rest_id,:series,:tags,:lhio,:pdx,:sdx,:proc)");
+            CallableStatement grouperdata = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_RESULT(:Message,:Code,:claimNum,:rest_id,:series,:tags,:lhio,:pdx,:sdx,:proc)");
             grouperdata.registerOutParameter("Message", OracleTypes.VARCHAR);
             grouperdata.registerOutParameter("Code", OracleTypes.INTEGER);
             //=====================================================================Process SDx duplication================================
@@ -372,7 +372,7 @@ public class CF5Method {
     }
 
     //public MethodResult PROCESS PROCEDURE BEFORE SAVING SA DATA TO DATABASE
-    public String FrontProcedureExecute(final CombinationCode combinationcode) throws IOException {
+    public String FrontProcedureExecute(final CombinationCode combinationcode){
         String result = "";
         List<String> indexlist = Arrays.asList(combinationcode.getIndexlist().split(","));
         List<String> comcode = Arrays.asList(combinationcode.getComcode().split(","));
@@ -399,7 +399,7 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getAgeValidation = connection.prepareCall("begin :age_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
+            CallableStatement getAgeValidation = connection.prepareCall("begin :age_validation := DRG_SHADOWBILLING.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
             getAgeValidation.registerOutParameter("age_validation", OracleTypes.CURSOR);
             getAgeValidation.setString("p_pdx_code", p_pdx_code.trim());
             getAgeValidation.setString("age_day", age_day);
@@ -427,7 +427,7 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getSexValidation = connection.prepareCall("begin :gender_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
+            CallableStatement getSexValidation = connection.prepareCall("begin :gender_validation := DRG_SHADOWBILLING.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
             getSexValidation.registerOutParameter("gender_validation", OracleTypes.CURSOR);
             getSexValidation.setString("p_pdx_code", p_pdx_code.trim());
             getSexValidation.setString("gender", gender);
@@ -454,7 +454,7 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getSexProcValidation = connection.prepareCall("begin :age_proc_validation := MINOSUN.DRGPKGFUNCTION.PROC_AGE_VALIDATION(:procode,:gender); end;");
+            CallableStatement getSexProcValidation = connection.prepareCall("begin :age_proc_validation := DRG_SHADOWBILLING.DRGPKGFUNCTION.PROC_AGE_VALIDATION(:procode,:gender); end;");
             getSexProcValidation.registerOutParameter("age_proc_validation", OracleTypes.CURSOR);
             getSexProcValidation.setString("procode", procode.trim());
             getSexProcValidation.setString("gender", gender);
@@ -481,7 +481,7 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getResult = connection.prepareCall("begin :icd9code_output := MINOSUN.DRGPKGFUNCTION.GET_ICD9(:rvs); end;");
+            CallableStatement getResult = connection.prepareCall("begin :icd9code_output := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD9(:rvs); end;");
             getResult.registerOutParameter("icd9code_output", OracleTypes.CURSOR);
             getResult.setString("rvs", rvs.trim());
             getResult.execute();

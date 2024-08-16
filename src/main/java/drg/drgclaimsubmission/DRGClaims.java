@@ -104,7 +104,7 @@ public class DRGClaims {
     public DRGWSResult UploadXML(
             @FormDataParam("drg") InputStream uploadeddrg,
             @FormDataParam("drg") FormDataContentDisposition drgdetail,
-            @FormDataParam("ClaimSeriesNum") String ClaimSeriesNum) throws JAXBException, SQLException {
+            @FormDataParam("ClaimSeriesNum") String ClaimSeriesNum) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
         result.setResult("");
@@ -189,7 +189,7 @@ public class DRGClaims {
             @FormDataParam("drg") InputStream uploadeddrg,
             @FormDataParam("drg") FormDataContentDisposition drgdetail,
             @FormDataParam("eclaims") InputStream uploadedeclaims,
-            @FormDataParam("eclaims") FormDataContentDisposition eclaimsdetail) throws JAXBException, SQLException {
+            @FormDataParam("eclaims") FormDataContentDisposition eclaimsdetail) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
         result.setResult("");
@@ -272,7 +272,6 @@ public class DRGClaims {
                         //------------------------------------------------
                         for (int temp = 0; temp < nList.getLength(); temp++) {
                             NClaimsData nclaimsdata = new NClaimsData();
-
                             //GET THE HOSPITAL CODE
                             Node nNodess = eclaimspHospitalCode.item(0);
                             if (nNodess.getNodeType() == Node.ELEMENT_NODE) {
@@ -309,6 +308,8 @@ public class DRGClaims {
                             }
                             nclaimsdatalist.add(nclaimsdata);
                         }
+
+                        //  System.out.println("NClaims Data " + utility.objectMapper().writeValueAsString(nclaimsdatalist));
                         //DATA VALIDATION METHOD
                         DRGWSResult pedResult = ped.ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
                         result.setResult(pedResult.getResult());
@@ -335,7 +336,7 @@ public class DRGClaims {
                     }
                 }
             }
-        } catch (IOException | SAXException | ParserConfigurationException ex) {
+        } catch (IOException | SAXException | ParserConfigurationException | JAXBException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }

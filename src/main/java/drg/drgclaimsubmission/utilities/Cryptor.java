@@ -136,17 +136,7 @@ public class Cryptor {
             Cipher cipher = Cipher.getInstance("AES/CBC/NOPADDING");
             cipher.init(Cipher.ENCRYPT_MODE, sks, ips);
             encrypteddoc = cipher.doFinal(data);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
-            Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidAlgorithmParameterException ex) {
-            Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalBlockSizeException ex) {
-            Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (BadPaddingException ex) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException ex) {
             Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
         }
         return encrypteddoc;
@@ -160,18 +150,8 @@ public class Cryptor {
             Cipher cipher = Cipher.getInstance("AES/CBC/NOPADDING");
             cipher.init(Cipher.DECRYPT_MODE, sks, ips);
             decryptedstringbytes = cipher.doFinal(stringbytes);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidAlgorithmParameterException ex) {
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalBlockSizeException ex) {
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (BadPaddingException ex) {
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException ex) {
+            Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
         }
         return decryptedstringbytes;
     }
@@ -185,7 +165,7 @@ public class Cryptor {
                 sb.append(String.format("%02x", b));
             }
             return sb.toString();
-        } catch (Exception ex) {
+        } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Cryptor.class.getName()).log(Level.SEVERE, null, ex);
             return "";
         }

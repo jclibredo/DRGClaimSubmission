@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
 import drg.drgclaimsubmission.utilities.Utility;
-//import drg.drgclaimsubmission.utilities.dtd.PROCEDURE;
 import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -76,7 +75,7 @@ public class ValidateProcedures {
                 DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
-                    CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                    CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                     statement.registerOutParameter("converter", OracleTypes.CURSOR);
                     statement.setString("rvs_code", rvs_code.trim());
                     statement.execute();

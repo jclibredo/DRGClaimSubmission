@@ -10,7 +10,6 @@ import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,12 +28,12 @@ public class ValidateSecondaryDiag {
     private final Utility utility = new Utility();
     private final CF5Method gm = new CF5Method();
 
-    public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata) throws IOException {
+    public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata){
         DRGWSResult result = utility.DRGWSResult();
         SECONDARYDIAG validatesecondiag;
         ArrayList<String> errors = new ArrayList<>();
-        String SDxCode = secondarydiag.getSecondaryCode().replaceAll("\\.", "").toUpperCase();
-        String pdx = pdxS.replaceAll("\\.", "").toUpperCase();
+        String SDxCode = secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase();
+        String pdx = pdxS.trim().replaceAll("\\.", "").toUpperCase();
         try {
             result.setSuccess(false);
             result.setMessage("");
@@ -97,7 +96,7 @@ public class ValidateSecondaryDiag {
                 validatesecondiag.setRemarks(String.join(",", errors));
             }
             result.setResult(utility.objectMapper().writeValueAsString(validatesecondiag));
-        } catch (IOException | ParseException ex) {
+        } catch (IOException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(ValidateSecondaryDiag.class.getName()).log(Level.SEVERE, null, ex);
         }

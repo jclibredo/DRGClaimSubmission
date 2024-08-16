@@ -14,7 +14,6 @@ import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAGS;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -38,12 +37,11 @@ public class ValidateDRGClaims {
     private final ValidateProcedures VP = new ValidateProcedures();
 
     public DRGWSResult ValidateDRGClaims(
-            final DataSource datasource, 
-            final DRGCLAIM drgclaim, 
-            final NClaimsData nclaimsdata) throws IOException {
+            final DataSource datasource,
+            final DRGCLAIM drgclaim,
+            final NClaimsData nclaimsdata){
         DRGWSResult result = utility.DRGWSResult();
-        
-        
+
         result.setMessage("");
         result.setResult("");
         result.setSuccess(false);
@@ -104,7 +102,6 @@ public class ValidateDRGClaims {
                     int araw = utility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
                     int minuto = utility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                     int taon = utility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
-
                     if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) == 0) {
                         if (araw <= 0 && oras < 0) {
                             //errors.add("AdmissionTime Greater than DischargeTime not valid in same date");
@@ -187,20 +184,16 @@ public class ValidateDRGClaims {
                     }
                 }
             }
-
             //END VALIDATION FOR NEW BORN DATA
             validatedrgclaim = drgclaim;
             if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
             } else if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
             } else {
-
-                
-                
                 SECONDARYDIAGS secondarydiags = new SECONDARYDIAGS();
                 for (int a = 0; a < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); a++) {
                     // sdx validation
                     DRGWSResult VSDResultS = VSD.ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
-                    
+
                     //mapping
                     SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(VSDResultS.getResult(), SECONDARYDIAG.class);
                     secondarydiags.getSECONDARYDIAG().add(secondarydiag);
@@ -209,10 +202,6 @@ public class ValidateDRGClaims {
                     }
                 }
                 validatedrgclaim.setSECONDARYDIAGS(secondarydiags);
-                
-                
-                
-                
             }
 
             if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
@@ -236,12 +225,10 @@ public class ValidateDRGClaims {
                 validatedrgclaim.setRemarks(String.join(",", errors));
             }
             result.setResult(utility.objectMapper().writeValueAsString(validatedrgclaim));
-
-        } catch (ParseException | IOException ex) {
+        } catch (IOException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(ValidateDRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         return result;
     }
 }

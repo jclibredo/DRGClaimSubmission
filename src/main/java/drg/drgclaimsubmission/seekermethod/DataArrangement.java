@@ -15,7 +15,6 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -190,7 +189,7 @@ public class DataArrangement {
                                         DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code);
                                         if (!checkRVStoICD9cm.isSuccess()) {
                                             int gendercounter = 0;
-                                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                                             statement.setString("rvs_code", rvs_code);
                                             statement.execute();
@@ -330,7 +329,7 @@ public class DataArrangement {
                 result.setMessage("CLAIM DATA IS CLEAN");
                 result.setSuccess(true);
             }
-        } catch (NumberFormatException | ParseException | IOException ex) {
+        } catch (NumberFormatException | IOException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(DataArrangement.class.getName()).log(Level.SEVERE, null, ex);
         }

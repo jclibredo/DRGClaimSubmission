@@ -13,7 +13,6 @@ import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
 import drg.drgclaimsubmission.methods.CF5Method;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -47,7 +46,7 @@ public class DataProcess {
             final DataSource datasource,
             final GrouperParameter grouperparam,
             final String duplicateproc,
-            final String duplcatesdx, List<String> errors, List<String> rvslist) throws IOException {
+            final String duplcatesdx, List<String> errors, List<String> rvslist) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
         result.setSuccess(false);
@@ -258,7 +257,7 @@ public class DataProcess {
                                 DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                                 if (!checkRVStoICD9cm.isSuccess()) {
                                     //===========================================================CONVERTER===============================
-                                    CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                                    CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                                     statement.registerOutParameter("converter", OracleTypes.CURSOR);
                                     statement.setString("rvs_code", seconds[b]);
                                     statement.execute();

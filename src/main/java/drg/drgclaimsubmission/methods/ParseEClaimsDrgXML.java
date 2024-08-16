@@ -67,7 +67,7 @@ public class ParseEClaimsDrgXML {
                 }
             }
             if (!drg.getDRGCLAIM().getPrimaryCode().isEmpty()) {
-                DRGWSResult NewResult = gm.GetICD10(datasource, drg.getDRGCLAIM().getPrimaryCode().trim());
+                DRGWSResult NewResult = gm.GetICD10(datasource, drg.getDRGCLAIM().getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
                 if (!NewResult.isSuccess()) {
                     // error.add("CF5 Err. code 201 " + drg.getDRGCLAIM().getPrimaryCode().trim() + " PrimaryCode is not valid");
                     error.add("201");
@@ -77,13 +77,28 @@ public class ParseEClaimsDrgXML {
                 // error.add("CF5 Err. code 101 PrimaryCode is required");
                 error.add("101");
             }
+            //Validate Eclaims XML
+            for (int x = 0; x < nclaimsdatalist.size(); x++) {
+                if (!utility.IsValidTime(nclaimsdatalist.get(x).getTimeDischarge())) {
+                    error.add("516");
+                }
+                if (!utility.IsValidTime(nclaimsdatalist.get(x).getTimeAdmission())) {
+                    error.add("515");
+                }
+                if (!utility.IsValidDate(nclaimsdatalist.get(x).getAdmissionDate().trim())) {
+                    error.add("517");
+                }
+                if (!utility.IsValidDate(nclaimsdatalist.get(x).getDischargeDate().trim())) {
+                    error.add("518");
+                }
+            }
             if (error.size() > 0) {
                 KeyPerValueError viewerrors = utility.KeyPerValueError();
                 viewerrors.setErrors(String.join(",", error));
                 viewerrors.setSeries("");
                 viewerrors.setClaimid(drg.getDRGCLAIM().getClaimNumber() + "");
                 viewerrors.setWarningerror("");
-                viewerrors.setRemarks("CF5");
+                viewerrors.setRemarks("Major Error");
                 allErrorList.add(viewerrors);
             }
             if (error.isEmpty()) {
@@ -157,7 +172,6 @@ public class ParseEClaimsDrgXML {
                                     if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
                                         warningerror.add("508");
                                         duplproc.add(String.valueOf(j));
-                                        System.err.println("DUPLICATE " + j);
                                         break;
                                     }
                                 }
@@ -203,7 +217,6 @@ public class ParseEClaimsDrgXML {
             result.setMessage(ex.toString());
             Logger.getLogger(ParseEClaimsDrgXML.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         return result;
     }
 

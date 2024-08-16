@@ -5,7 +5,6 @@
  */
 package drg.drgclaimsubmission.methods;
 
-
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.GrouperParameter;
 import drg.drgclaimsubmission.structures.NClaimsData;
@@ -14,7 +13,6 @@ import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.structures.dtd.PROCEDURE;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -48,7 +46,7 @@ public class AccessGrouperFrontValidation {
             final DataSource datasource,
             final NClaimsData nclaimsdata,
             final String duplicateproc,
-            final String duplcatesdx, List<String> errors) throws IOException {
+            final String duplcatesdx, List<String> errors) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
         result.setSuccess(false);
@@ -277,7 +275,7 @@ public class AccessGrouperFrontValidation {
                         DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
-                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                             statement.setString("rvs_code", rvs_code);
                             statement.execute();

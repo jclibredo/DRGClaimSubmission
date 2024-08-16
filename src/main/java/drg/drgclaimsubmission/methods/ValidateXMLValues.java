@@ -11,11 +11,9 @@ import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.CF5;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.utilities.Utility;
-import java.io.IOException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -42,17 +40,17 @@ public class ValidateXMLValues {
             final CF5 drg,
             final String lhio,
             final String claimseries,
-            final String filecontent) throws SQLException, IOException {
+            final String filecontent) {
         DRGWSResult result = utility.DRGWSResult();
         ArrayList<KeyPerValueError> allErrorList = new ArrayList<>();
         ArrayList<NClaimsData> nclaimsdataList = new ArrayList<>();
-        SimpleDateFormat timeformat = utility.SimpleDateFormat("hh:mm a");
+        SimpleDateFormat timeformat = utility.SimpleDateFormat("hh:mm:ssa");
         SimpleDateFormat dateformat = utility.SimpleDateFormat("MM-dd-yyyy");
         ArrayList<String> detailList = new ArrayList<>();
         ArrayList<String> error = new ArrayList<>();
         try (Connection connection = datasource.getConnection()) {
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
-            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
+            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := DRG_SHADOWBILLING.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
             getdrg_nclaims.registerOutParameter("nclaims", OracleTypes.CURSOR);
             getdrg_nclaims.setString("seriesnumss", claimseries.trim());
             getdrg_nclaims.execute();
@@ -200,8 +198,7 @@ public class ValidateXMLValues {
                             if (ext2.isEmpty()) {
                                 procassign.setEx2("1");
                             }
-                            if (ext2.isEmpty()) {
-                            }
+                            
                             ProcedureData.add(ProcsCode + "+" + ext1 + "" + ext2);
                         }
                         //IDENTIFY SECONDARY DIAGNOSIS WARNING ERROR

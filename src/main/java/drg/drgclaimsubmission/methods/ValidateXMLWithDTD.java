@@ -11,7 +11,6 @@ import drg.drgclaimsubmission.structures.dtd.CF5;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.io.StringReader;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +46,7 @@ public class ValidateXMLWithDTD {
             final DataSource datasource,
             final String lhio,
             final String claimseries,
-            final String filecontent) throws JAXBException, SQLException {
+            final String filecontent) {
         DRGWSResult result = utility.DRGWSResult();
         result.setSuccess(false);
         result.setMessage("");
@@ -111,7 +110,7 @@ public class ValidateXMLWithDTD {
                 result.setSuccess(false);
             }
 
-        } catch (ParserConfigurationException | IOException | SAXException ex) {
+        } catch (ParserConfigurationException | IOException | SAXException | JAXBException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(ValidateXMLWithDTD.class.getName()).log(Level.SEVERE, null, ex);
         }
