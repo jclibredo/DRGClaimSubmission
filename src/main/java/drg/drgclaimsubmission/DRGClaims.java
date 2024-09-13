@@ -201,7 +201,7 @@ public class DRGClaims {
                 result.setResult("");
             } else {
                 String drgfilename = drgdetail.getFileName();
-                String eclaimsfilename = eclaimsdetail.getFileName();
+                String eclaimsfilename = eclaimsdetail.getFileName(); 
                 if (drgfilename.length() == 0) {
                     result.setMessage("CF5 XML File NOT FOUND");
                     result.setResult("");
@@ -229,19 +229,17 @@ public class DRGClaims {
                         @Override
                         public void warning(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();
-                            arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
+                            arraywarning.add("Line No. " + lineno + " : " + exception.getLocalizedMessage());
                         }
-
                         @Override
                         public void fatalError(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();
-                            arrayfatalerror.add("Line No. " + lineno + " : " + exception.getMessage());
+                            arrayfatalerror.add("Line No. " + lineno + " : " + exception.getLocalizedMessage());
                         }
-
                         @Override
                         public void error(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();
-                            arrayerror.add("Line No. " + lineno + " : " + exception.getMessage());
+                            arrayerror.add("Line No. " + lineno + " : " + exception.getLocalizedMessage());
                         }
                     });
                     //-------------------------------------------------------

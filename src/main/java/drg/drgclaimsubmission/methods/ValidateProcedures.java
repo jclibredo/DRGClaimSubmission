@@ -42,14 +42,12 @@ public class ValidateProcedures {
         String ProcCode = procedure.getRvsCode().replaceAll("\\.", "").toUpperCase();
         String[] laterality = {"L", "R", "B"};
         String[] exten = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            result.setMessage("");
-            result.setResult("");
-            result.setSuccess(false);
-
             if (ProcCode.trim().length() != 0) {
                 if (ProcCode.length() > 10) {
-                    //errors.add("RVS code, " + procedure.getRvsCode().trim() + ", should not be more than 10 digits");
                     errors.add("506");
                 }
                 if (procedure.getLaterality().trim().isEmpty()) {
@@ -75,7 +73,7 @@ public class ValidateProcedures {
                 DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
-                    CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                    CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                     statement.registerOutParameter("converter", OracleTypes.CURSOR);
                     statement.setString("rvs_code", rvs_code.trim());
                     statement.execute();
@@ -86,7 +84,6 @@ public class ValidateProcedures {
                             List<String> ConverterResult = Arrays.asList(ProcList.trim().split(","));
                             for (int ptr = 0; ptr < ConverterResult.size(); ptr++) {
                                 String ICD9Codes = ConverterResult.get(ptr);
-                                // =========================================
                                 if (gm.CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
                                     DRGWSResult sexvalidationresult = gm.GenderConfictValidationProc(datasource, ICD9Codes.trim(), gender);
                                     if (!sexvalidationresult.isSuccess()) {
@@ -95,23 +92,16 @@ public class ValidateProcedures {
                                 }
                             }
                         } else {
-                            //errors.add(" RVS : " + rvs_code + ", library error");
                             errors.add("203");
                         }
                     } else {
-                        //  errors.add(" RVS:" + rvs_code + " invalid");
                         errors.add("203");
                     }
-
                     if (gendercounter > 0) {
-                        //errors.add(" RVS:" + rvs_code + ",conflict with sex");
                         errors.add("507");
                     }
-
                 }
-
             }
-
             validateprocedure = procedure;
             if (errors.isEmpty()) {
                 result.setSuccess(true);

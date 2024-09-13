@@ -50,7 +50,7 @@ public class ValidateXMLValues {
         ArrayList<String> error = new ArrayList<>();
         try (Connection connection = datasource.getConnection()) {
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
-            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := DRG_SHADOWBILLING.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
+            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
             getdrg_nclaims.registerOutParameter("nclaims", OracleTypes.CURSOR);
             getdrg_nclaims.setString("seriesnumss", claimseries.trim());
             getdrg_nclaims.execute();

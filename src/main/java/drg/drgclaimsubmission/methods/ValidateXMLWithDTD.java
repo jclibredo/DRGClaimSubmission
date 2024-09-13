@@ -64,17 +64,17 @@ public class ValidateXMLWithDTD {
             db.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber();
+                    int lineno = exception.getLineNumber()-2;
                     arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber();
+                    int lineno = exception.getLineNumber()-2;
                     arrayfatalerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber();
+                    int lineno = exception.getLineNumber()-2;
                     arrayerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
             });

@@ -193,7 +193,6 @@ public class ValidateDRGClaims {
                 for (int a = 0; a < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); a++) {
                     // sdx validation
                     DRGWSResult VSDResultS = VSD.ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
-
                     //mapping
                     SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(VSDResultS.getResult(), SECONDARYDIAG.class);
                     secondarydiags.getSECONDARYDIAG().add(secondarydiag);
@@ -203,7 +202,6 @@ public class ValidateDRGClaims {
                 }
                 validatedrgclaim.setSECONDARYDIAGS(secondarydiags);
             }
-
             if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
             } else {
                 PROCEDURES procedures = new PROCEDURES();

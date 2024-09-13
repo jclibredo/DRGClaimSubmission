@@ -1,5 +1,4 @@
 <?xml version='1.0' encoding='UTF-8'?>
-
 <!--
     TODO define vocabulary identification
     PUBLIC ID: -//vendor//vocabulary//EN
@@ -20,18 +19,18 @@
 -->
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT CF5 (DRGCLAIM|SECONDARYDIAGS|PROCEDURES)*>
+<!ELEMENT CF5 (DRGCLAIM)>
 <!ATTLIST CF5
-    pHospitalCode CDATA #IMPLIED
+    pHospitalCode CDATA #REQUIRED
   >
 
 <!--- Put your DTDDoc comment here. -->
-<!ELEMENT DRGCLAIM EMPTY>
+<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)>
 <!ATTLIST DRGCLAIM
-    ClaimNumber CDATA #IMPLIED
-    PrimaryCode CDATA #IMPLIED
-    NewBornAdmWeight CDATA #IMPLIED
-    Remarks CDATA #IMPLIED
+    ClaimNumber CDATA #REQUIRED
+    PrimaryCode CDATA #REQUIRED
+    NewBornAdmWeight CDATA #REQUIRED
+    Remarks CDATA #REQUIRED
   >
 
 <!--- Put your DTDDoc comment here. -->
@@ -40,8 +39,8 @@
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT SECONDARYDIAG EMPTY>
 <!ATTLIST SECONDARYDIAG
-    SecondaryCode CDATA #IMPLIED
-    Remarks CDATA #IMPLIED
+    SecondaryCode CDATA #REQUIRED
+    Remarks CDATA #REQUIRED
   >
 
 <!--- Put your DTDDoc comment here. -->
@@ -50,9 +49,9 @@
 <!--- Put your DTDDoc comment here. -->
 <!ELEMENT PROCEDURE EMPTY>
 <!ATTLIST PROCEDURE
-    RvsCode CDATA #IMPLIED
-    Laterality CDATA #IMPLIED
-    Ext1 CDATA #IMPLIED
-    Ext2 CDATA #IMPLIED
-    Remarks CDATA #IMPLIED
+    RvsCode CDATA #REQUIRED
+    Laterality CDATA #REQUIRED
+    Ext1 CDATA #REQUIRED
+    Ext2 CDATA #REQUIRED
+    Remarks CDATA #REQUIRED
   >

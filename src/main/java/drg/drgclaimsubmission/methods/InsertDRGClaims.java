@@ -78,7 +78,7 @@ public class InsertDRGClaims {
             //======================================================
             //INSERTION OF SECONDARY DIAGNOSIS 
             //END INSERTION OF SECONDARY DIAGNOSIS 
-            CallableStatement ps = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
+            CallableStatement ps = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
                     + ":Message, :Code, "
                     + ":PDX_CODE, :NB_TOB, "
                     + ":NB_ADMWEIGHT,:SERIES, "
@@ -97,7 +97,7 @@ public class InsertDRGClaims {
                 ErrMessage.add(ps.getString("Message"));
             }
             //====================================================== INSERTION FOR WARNING ERROR
-            CallableStatement error = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
+            CallableStatement error = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
                     + ":Message, :Code, "
                     + ":claimNum,:rest_id,:series_error, :code_error, "
                     + ":data_error,:desc_error, "
@@ -105,7 +105,7 @@ public class InsertDRGClaims {
             //=======================================================================================  
             //SECONDARY DIAGNOSIS INSERTION OF DATA TO DATABASE
             for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
-                CallableStatement insertsecondary = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
+                CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
                 DRGWSResult SDxResult = gm.GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
@@ -211,7 +211,7 @@ public class InsertDRGClaims {
             }
             // RVS MANIPULATION AREA ==========PROCESS FIRST THE REPITITION OF RVS 
             for (int proc = 0; proc < drgclaim.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                CallableStatement insertprocedure = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PROCEDURE("
+                CallableStatement insertprocedure = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PROCEDURE("
                         + ":Message, :Code, "
                         + ":claimNum,:RVS, "
                         + ":LATERALITY, :EXT1_CODE, "
@@ -259,7 +259,7 @@ public class InsertDRGClaims {
                     //===========================================================CONVERTER===============================
                     DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
-                        CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                        CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
                         statement.setString("rvs_code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                         statement.execute();
