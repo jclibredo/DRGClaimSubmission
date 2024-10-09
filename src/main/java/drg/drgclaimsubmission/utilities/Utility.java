@@ -162,7 +162,6 @@ public class Utility {
 //        }
 //        return request.getRequestURI() + "?" + request.getQueryString();
 //    }
-
     public boolean isStringFromatVAlid(String claimnumber) {
         boolean isValid = claimnumber.matches("\\d{6}-\\d{8}-\\d{1}-\\d{1}");
         return isValid;
@@ -203,34 +202,8 @@ public class Utility {
     }
 
     public boolean IsValidTime(String time) {
-        // Regex to check valid time in 12-hour format.
-//        String regexPattern
-//                = "(1[0-2]|0?[1-9]):[0-5][0-9](\\s)(?i)(am|pm)";
-//        // Compile the ReGex
-//        Pattern compiledPattern = Pattern.compile(regexPattern);
-//        if (time == null) {
-//            return false;
-//        }
-//        // Pattern class contains matcher() method
-//        // to find matching between given time
-//        // and regular expression.
-//        Matcher m = compiledPattern.matcher(time);
-//
-//        // Return if the time
-//        // matched the ReGex
-//        return m.matches();
-
         boolean isValid = time.matches("(1[0-2]|0?[1-9]):[0-5][0-9](\\s)(?i)(am|pm)");
         return isValid;
-//        SimpleDateFormat sdt = new SimpleDateFormat("hh:mm ");
-//        // SimpleDateFormat sdt = new SimpleDateFormat("hh:mm:ssa");
-//        sdt.setLenient(false);
-//        try {
-//            sdt.parse(string);
-//            return true;
-//        } catch (ParseException e) {
-//            return false;
-//        }
     }
 
     public boolean IsValidPIN(String string) {
@@ -364,7 +337,7 @@ public class Utility {
             long AgeY = (difference_In_Time / (1000l * 60 * 60 * 24 * 365));
             result = (int) AgeY;
         } catch (ParseException ex) {
-              ex.getLocalizedMessage();
+            ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -379,7 +352,7 @@ public class Utility {
             result = displayFormat.format(dates);
 
         } catch (ParseException ex) {
-              ex.getLocalizedMessage();
+            ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -393,7 +366,7 @@ public class Utility {
             Date time24 = displayFormat.parse(times);
             result = parseFormat.format(time24);
         } catch (ParseException ex) {
-              ex.getLocalizedMessage();
+            ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -410,7 +383,7 @@ public class Utility {
             result = (int) difference_In_Days;
             return result;
         } catch (ParseException ex) {
-              ex.getLocalizedMessage();
+            ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -429,7 +402,7 @@ public class Utility {
             long CalLOS = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
             result = (int) CalLOS;
         } catch (ParseException ex) {
-              ex.getLocalizedMessage();
+            ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;

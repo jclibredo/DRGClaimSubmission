@@ -9,7 +9,6 @@ import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.KeyPerValueError;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.dtd.CF5;
-//import drg.drgclaimsubmission.utilities.dtd.files.CF5;
 import drg.drgclaimsubmission.structures.dtd.DRGCLAIM;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
