@@ -41,10 +41,8 @@ public class ValidateSecondaryDiag {
             if (!SDxCode.trim().equals("")) {
 
                 if (SDxCode.length() > 10) {
-                    //errors.add("SDx, " + secondarydiag.getSecondaryCode().trim() + ",should not be more than 10 characters");
                     errors.add("501");
                 } else if (SDxCode.equals(pdx)) {
-                    //errors.add(" SDx: " + SDxCode + ",is the repetition with PDx ");
                     errors.add("502");
                 } else {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {

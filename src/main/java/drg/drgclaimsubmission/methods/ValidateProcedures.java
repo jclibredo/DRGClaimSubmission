@@ -70,6 +70,9 @@ public class ValidateProcedures {
                     procedure.setExt1("1");
                 }
                 String rvs_code = procedure.getRvsCode();
+                
+                
+                
                 DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
@@ -101,6 +104,9 @@ public class ValidateProcedures {
                         errors.add("507");
                     }
                 }
+                
+                
+                
             }
             validateprocedure = procedure;
             if (errors.isEmpty()) {

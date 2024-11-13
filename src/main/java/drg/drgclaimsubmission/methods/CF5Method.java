@@ -42,7 +42,9 @@ public class CF5Method {
     private final Utility utility = new Utility();
 
     //GET ICD10 FOR KEY VALUE PAIR VALIDATION
-    public DRGWSResult GetICD10(final DataSource datasource, final String p_icd10_code) {
+    public DRGWSResult GetICD10(
+            final DataSource datasource, 
+            final String p_icd10_code) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
             result.setSuccess(false);
@@ -54,7 +56,6 @@ public class CF5Method {
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
             if (resultset.next()) {
-
                 result.setSuccess(true);
                 result.setResult(resultset.getString("validcode"));
                 result.setMessage("Record Found");
@@ -70,7 +71,9 @@ public class CF5Method {
     }
 
     //RVS CONVERTER TO ICD9CM
-    public DRGWSResult GetICD9cm(final DataSource datasource, final String rvs_code) {
+    public DRGWSResult GetICD9cm(
+            final DataSource datasource, 
+            final String rvs_code) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
             result.setSuccess(false);

@@ -152,6 +152,8 @@ public class DRGClaims {
                         drgfilecontent += drgfileline;
                     }
                     //  METHOD THIS AREA SI TO GET DATA FROM NCLAIMS USING CLAIM SERRIES NUMBER
+//                    EncryptedXML encryptXML = new Cryptor().EncryptXmlPayload(drgfilecontent, "");
+//                    System.out.println(utility.objectMapper().writeValueAsString(encryptXML));
                     String claimsSeriesLhioNums = ClaimSeriesNum.replaceAll("\\s+", "");
                     String claimsSerries = claimsSeriesLhioNums.substring(0, Math.min(claimsSeriesLhioNums.length(), 13));
                     String lhio = claimsSeriesLhioNums.substring(Math.max(claimsSeriesLhioNums.length() - 2, 0));
@@ -179,6 +181,14 @@ public class DRGClaims {
         }
         return result;
     }
+    
+    
+    
+    
+    
+    
+    
+    
 
     //THIS AREA IS TO VALIDATE VALUE FOR DRG DATA BEFORE SUBMISSION
     @POST
@@ -201,7 +211,7 @@ public class DRGClaims {
                 result.setResult("");
             } else {
                 String drgfilename = drgdetail.getFileName();
-                String eclaimsfilename = eclaimsdetail.getFileName(); 
+                String eclaimsfilename = eclaimsdetail.getFileName();
                 if (drgfilename.length() == 0) {
                     result.setMessage("CF5 XML File NOT FOUND");
                     result.setResult("");
@@ -231,11 +241,13 @@ public class DRGClaims {
                             int lineno = exception.getLineNumber();
                             arraywarning.add("Line No. " + lineno + " : " + exception.getLocalizedMessage());
                         }
+
                         @Override
                         public void fatalError(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();
                             arrayfatalerror.add("Line No. " + lineno + " : " + exception.getLocalizedMessage());
                         }
+
                         @Override
                         public void error(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();

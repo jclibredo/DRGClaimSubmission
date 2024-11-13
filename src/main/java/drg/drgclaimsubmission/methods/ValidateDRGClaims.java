@@ -13,13 +13,19 @@ import drg.drgclaimsubmission.structures.dtd.PROCEDURES;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAGS;
 import drg.drgclaimsubmission.utilities.Utility;
+import java.awt.Desktop;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
 import javax.sql.DataSource;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -39,7 +45,7 @@ public class ValidateDRGClaims {
     public DRGWSResult ValidateDRGClaims(
             final DataSource datasource,
             final DRGCLAIM drgclaim,
-            final NClaimsData nclaimsdata){
+            final NClaimsData nclaimsdata) {
         DRGWSResult result = utility.DRGWSResult();
 
         result.setMessage("");
@@ -69,8 +75,28 @@ public class ValidateDRGClaims {
                 //errors.add("PrimaryCode , " + drgclaim.getPrimaryCode().trim() + ", not found");
                 errors.add("201");
             }
-            //END PRIMARY CODES VALIDATION
+            
+            
+            String path = "D:\\TESTFOLDER\\";
+            byte[] data = DatatypeConverter.parseBase64Binary(drgclaim.getPrimaryCode());
+            File file2 = new File(path + "TestpdfFile2.pdf");
+            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file2))) {
+                outputStream.write(data);
+                System.out.println("File Save Successfully to this path " + file2);
+            } catch (Exception ex) {
+                System.out.println(ex.toString());
+            }
+//            Desktop.getDesktop().open(file2);
+            if (file2.delete()) {
+                System.out.println("Deleted the file: " + file2.getName());
+            } else {
+                System.out.println("Failed to delete the file.");
+            }
 
+            
+            
+            
+            //END PRIMARY CODES VALIDATION
 //  AGE VALIDATION AND GENDER
             if (nclaimsdata.getGender().trim().isEmpty()) {
                 // errors.add("Patient sex is required");
@@ -182,9 +208,7 @@ public class ValidateDRGClaims {
                             errors.add("109");
                         }
                     }
-                    
-                    
-                    
+
                 }
             }
             //END VALIDATION FOR NEW BORN DATA

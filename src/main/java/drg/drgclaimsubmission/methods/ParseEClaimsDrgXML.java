@@ -42,7 +42,6 @@ public class ParseEClaimsDrgXML {
         result.setSuccess(false);
         ArrayList<String> error = new ArrayList<>();
         ArrayList<KeyPerValueError> allErrorList = new ArrayList<>();
-
         try {
             CF5 drgs = new CF5();
             if (!drg.getPHospitalCode().isEmpty()) {
