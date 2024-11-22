@@ -37,12 +37,10 @@ public class ValidateXMLWithDTD {
 
     public ValidateXMLWithDTD() {
     }
-
-    private final ValidateXMLValues vxv = new ValidateXMLValues();
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
 
-    public DRGWSResult ValidateXMLWithDTD(final String stringdrgxml,
+    public DRGWSResult ValidateXMLWithDTD(
+            final String stringdrgxml,
             final DataSource datasource,
             final String lhio,
             final String claimseries,
@@ -64,17 +62,19 @@ public class ValidateXMLWithDTD {
             db.setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber()-2;
+                    int lineno = exception.getLineNumber() - 2;
                     arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
+
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber()-2;
+                    int lineno = exception.getLineNumber() - 2;
                     arrayfatalerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
+
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
-                    int lineno = exception.getLineNumber()-2;
+                    int lineno = exception.getLineNumber() - 2;
                     arrayerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
             });
@@ -85,7 +85,7 @@ public class ValidateXMLWithDTD {
             CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
 
             if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
-                DRGWSResult keypervalue = vxv.ValidateXMLValues(datasource, drg, lhio, claimseries, filecontent);
+                DRGWSResult keypervalue = new ValidateXMLValues().ValidateXMLValues(datasource, drg, lhio, claimseries, filecontent);
                 result.setMessage(keypervalue.getMessage());
                 result.setSuccess(keypervalue.isSuccess());
                 result.setResult(keypervalue.getResult());
@@ -104,7 +104,7 @@ public class ValidateXMLWithDTD {
                     }
                     xmlerrors.setErrors(errors);
                 }
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, "CF5 XML format have errors : " + utility.objectMapper().writeValueAsString(xmlerrors), "FAILED", claimseries, "N/A", filecontent);
+                DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, "CF5 XML format have errors : " + utility.objectMapper().writeValueAsString(xmlerrors), "FAILED", claimseries, "N/A", filecontent);
                 result.setMessage("CF5 XML format have errors , Logs Stats :" + auditrail.getMessage());
                 result.setResult(utility.objectMapper().writeValueAsString(xmlerrors));
                 result.setSuccess(false);

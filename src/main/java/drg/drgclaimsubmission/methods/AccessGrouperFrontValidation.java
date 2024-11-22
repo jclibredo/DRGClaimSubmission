@@ -40,7 +40,6 @@ public class AccessGrouperFrontValidation {
     public AccessGrouperFrontValidation() {
     }
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult AccessGrouperFrontValidation(final DRGCLAIM drgclaim,
             final DataSource datasource,
@@ -200,9 +199,9 @@ public class AccessGrouperFrontValidation {
                 for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
                     WarningErrorList warningerror = utility.WarningErrorList();
                     String datas = drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode();
-                    DRGWSResult SDxResult = gm.GetICD10(datasource, datas.replaceAll("\\.", "").toUpperCase());
-                    DRGWSResult gendervalidation = gm.GenderConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
-                    DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), days, year);
+                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, datas.replaceAll("\\.", "").toUpperCase());
+                    DRGWSResult gendervalidation = new CF5Method().GenderConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
+                    DRGWSResult agevalidation = new CF5Method().AgeConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), days, year);
                     if (datas.length() != 0) {
                         int indexvalue = duplcatesdx.indexOf(String.valueOf(second));
                         if (indexvalue >= 0) {
@@ -272,7 +271,7 @@ public class AccessGrouperFrontValidation {
                         }
 
                         //IF RVS NOT FOUND IN THE ICD9 CODES LIBRARY CONVERT THE CODE
-                        DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
+                        DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
                             CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
@@ -286,8 +285,8 @@ public class AccessGrouperFrontValidation {
                                 List<String> ConverterResult = Arrays.asList(ProcList.split(","));
                                 for (int g = 0; g < ConverterResult.size(); g++) {
                                     //  int datafound = gm.CountProc(datasource, ConverterResult.get(g).trim());
-                                    if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
-                                        DRGWSResult procgendervalidation = gm.GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
+                                    if (new CF5Method().CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
+                                        DRGWSResult procgendervalidation = new CF5Method().GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
                                         if (!procgendervalidation.isSuccess()) {
                                             conflictcounter++;
                                         }
@@ -302,7 +301,7 @@ public class AccessGrouperFrontValidation {
                                     for (int g = 0; g < ConverterResult.size(); g++) {
                                         String ICD9Codes = ConverterResult.get(g);
                                         // int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                        if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
+                                        if (new CF5Method().CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                             if (procedure.getExt2().trim().equals("1") && procedure.getExt1().trim().equals("1")) {
                                                 procedurejoin.add(ICD9Codes.trim());
                                             } else {

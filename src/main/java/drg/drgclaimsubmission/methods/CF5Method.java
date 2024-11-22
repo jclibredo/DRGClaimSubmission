@@ -43,7 +43,7 @@ public class CF5Method {
 
     //GET ICD10 FOR KEY VALUE PAIR VALIDATION
     public DRGWSResult GetICD10(
-            final DataSource datasource, 
+            final DataSource datasource,
             final String p_icd10_code) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
@@ -52,7 +52,7 @@ public class CF5Method {
             result.setResult("");
             CallableStatement statement = connection.prepareCall("begin :p_validcode := MINOSUN.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
             statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
-            statement.setString("p_icd10_code", p_icd10_code.trim());
+            statement.setString("p_icd10_code", p_icd10_code.trim().replaceAll("\\.", "").toUpperCase());
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
             if (resultset.next()) {
@@ -60,7 +60,6 @@ public class CF5Method {
                 result.setResult(resultset.getString("validcode"));
                 result.setMessage("Record Found");
             } else {
-                result.setSuccess(false);
                 result.setMessage("No ICD10 Record Found");
             }
         } catch (SQLException ex) {
@@ -72,7 +71,7 @@ public class CF5Method {
 
     //RVS CONVERTER TO ICD9CM
     public DRGWSResult GetICD9cm(
-            final DataSource datasource, 
+            final DataSource datasource,
             final String rvs_code) {
         DRGWSResult result = utility.DRGWSResult();
         try (Connection connection = datasource.getConnection()) {
@@ -106,7 +105,7 @@ public class CF5Method {
     }
 
     // GET ALL ICD10
-    public DRGWSResult GetAllICD10(final DataSource datasource){
+    public DRGWSResult GetAllICD10(final DataSource datasource) {
         DRGWSResult result = utility.DRGWSResult();
         result.setSuccess(false);
         result.setMessage("");
@@ -160,11 +159,10 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             CallableStatement statement = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
             statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
-            statement.setString("pdx", pdx);
+            statement.setString("pdx", pdx.trim().replaceAll("\\.", "").toUpperCase());
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("accpdxs");
             if (resultset.next()) {
-                result.setSuccess(true);
                 ICD10PreMDCResult premdc = new ICD10PreMDCResult();
                 premdc.setAccPDX(resultset.getString("ACCPDX"));
                 premdc.setAgeDMin(resultset.getString("AGEDMIN"));
@@ -180,8 +178,9 @@ public class CF5Method {
                 premdc.setPDC(resultset.getString("PDC"));
                 premdc.setSex(resultset.getString("SEX"));
                 premdc.setTrauma(resultset.getString("TRAUMA"));
-                result.setResult(utility.objectMapper().writeValueAsString(premdc));
                 result.setMessage(resultset.getString("CCROW"));
+                result.setResult(utility.objectMapper().writeValueAsString(premdc));
+                result.setSuccess(true);
             } else {
                 result.setMessage("N/A");
             }
@@ -199,14 +198,14 @@ public class CF5Method {
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getduplication = connection.prepareCall("begin :dupnclaims := MINOSUN.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
-            getduplication.registerOutParameter("dupnclaims", OracleTypes.CURSOR);
-            getduplication.setString("accre", accre.trim());
-            getduplication.setString("claimnum", claimnum.trim());
-            getduplication.setString("series", series.trim());
-            getduplication.execute();
-            ResultSet getduplicationResult = (ResultSet) getduplication.getObject("dupnclaims");
-            if (getduplicationResult.next()) {
+            CallableStatement statement = connection.prepareCall("begin :dupnclaims := MINOSUN.DRGPKGFUNCTION.GET_CHECK_DUPLICATE(:accre,:claimnum,:series); end;");
+            statement.registerOutParameter("dupnclaims", OracleTypes.CURSOR);
+            statement.setString("accre", accre.trim());
+            statement.setString("claimnum", claimnum.trim());
+            statement.setString("series", series.trim());
+            statement.execute();
+            ResultSet resultSet = (ResultSet) statement.getObject("dupnclaims");
+            if (resultSet.next()) {
                 result.setSuccess(true);
             } else {
                 result.setMessage("N/A");
@@ -226,12 +225,12 @@ public class CF5Method {
         result.setSuccess(false);
         //  int icd9 = 0;
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getResult = connection.prepareCall("begin :count_output := MINOSUN.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
-            getResult.registerOutParameter("count_output", OracleTypes.CURSOR);
-            getResult.setString("codes", codes.trim());
-            getResult.execute();
-            ResultSet rest = (ResultSet) getResult.getObject("count_output");
-            if (rest.next()) {
+            CallableStatement statement = connection.prepareCall("begin :count_output := MINOSUN.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
+            statement.registerOutParameter("count_output", OracleTypes.CURSOR);
+            statement.setString("codes", codes.trim());
+            statement.execute();
+            ResultSet resultSet = (ResultSet) statement.getObject("count_output");
+            if (resultSet.next()) {
                 // icd9 = Integer.parseInt(rest.getString("countrest"));
                 result.setSuccess(true);
             }
@@ -375,7 +374,7 @@ public class CF5Method {
     }
 
     //public MethodResult PROCESS PROCEDURE BEFORE SAVING SA DATA TO DATABASE
-    public String FrontProcedureExecute(final CombinationCode combinationcode){
+    public String FrontProcedureExecute(final CombinationCode combinationcode) {
         String result = "";
         List<String> indexlist = Arrays.asList(combinationcode.getIndexlist().split(","));
         List<String> comcode = Arrays.asList(combinationcode.getComcode().split(","));

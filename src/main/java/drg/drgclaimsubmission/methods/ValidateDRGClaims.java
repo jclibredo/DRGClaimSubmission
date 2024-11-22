@@ -13,19 +13,13 @@ import drg.drgclaimsubmission.structures.dtd.PROCEDURES;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAG;
 import drg.drgclaimsubmission.structures.dtd.SECONDARYDIAGS;
 import drg.drgclaimsubmission.utilities.Utility;
-import java.awt.Desktop;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
 import javax.sql.DataSource;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -38,16 +32,12 @@ public class ValidateDRGClaims {
     }
 
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
-    private final ValidateSecondaryDiag VSD = new ValidateSecondaryDiag();
-    private final ValidateProcedures VP = new ValidateProcedures();
 
     public DRGWSResult ValidateDRGClaims(
             final DataSource datasource,
             final DRGCLAIM drgclaim,
             final NClaimsData nclaimsdata) {
         DRGWSResult result = utility.DRGWSResult();
-
         result.setMessage("");
         result.setResult("");
         result.setSuccess(false);
@@ -57,7 +47,7 @@ public class ValidateDRGClaims {
         String[] dischargefromnclaims = {"I", "R", "H", "A", "T", "E", "O"};
         String[] gender = {"M", "F"};
         String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim();
-        DRGWSResult NewResult = gm.GetICD10(datasource, PDx);
+        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, PDx);
         try {
 
             //  DRGWSResult getvalidicd10 = gm.GetValidCodeICD10(datasource, PDx);
@@ -74,28 +64,25 @@ public class ValidateDRGClaims {
             } else if (!NewResult.isSuccess()) {
                 //errors.add("PrimaryCode , " + drgclaim.getPrimaryCode().trim() + ", not found");
                 errors.add("201");
-            }
-            
-            
-            String path = "D:\\TESTFOLDER\\";
-            byte[] data = DatatypeConverter.parseBase64Binary(drgclaim.getPrimaryCode());
-            File file2 = new File(path + "TestpdfFile2.pdf");
-            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file2))) {
-                outputStream.write(data);
-                System.out.println("File Save Successfully to this path " + file2);
-            } catch (Exception ex) {
-                System.out.println(ex.toString());
-            }
-//            Desktop.getDesktop().open(file2);
-            if (file2.delete()) {
-                System.out.println("Deleted the file: " + file2.getName());
-            } else {
-                System.out.println("Failed to delete the file.");
+            } else if (!new CF5Method().GetICD10PreMDC(datasource, PDx).isSuccess()) {
+                errors.add("201");
             }
 
-            
-            
-            
+//            String path = "D:\\TESTFOLDER\\";
+//            byte[] data = DatatypeConverter.parseBase64Binary(drgclaim.getPrimaryCode());
+//            File file2 = new File(path + "TestpdfFile2.pdf");
+//            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file2))) {
+//                outputStream.write(data);
+//                System.out.println("File Save Successfully to this path " + file2);
+//            } catch (Exception ex) {
+//                System.out.println(ex.toString());
+//            }
+////            Desktop.getDesktop().open(file2);
+//            if (file2.delete()) {
+//                System.out.println("Deleted the file: " + file2.getName());
+//            } else {
+//                System.out.println("Failed to delete the file.");
+//            }
             //END PRIMARY CODES VALIDATION
 //  AGE VALIDATION AND GENDER
             if (nclaimsdata.getGender().trim().isEmpty()) {
@@ -126,7 +113,7 @@ public class ValidateDRGClaims {
                 } else {
                     int oras = utility.ComputeTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                     int araw = utility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
-                    int minuto = utility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+//                    int minuto = utility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                     int taon = utility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
                     if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) == 0) {
                         if (araw <= 0 && oras < 0) {
@@ -219,7 +206,7 @@ public class ValidateDRGClaims {
                 SECONDARYDIAGS secondarydiags = new SECONDARYDIAGS();
                 for (int a = 0; a < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); a++) {
                     // sdx validation
-                    DRGWSResult VSDResultS = VSD.ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
+                    DRGWSResult VSDResultS = new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
                     //mapping
                     SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(VSDResultS.getResult(), SECONDARYDIAG.class);
                     secondarydiags.getSECONDARYDIAG().add(secondarydiag);
@@ -233,7 +220,7 @@ public class ValidateDRGClaims {
             } else {
                 PROCEDURES procedures = new PROCEDURES();
                 for (int b = 0; b < drgclaim.getPROCEDURES().getPROCEDURE().size(); b++) {
-                    DRGWSResult VPResult = VP.ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender());
+                    DRGWSResult VPResult = new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender());
                     PROCEDURE procedure = utility.objectMapper().readValue(VPResult.getResult(), PROCEDURE.class);
                     procedures.getPROCEDURE().add(procedure);
                     if (procedure.getRemarks().equals("")) {

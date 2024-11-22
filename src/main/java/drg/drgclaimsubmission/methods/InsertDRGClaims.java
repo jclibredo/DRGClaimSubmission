@@ -35,7 +35,6 @@ public class InsertDRGClaims {
     }
     
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
     
     public DRGWSResult InsertDRGClaims(final DRGCLAIM drgclaim,
             final DataSource datasource,
@@ -108,9 +107,9 @@ public class InsertDRGClaims {
                 CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
-                DRGWSResult SDxResult = gm.GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
-                DRGWSResult gendervalidation = gm.GenderConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
-                DRGWSResult agevalidation = gm.AgeConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
+                DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
+                DRGWSResult gendervalidation = new CF5Method().GenderConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
+                DRGWSResult agevalidation = new CF5Method().AgeConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
                 if (drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().length() != 0) {
                     if (duplcatesdx.contains(String.valueOf(second))) {
                         String desc_error = "CF5 SDx is the repetition with other SDx";
@@ -257,7 +256,7 @@ public class InsertDRGClaims {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt2("1");
                     }
                     //===========================================================CONVERTER===============================
-                    DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
+                    DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
                         CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
@@ -268,8 +267,8 @@ public class InsertDRGClaims {
                             int conflictcounter = 0;
                             List<String> ConverterResult = Arrays.asList(resultset.getString("ICD9CODE").trim().split(","));
                             for (int g = 0; g < ConverterResult.size(); g++) {
-                                if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
-                                    DRGWSResult procgendervalidation = gm.GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
+                                if (new CF5Method().CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
+                                    DRGWSResult procgendervalidation = new CF5Method().GenderConfictValidationProc(datasource, ConverterResult.get(g).trim(), nclaimsdata.getGender());
                                     if (!procgendervalidation.isSuccess()) {
                                         conflictcounter++;
                                     }
@@ -293,7 +292,7 @@ public class InsertDRGClaims {
                                 }
                             } else {
                                 for (int g = 0; g < ConverterResult.size(); g++) {
-                                    if (gm.CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
+                                    if (new CF5Method().CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
                                         insertprocedure.setString("claimNum", drgclaim.getClaimNumber().trim());
                                         insertprocedure.setString("RVS", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
                                         insertprocedure.setString("LATERALITY", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
@@ -353,11 +352,11 @@ public class InsertDRGClaims {
             if (ErrMessage.isEmpty()) {
                 connection.commit();
                 //INSERTION OF DRG RESULT
-                DRGWSResult gpdata = gm.InsertDRGResult(datasource, drgclaim.getClaimNumber(), series, lhio,
+                DRGWSResult gpdata = new CF5Method().InsertDRGResult(datasource, drgclaim.getClaimNumber(), series, lhio,
                         drgclaim.getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase(),
                         String.join(",", secondaryjoin), String.join(",", procedurejoin), result_id);
                 //INSERTION OF DRG RESULT
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, "CLAIMS SUCCESSFULLY INSERTED", "SUCCESS", series, drgclaim.getClaimNumber(), filecontent);
+                DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, "CLAIMS SUCCESSFULLY INSERTED", "SUCCESS", series, drgclaim.getClaimNumber(), filecontent);
                 if (gpdata.isSuccess() && auditrail.isSuccess()) {
                     result.setMessage("CF5 " + series + " CLAIMS SUCCESSFULLY INSERTED");
                 } else {
@@ -370,7 +369,7 @@ public class InsertDRGClaims {
                 connection.rollback();
                 String details = "CF5 CLAIMS INSERTION FAIL";
                 String stats = "FAILED";
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, details, stats, series, drgclaim.getClaimNumber(), filecontent);
+                DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, stats, series, drgclaim.getClaimNumber(), filecontent);
                 result.setMessage(details + " Claims Status:" + auditrail);
                 result.setResult(utility.objectMapper().writeValueAsString(ErrMessage));
                 result.setSuccess(false);

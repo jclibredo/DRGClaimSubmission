@@ -33,7 +33,6 @@ public class ValidateProcedures {
     }
 
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult ValidateProcedures(final DataSource datasource, final PROCEDURE procedure, final String gender) {
         DRGWSResult result = utility.DRGWSResult();
@@ -70,10 +69,7 @@ public class ValidateProcedures {
                     procedure.setExt1("1");
                 }
                 String rvs_code = procedure.getRvsCode();
-                
-                
-                
-                DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
+                DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
                     CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
@@ -87,8 +83,8 @@ public class ValidateProcedures {
                             List<String> ConverterResult = Arrays.asList(ProcList.trim().split(","));
                             for (int ptr = 0; ptr < ConverterResult.size(); ptr++) {
                                 String ICD9Codes = ConverterResult.get(ptr);
-                                if (gm.CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
-                                    DRGWSResult sexvalidationresult = gm.GenderConfictValidationProc(datasource, ICD9Codes.trim(), gender);
+                                if (new CF5Method().CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
+                                    DRGWSResult sexvalidationresult = new CF5Method().GenderConfictValidationProc(datasource, ICD9Codes.trim(), gender);
                                     if (!sexvalidationresult.isSuccess()) {
                                         gendercounter++;
                                     }
@@ -104,9 +100,7 @@ public class ValidateProcedures {
                         errors.add("507");
                     }
                 }
-                
-                
-                
+
             }
             validateprocedure = procedure;
             if (errors.isEmpty()) {

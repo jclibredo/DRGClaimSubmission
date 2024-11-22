@@ -30,9 +30,6 @@ import oracle.jdbc.OracleTypes;
 public class DataArrangement {
 
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
-    private final DataProcess dataprocess = new DataProcess();
-    // GrouperParameter newGrouperParam = utility.GrouperParameter();
 
     public DRGWSResult DataArrangement(final DataSource datasource,
             final GrouperParameter grouperparam) {
@@ -46,7 +43,7 @@ public class DataArrangement {
         String[] dischargefromnclaims = {"1", "2", "3", "4", "5", "8", "9"};
         String[] gender = {"M", "F"};
         String PDx = grouperparam.getPdx().replaceAll("\\.", "").toUpperCase();
-        DRGWSResult NewResult = gm.GetICD10(datasource, PDx);
+        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, PDx);
         List<String> ProcedureList = Arrays.asList(grouperparam.getProc().split(","));
         List<String> SecondaryList = Arrays.asList(grouperparam.getSdx().split(","));
         ArrayList<String> SecondaryData = new ArrayList<>();
@@ -181,12 +178,12 @@ public class DataArrangement {
                         try (Connection connection = datasource.getConnection()) {
                             String ProcCode = ProcedureList.get(proc).replaceAll("\\+", " +");
                             String[] splirproc = ProcCode.split(",");
-                            for (int a = 0; a < splirproc.length; a++) {
-                                String[] seconds = splirproc[a].split(" +");
+                            for (String splirproc1 : splirproc) {
+                                String[] seconds = splirproc1.split(" +");
                                 for (int b = 0; b < seconds.length; b++) {
                                     if (b == 0) {
                                         String rvs_code = seconds[b].trim().replaceAll("\\s", "");
-                                        DRGWSResult checkRVStoICD9cm = gm.CheckICD9cm(datasource, rvs_code);
+                                        DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code);
                                         if (!checkRVStoICD9cm.isSuccess()) {
                                             int gendercounter = 0;
                                             CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
@@ -201,8 +198,8 @@ public class DataArrangement {
                                                     for (int ptr = 0; ptr < ConverterResult.size(); ptr++) {
                                                         String ICD9Codes = ConverterResult.get(ptr);
                                                         //int datafound = gm.CountProc(datasource, ICD9Codes.trim());
-                                                        if (gm.CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
-                                                            DRGWSResult sexvalidationresult = gm.GenderConfictValidationProc(datasource, ICD9Codes.trim(), grouperparam.getGender());
+                                                        if (new CF5Method().CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
+                                                            DRGWSResult sexvalidationresult = new CF5Method().GenderConfictValidationProc(datasource, ICD9Codes.trim(), grouperparam.getGender());
                                                             if (!sexvalidationresult.isSuccess()) {
                                                                 gendercounter++;
                                                             }
@@ -258,15 +255,15 @@ public class DataArrangement {
                                 if (utility.ComputeYear(grouperparam.getBirthDate(), grouperparam.getAdmissionDate()) >= 0
                                         && utility.ComputeDay(grouperparam.getBirthDate(),
                                                 grouperparam.getAdmissionDate()) >= 0 && !SDxCode.isEmpty()) {
-                                    DRGWSResult SDxResult = gm.GetICD10(datasource, SDxCode);
+                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, SDxCode);
                                     if (SDxResult.isSuccess()) {
                                         //CHECKING FOR AGE CONFLICT
-                                        DRGWSResult getAgeConfictResult = gm.AgeConfictValidation(datasource, SDxCode, days, year);
+                                        DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, SDxCode, days, year);
                                         if (!getAgeConfictResult.isSuccess()) {
                                             warningerror.add("504");
                                         }
                                         //CHECKING FOR GENDER CONFLICT
-                                        DRGWSResult getSexConfictResult = gm.GenderConfictValidation(datasource, SDxCode, grouperparam.getGender());
+                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, SDxCode, grouperparam.getGender());
                                         if (!getSexConfictResult.isSuccess()) {
                                             warningerror.add("505");
                                         }
@@ -305,7 +302,7 @@ public class DataArrangement {
 
             ArrayList<String> drgcodelist = new ArrayList<>();
             ArrayList<String> drgnamelist = new ArrayList<>();
-            DRGWSResult grouperresult = dataprocess.DataProcess(datasource, grouperparam, String.join(",", duplproc), String.join(",", duplsdx), errors, ProcedureData);
+            DRGWSResult grouperresult = new DataProcess().DataProcess(datasource, grouperparam, String.join(",", duplproc), String.join(",", duplsdx), errors, ProcedureData);
             drgcodelist.add(grouperresult.getResult());
             drgnamelist.add(grouperresult.getMessage());
             viewerrors.setRemarks("");

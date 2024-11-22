@@ -26,9 +26,8 @@ public class ValidateSecondaryDiag {
     public ValidateSecondaryDiag() {
     }
     private final Utility utility = new Utility();
-    private final CF5Method gm = new CF5Method();
 
-    public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata){
+    public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata) {
         DRGWSResult result = utility.DRGWSResult();
         SECONDARYDIAG validatesecondiag;
         ArrayList<String> errors = new ArrayList<>();
@@ -54,29 +53,30 @@ public class ValidateSecondaryDiag {
                         } else {
                             finalDays = Integer.parseInt(days);
                         }
-
                         if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                 && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0) {
                             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                                 if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                         && utility.ComputeDay(nclaimsdata.getDateofBirth(),
                                                 nclaimsdata.getAdmissionDate()) >= 0 && !SDxCode.isEmpty()) {
-                                    DRGWSResult SDxResult = gm.GetICD10(datasource, SDxCode);
+                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, SDxCode);
                                     if (SDxResult.isSuccess()) {
-                                        //CHECKING FOR AGE CONFLICT
-                                        DRGWSResult getAgeConfictResult = gm.AgeConfictValidation(datasource, SDxCode, String.valueOf(finalDays), year);
-                                        if (!getAgeConfictResult.isSuccess()) {
-                                            //errors.add(" SDx:" + SDxCode + " conflict with age");
-                                            errors.add("504");
-                                        }
-                                        //CHECKING FOR GENDER CONFLICT
-                                        DRGWSResult getSexConfictResult = gm.GenderConfictValidation(datasource, SDxCode, nclaimsdata.getGender());
-                                        if (!getSexConfictResult.isSuccess()) {
-                                            //errors.add(" SDx:" + SDxCode + " confict with sex");
-                                            errors.add("505");
+                                        DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, SDxCode);
+                                        if (icd10preMDC.isSuccess()) {
+                                            //CHECKING FOR AGE CONFLICT
+                                            DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, SDxCode, String.valueOf(finalDays), year);
+                                            if (!getAgeConfictResult.isSuccess()) {
+                                                errors.add("504");
+                                            }
+                                            //CHECKING FOR GENDER CONFLICT
+                                            DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, SDxCode, nclaimsdata.getGender());
+                                            if (!getSexConfictResult.isSuccess()) {
+                                                errors.add("505");
+                                            }
+                                        } else {
+                                            errors.add("501");
                                         }
                                     } else {
-                                        //  errors.add(" SDx:" + SDxCode + " Invalid SDx");
                                         errors.add("501");
                                     }
                                 }

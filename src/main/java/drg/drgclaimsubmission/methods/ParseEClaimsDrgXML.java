@@ -27,8 +27,6 @@ import javax.sql.DataSource;
 public class ParseEClaimsDrgXML {
 
     private final Utility utility = new Utility();
-    private final ValidateDRGClaims VDC = new ValidateDRGClaims();
-    private final CF5Method gm = new CF5Method();
 
     //private final AccessGrouperFrontValidation accessgrouper = new AccessGrouperFrontValidation();
     public DRGWSResult ParseEClaimsDrgXML(
@@ -65,7 +63,7 @@ public class ParseEClaimsDrgXML {
                 }
             }
             if (!drg.getDRGCLAIM().getPrimaryCode().isEmpty()) {
-                DRGWSResult NewResult = gm.GetICD10(datasource, drg.getDRGCLAIM().getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
+                DRGWSResult NewResult = new CF5Method().GetICD10(datasource, drg.getDRGCLAIM().getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
                 if (!NewResult.isSuccess()) {
                     // error.add("CF5 Err. code 201 " + drg.getDRGCLAIM().getPrimaryCode().trim() + " PrimaryCode is not valid");
                     error.add("201");
@@ -110,7 +108,7 @@ public class ParseEClaimsDrgXML {
                             ArrayList<String> errorlist = new ArrayList<>();
                             ArrayList<String> warningerror = new ArrayList<>();
                             //KEY VALUE PAIR VALIDATION
-                            DRGWSResult vprodResult = VDC.ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdatalist.get(y));
+                            DRGWSResult vprodResult = new ValidateDRGClaims().ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdatalist.get(y));
                             //KEY VALUE PAIR VALIDATION
                             DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
                             //drgs.add(drgclaim);

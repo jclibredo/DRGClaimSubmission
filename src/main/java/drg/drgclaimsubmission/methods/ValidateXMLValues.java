@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.RequestScoped;
@@ -32,9 +33,6 @@ public class ValidateXMLValues {
     public ValidateXMLValues() {
     }
     private final Utility utility = new Utility();
-    private final InsertDRGClaims insertDRGClaims = new InsertDRGClaims();
-    private final ValidateDRGClaims VDC = new ValidateDRGClaims();
-    private final CF5Method gm = new CF5Method();
 
     public DRGWSResult ValidateXMLValues(final DataSource datasource,
             final CF5 drg,
@@ -48,6 +46,8 @@ public class ValidateXMLValues {
         SimpleDateFormat dateformat = utility.SimpleDateFormat("MM-dd-yyyy");
         ArrayList<String> detailList = new ArrayList<>();
         ArrayList<String> error = new ArrayList<>();
+        String[] laterality = {"L", "R", "B", "N"};
+        String[] extCodes = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         try (Connection connection = datasource.getConnection()) {
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
             CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
@@ -113,7 +113,7 @@ public class ValidateXMLValues {
                 error.add("514");
             }
             CF5 drgs = new CF5();
-            DRGWSResult getdupresults = gm.GetClaimDuplication(datasource, drg.getPHospitalCode().trim(), drg.getDRGCLAIM().getClaimNumber().trim(), claimseries);
+            DRGWSResult getdupresults = new CF5Method().GetClaimDuplication(datasource, drg.getPHospitalCode().trim(), drg.getDRGCLAIM().getClaimNumber().trim(), claimseries);
             //-------------------------------------------
             if (drg.getDRGCLAIM().getClaimNumber().trim().isEmpty()) {
                 detailList.add("CF5 ClaimNumber required");
@@ -166,7 +166,7 @@ public class ValidateXMLValues {
                         ArrayList<String> duplproc = new ArrayList<>();
                         ArrayList<String> duplsdx = new ArrayList<>();
                         //VALIDATE DRG VALUES
-                        DRGWSResult vprodResult = VDC.ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdataList.get(y));
+                        DRGWSResult vprodResult = new ValidateDRGClaims().ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdataList.get(y));
                         DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
                         drgclaims.setClaimNumber(drgclaim.getClaimNumber());
                         drgclaims.setPrimaryCode(drgclaim.getPrimaryCode());
@@ -191,15 +191,39 @@ public class ValidateXMLValues {
                                 warningerror.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
                                 detailList.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
                             }
+//                            ProcAssign procassign = new ProcAssign();
+//                            if (ext1.isEmpty()) {
+//                                procassign.setEx1("1");
+//                            }
+//                            if (ext2.isEmpty()) {
+//                                procassign.setEx2("1");
+//                            }
+//                            
+//                            ProcedureData.add(ProcsCode + "+" + ext1 + "" + ext2);
                             ProcAssign procassign = new ProcAssign();
                             if (ext1.isEmpty()) {
                                 procassign.setEx1("1");
+                            } else if (Arrays.asList(extCodes).contains(ext1.trim().toUpperCase())) {
+                                procassign.setEx1("1");
+                            } else {
+                                procassign.setEx1(ext1);
                             }
                             if (ext2.isEmpty()) {
                                 procassign.setEx2("1");
+                            } else if (Arrays.asList(extCodes).contains(ext2.trim().toUpperCase())) {
+                                procassign.setEx2("1");
+                            } else {
+                                procassign.setEx2(ext2);
                             }
-                            
-                            ProcedureData.add(ProcsCode + "+" + ext1 + "" + ext2);
+                            if (lat.isEmpty()) {
+                                procassign.setLat("N");
+                            } else if (!Arrays.asList(laterality).contains(lat.trim().toUpperCase())) {
+                                procassign.setLat("N");
+                            } else {
+                                procassign.setLat(lat);
+                            }
+                            ProcedureData.add(ProcsCode + "+" + procassign.getLat() + "" + procassign.getEx1() + "" + procassign.getEx2());
+
                         }
                         //IDENTIFY SECONDARY DIAGNOSIS WARNING ERROR
                         for (int sdx = 0; sdx < drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().size(); sdx++) {
@@ -235,11 +259,10 @@ public class ValidateXMLValues {
                         //MAP VALIDATE DATA TO NEW CF5 OBJECT
                         drgs.setDRGCLAIM(drgclaim);
                         //INSERT CF5 CLAIMS DATA
-                        DRGWSResult insertDRGClaimsResult = insertDRGClaims.InsertDRGClaims(drgs.getDRGCLAIM(),
+                        DRGWSResult insertDRGClaimsResult = new InsertDRGClaims().InsertDRGClaims(drgs.getDRGCLAIM(),
                                 datasource, nclaimsdataList.get(y), lhio, claimseries, drg.getPHospitalCode(),
                                 drgs.getDRGCLAIM().getClaimNumber(),
                                 duplproc, duplsdx, filecontent);
-                        //System.out.println(insertDRGClaimsResult.getMessage());
                         if (!insertDRGClaimsResult.isSuccess()) {
                             detailList.add(insertDRGClaimsResult.getMessage());
                             error.add(insertDRGClaimsResult.getMessage());
@@ -269,7 +292,7 @@ public class ValidateXMLValues {
                 viewerrors.setWarningerror("");
                 allErrorList.add(viewerrors);
                 //SET AUDITRAIL
-                DRGWSResult auditrail = gm.InsertDRGAuditTrail(datasource, String.join(",", detailList), "FALSE", claimseries, drg.getDRGCLAIM().getClaimNumber(), filecontent);
+                DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, String.join(",", detailList), "FALSE", claimseries, drg.getDRGCLAIM().getClaimNumber(), filecontent);
                 result.setMessage("CF5 XML Has an error , Logs Stats: " + auditrail.getMessage());
             }
             result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
