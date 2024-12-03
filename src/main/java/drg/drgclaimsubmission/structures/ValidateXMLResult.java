@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 public class ValidateXMLResult implements Serializable {
 

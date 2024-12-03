@@ -7,7 +7,7 @@ package drg.drgclaimsubmission.seekermethod;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 public class ENSDX {
 

@@ -25,7 +25,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 public class DataArrangement {
 
@@ -186,7 +186,7 @@ public class DataArrangement {
                                         DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code);
                                         if (!checkRVStoICD9cm.isSuccess()) {
                                             int gendercounter = 0;
-                                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                                             statement.setString("rvs_code", rvs_code);
                                             statement.execute();

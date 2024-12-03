@@ -25,7 +25,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateXMLValues {
@@ -50,7 +50,7 @@ public class ValidateXMLValues {
         String[] extCodes = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         try (Connection connection = datasource.getConnection()) {
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
-            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
+            CallableStatement getdrg_nclaims = connection.prepareCall("begin :nclaims := DRG_SHADOWBILLING.UHCDRGPKG.GET_NCLAIMS(:seriesnumss); end;");
             getdrg_nclaims.registerOutParameter("nclaims", OracleTypes.CURSOR);
             getdrg_nclaims.setString("seriesnumss", claimseries.trim());
             getdrg_nclaims.execute();

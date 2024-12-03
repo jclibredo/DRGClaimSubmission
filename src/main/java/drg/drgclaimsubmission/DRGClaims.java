@@ -34,10 +34,11 @@ import javax.annotation.Resource;
 import javax.enterprise.context.RequestScoped;
 import javax.sql.DataSource;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
+import javax.ws.rs.Produces;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
@@ -59,7 +60,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -72,25 +73,12 @@ public class DRGClaims {
     private DataSource datasource;
 
     private final Utility utility = new Utility();
-    private final ExecutorService executorService = java.util.concurrent.Executors.newCachedThreadPool();
 
     @POST
-    @Path(value = "UploadXML")
-    @Consumes(value = MediaType.MULTIPART_FORM_DATA)
-    @Produces(value = MediaType.APPLICATION_JSON)
-    public void UploadXML(@Suspended final AsyncResponse asyncResponse,
-            @FormDataParam(value = "drg") final InputStream uploadeddrg,
-            @FormDataParam(value = "drg") final FormDataContentDisposition drgdetail,
-            @FormDataParam(value = "ClaimSeriesNum") final String ClaimSeriesNum) {
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                asyncResponse.resume(doUploadXML(uploadeddrg, drgdetail, ClaimSeriesNum));
-            }
-        });
-    }
-
-    private DRGWSResult doUploadXML(
+    @Path("UploadXML")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DRGWSResult UploadXML(
             @FormDataParam("drg") InputStream uploadeddrg,
             @FormDataParam("drg") FormDataContentDisposition drgdetail,
             @FormDataParam("ClaimSeriesNum") String ClaimSeriesNum) {
@@ -103,7 +91,7 @@ public class DRGClaims {
             String details = "Unreadable file directory or variable name error in FormDataParam";
             DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "", "", "CF5 Claim Form");
             result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
-            result.setResult(" Request status :" + auditrail.getMessage());
+            result.setResult("Request status :" + auditrail.getMessage());
         } else {
             String drgfilename = drgdetail.getFileName();
             BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
@@ -169,54 +157,15 @@ public class DRGClaims {
         return result;
     }
 
-    @GET
-    @Path(value = "GetServerDateTime")
-    @Produces(value = MediaType.APPLICATION_JSON)
-    public void GetServerDateTime(@Suspended final AsyncResponse asyncResponse) {
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                asyncResponse.resume(doGetServerDateTime());
-            }
-        });
-    }
-
-    private String doGetServerDateTime() {
-        String result = "";
-        SimpleDateFormat sdf = utility.SimpleDateFormat("hh:mm:ss a");
-        try (Connection connection = datasource.getConnection()) {
-            String query = "SELECT SYSDATE FROM DUAL";
-            NamedParameterStatement SDxVal = new NamedParameterStatement(connection, query);
-            SDxVal.execute();
-            ResultSet rest = SDxVal.executeQuery();
-            if (rest.next()) {
-                result = sdf.format(rest.getDate("SYSDATE"));
-            }
-        } catch (SQLException ex) {
-            result = ex.toString();
-            Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return result;
-    }
-
     @POST
-    @Path(value = "KeyValuePairValidation")
-    @Consumes(value = MediaType.MULTIPART_FORM_DATA)
-    @Produces(value = MediaType.APPLICATION_JSON)
-    public void KeyValuePairValidation(
-            @Suspended final AsyncResponse asyncResponse, 
-            @FormDataParam(value = "drg") final InputStream uploadeddrg, 
-            @FormDataParam(value = "drg") final FormDataContentDisposition drgdetail, 
-            @FormDataParam(value = "eclaims") final InputStream uploadedeclaims, 
-            @FormDataParam(value = "eclaims") final FormDataContentDisposition eclaimsdetail) {
-        executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                asyncResponse.resume(doKeyValuePairValidation(uploadeddrg, drgdetail, uploadedeclaims, eclaimsdetail));
-            }
-        });
-    }
-    private DRGWSResult doKeyValuePairValidation(@FormDataParam("drg") InputStream uploadeddrg, @FormDataParam("drg") FormDataContentDisposition drgdetail, @FormDataParam("eclaims") InputStream uploadedeclaims, @FormDataParam("eclaims") FormDataContentDisposition eclaimsdetail) {
+    @Path("KeyValuePairValidation")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DRGWSResult KeyValuePairValidation(
+            @FormDataParam("drg") InputStream uploadeddrg,
+            @FormDataParam("drg") FormDataContentDisposition drgdetail,
+            @FormDataParam("eclaims") InputStream uploadedeclaims,
+            @FormDataParam("eclaims") FormDataContentDisposition eclaimsdetail) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
         result.setResult("");
@@ -368,4 +317,39 @@ public class DRGClaims {
         }
         return result;
     }
+
+
+    @GET
+    @Path("GetServerDateTime")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String GetServerDateTime() {
+        String result = "";
+        SimpleDateFormat sdf = utility.SimpleDateFormat("MM-dd-yyyy hh:mm:ss a");
+        try (Connection connection = datasource.getConnection()) {
+            String query = "SELECT SYSDATE FROM DUAL";
+            NamedParameterStatement SDxVal = new NamedParameterStatement(connection, query);
+            SDxVal.execute();
+            ResultSet rest = SDxVal.executeQuery();
+            if (rest.next()) {
+                result = "SERVER DATE AND TIME : " + String.valueOf(sdf.format(rest.getDate("SYSDATE")));
+            }
+        } catch (SQLException ex) {
+            result = ex.toString();
+            Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    @GET
+    @Path(value = "TEST/{icd10codes}")
+    @Produces(value = MediaType.APPLICATION_JSON)
+    public DRGWSResult TEST(@PathParam("icd10codes") String icd10codes) {
+        DRGWSResult result = utility.DRGWSResult();
+        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, icd10codes.trim().replaceAll("\\.", "").toUpperCase());
+        result.setMessage(NewResult.getMessage());
+        result.setResult(NewResult.getResult());
+        result.setSuccess(NewResult.isSuccess());
+        return result;
+    }
+
 }

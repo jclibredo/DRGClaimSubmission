@@ -23,7 +23,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateDRGClaims {
@@ -49,6 +49,7 @@ public class ValidateDRGClaims {
         String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim();
         DRGWSResult NewResult = new CF5Method().GetICD10(datasource, PDx);
         try {
+//            System.out.println(SaveAttachedpdfFile(drgclaim.getRemarks()));
 
             //  DRGWSResult getvalidicd10 = gm.GetValidCodeICD10(datasource, PDx);
 //-------------------------------------------------------------------------------
@@ -234,7 +235,7 @@ public class ValidateDRGClaims {
             } else {
                 errorsMessage.add("Patient information area has an errors");
                 result.setMessage(errorsMessage.toString());
-                validatedrgclaim.setRemarks(String.join(",", errors));
+                // validatedrgclaim.setRemarks(String.join(",", errors));
             }
             result.setResult(utility.objectMapper().writeValueAsString(validatedrgclaim));
         } catch (IOException ex) {
@@ -243,4 +244,26 @@ public class ValidateDRGClaims {
         }
         return result;
     }
+
+//    public static String SaveAttachedpdfFile(final String pdfbase64string) {
+//        String result = "";
+//        String seriesnum = "55788964457";
+//        String hcicode = "33609";
+//        try {
+//            File myObj = new File("D:\\Java Swing\\DRG CLAIMS FILE\\ATTACHED DOCS FILE\\DRG" + seriesnum.trim() + "" + hcicode.trim() + ".pdf");
+//            if (myObj.createNewFile()) {
+//                FileOutputStream fos = new FileOutputStream(myObj);
+//                byte[] decoder = Base64.getDecoder().decode(pdfbase64string);
+//                fos.write(decoder);
+//
+//                result = String.valueOf(myObj);
+//            } else {
+//                result = "File is already exist";
+//            }
+//        } catch (IOException e) {
+//            result = e.toString();
+//            Logger.getLogger(ValidateDRGClaims.class.getName()).log(Level.SEVERE, null, e);
+//        }
+//        return result;
+//    }
 }

@@ -21,7 +21,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class GetCF5Parameter {
@@ -66,7 +66,7 @@ public class GetCF5Parameter {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :cf5data := MINOSUN.GETCF5DATA(:claimseries); end;");
+            CallableStatement statement = connection.prepareCall("begin :cf5data := DRG_SHADOWBILLING.GETCF5DATA(:claimseries); end;");
             statement.registerOutParameter("cf5data", OracleTypes.CURSOR);
             statement.setString("claimseries", claimseries);
             statement.execute();
@@ -101,7 +101,7 @@ public class GetCF5Parameter {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :cf5data := MINOSUN.GET_DIAGNOSIS(:claimseries,:claim_id); end;");
+            CallableStatement statement = connection.prepareCall("begin :cf5data := DRG_SHADOWBILLING.GET_DIAGNOSIS(:claimseries,:claim_id); end;");
             statement.registerOutParameter("cf5data", OracleTypes.CURSOR);
             statement.setString("claimseries", claimseries);
             statement.setString("claim_id", claim_id);
@@ -139,7 +139,7 @@ public class GetCF5Parameter {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :cf5data := MINOSUN.GET_PROCEDURE(:claimseries,:c_claimid); end;");
+            CallableStatement statement = connection.prepareCall("begin :cf5data := DRG_SHADOWBILLING.GET_PROCEDURE(:claimseries,:c_claimid); end;");
             statement.registerOutParameter("cf5data", OracleTypes.CURSOR);
             statement.setString("claimseries", claimseries);
             statement.setString("claim_id", c_claimid);
@@ -181,7 +181,7 @@ public class GetCF5Parameter {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :warningresult := MINOSUN.GET_WARNING_ERROR(:claimseries,:claim_id); end;");
+            CallableStatement statement = connection.prepareCall("begin :warningresult := DRG_SHADOWBILLING.GET_WARNING_ERROR(:claimseries,:claim_id); end;");
             statement.registerOutParameter("warningresult", OracleTypes.CURSOR);
             statement.setString("claimseries", claimseries);
             statement.setString("claim_id", claim_id);

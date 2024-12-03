@@ -32,7 +32,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class AccessGrouperFrontValidation {
@@ -274,7 +274,7 @@ public class AccessGrouperFrontValidation {
                         DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
-                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                             statement.setString("rvs_code", rvs_code);
                             statement.execute();
@@ -367,7 +367,6 @@ public class AccessGrouperFrontValidation {
                 connections.setDoOutput(true);
                 connections.setRequestMethod("POST");
                 connections.setRequestProperty("Content-Type", "application/json");
-                // connections.setRequestProperty("Accept", "application/json");
                 OutputStream stream = connections.getOutputStream();
                 stream.write(utility.objectMapper().writeValueAsString(grouperparameterlist).getBytes());
                 stream.flush();

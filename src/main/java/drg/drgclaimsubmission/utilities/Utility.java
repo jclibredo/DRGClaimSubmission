@@ -35,7 +35,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @ApplicationScoped
 @Singleton

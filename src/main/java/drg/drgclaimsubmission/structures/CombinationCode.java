@@ -8,7 +8,7 @@ package drg.drgclaimsubmission.structures;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 
 public class CombinationCode {

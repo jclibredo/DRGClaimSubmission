@@ -3,7 +3,6 @@ drg\drgclaimsubmission\structures\ValidICD10.class
 drg\drgclaimsubmission\methods\CF5Method.class
 drg\drgclaimsubmission\structures\dtd\PROCEDURE.class
 drg\drgclaimsubmission\methods\ValidateXMLValues.class
-drg\drgclaimsubmission\DRGClaims$2.class
 drg\drgclaimsubmission\methods\ValidateXMLValues$ProcAssign.class
 drg\drgclaimsubmission\utilities\dtd\files\CF5HandlerImpl.class
 drg\drgclaimsubmission\methods\ValidateXMLWithDTD.class
@@ -15,7 +14,6 @@ drg\drgclaimsubmission\seekermethod\ENSDX.class
 drg\drgclaimsubmission\methods\RemoveTrailingSpaces.class
 drg\drgclaimsubmission\structures\ValidatedXMLResult.class
 drg\drgclaimsubmission\methods\ParseEClaimsDrgXML$ProcAssign.class
-drg\drgclaimsubmission\DRGClaims$4.class
 drg\drgclaimsubmission\methods\ValidateDRGClaims.class
 drg\drgclaimsubmission\DRGClaims$1.class
 drg\drgclaimsubmission\structures\DRGOutput.class
@@ -42,7 +40,6 @@ drg\drgclaimsubmission\structures\DRGXML.class
 drg\drgclaimsubmission\ApplicationConfig.class
 drg\drgclaimsubmission\methods\ValidateProcedures.class
 drg\drgclaimsubmission\structures\dtd\CF5.class
-drg\drgclaimsubmission\DRGClaims$3.class
 drg\drgclaimsubmission\seekermethod\ENWARNINGERROR.class
 drg\drgclaimsubmission\seekermethod\GetCF5Parameter.class
 drg\drgclaimsubmission\structures\dtd\SECONDARYDIAG.class

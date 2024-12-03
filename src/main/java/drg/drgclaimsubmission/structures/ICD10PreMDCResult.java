@@ -7,7 +7,7 @@ package drg.drgclaimsubmission.structures;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 public class ICD10PreMDCResult {
     public ICD10PreMDCResult(){
