@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class ValidateSecondaryDiag {
@@ -31,17 +31,14 @@ public class ValidateSecondaryDiag {
         DRGWSResult result = utility.DRGWSResult();
         SECONDARYDIAG validatesecondiag;
         ArrayList<String> errors = new ArrayList<>();
-        String SDxCode = secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase();
-        String pdx = pdxS.trim().replaceAll("\\.", "").toUpperCase();
         try {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            if (!SDxCode.trim().equals("")) {
-
-                if (SDxCode.length() > 10) {
+            if (!secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase().equals("")) {
+                if (secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase().length() > 10) {
                     errors.add("501");
-                } else if (SDxCode.equals(pdx)) {
+                } else if (secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase().equals(pdxS.trim().replaceAll("\\.", "").toUpperCase())) {
                     errors.add("502");
                 } else {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
@@ -58,18 +55,18 @@ public class ValidateSecondaryDiag {
                             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                                 if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                         && utility.ComputeDay(nclaimsdata.getDateofBirth(),
-                                                nclaimsdata.getAdmissionDate()) >= 0 && !SDxCode.isEmpty()) {
-                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, SDxCode);
+                                                nclaimsdata.getAdmissionDate()) >= 0 && !secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase().isEmpty()) {
+                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase());
                                     if (SDxResult.isSuccess()) {
-                                        DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, SDxCode);
+                                        DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase());
                                         if (icd10preMDC.isSuccess()) {
                                             //CHECKING FOR AGE CONFLICT
-                                            DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, SDxCode, String.valueOf(finalDays), year);
+                                            DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase(), String.valueOf(finalDays), year);
                                             if (!getAgeConfictResult.isSuccess()) {
                                                 errors.add("504");
                                             }
                                             //CHECKING FOR GENDER CONFLICT
-                                            DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, SDxCode, nclaimsdata.getGender());
+                                            DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, secondarydiag.getSecondaryCode().trim().replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
                                             if (!getSexConfictResult.isSuccess()) {
                                                 errors.add("505");
                                             }
@@ -87,18 +84,16 @@ public class ValidateSecondaryDiag {
 
             }
             validatesecondiag = secondarydiag;
-            if (errors.isEmpty()) {
-                result.setSuccess(true);
-            } else {
+            if (!errors.isEmpty()) {
                 result.setMessage("Secondary Diagnosis has an error");
                 validatesecondiag.setRemarks(String.join(",", errors));
             }
+            result.setSuccess(true);
             result.setResult(utility.objectMapper().writeValueAsString(validatesecondiag));
         } catch (IOException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(ValidateSecondaryDiag.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         return result;
     }
 

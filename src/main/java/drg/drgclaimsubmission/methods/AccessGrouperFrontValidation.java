@@ -32,7 +32,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class AccessGrouperFrontValidation {
@@ -54,7 +54,6 @@ public class AccessGrouperFrontValidation {
         String[] exten = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         ArrayList<WarningErrorList> warningerrorlist = new ArrayList<>();
         GrouperParameter grouperparameterlist = utility.GrouperParameter();
-
         //===============================================PACKAGE CODE=======================================
         try (Connection connection = datasource.getConnection()) {
             PROCEDURE procedure;
@@ -178,7 +177,6 @@ public class AccessGrouperFrontValidation {
                                 break;
                         }
                     }
-
                     result.setMessage(drgName.toString());
                     result.setResult(drgCode.toString());
                     result.setSuccess(false);
@@ -186,14 +184,11 @@ public class AccessGrouperFrontValidation {
             } else {
                 String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
                 String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
-
                 //======================================================
                 //Process Procedure
                 ArrayList<String> procedurejoin = new ArrayList<>();
                 //Process Secondary Diagnosis
                 ArrayList<String> secondaryjoin = new ArrayList<>();
-                //======================================================
-
                 //=======================================================================================  
                 //SECONDARY DIAGNOSIS INSERTION OF DATA TO DATABASE
                 for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
@@ -274,7 +269,7 @@ public class AccessGrouperFrontValidation {
                         DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
-                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                             statement.setString("rvs_code", rvs_code);
                             statement.execute();

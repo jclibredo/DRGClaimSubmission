@@ -24,55 +24,59 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class ValidateProcedures {
 
     public ValidateProcedures() {
     }
-
     private final Utility utility = new Utility();
 
     public DRGWSResult ValidateProcedures(final DataSource datasource, final PROCEDURE procedure, final String gender) {
         DRGWSResult result = utility.DRGWSResult();
         ArrayList<String> errors = new ArrayList<>();
         PROCEDURE validateprocedure;
-        String ProcCode = procedure.getRvsCode().replaceAll("\\.", "").toUpperCase();
-        String[] laterality = {"L", "R", "B"};
-        String[] exten = {"1", "2", "3", "4", "5", "6", "7", "8", "9"};
         result.setMessage("");
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            if (ProcCode.trim().length() != 0) {
-                if (ProcCode.length() > 10) {
+            if (!procedure.getRvsCode().replaceAll("\\.", "").toUpperCase().trim().isEmpty()) {
+                if (procedure.getRvsCode().replaceAll("\\.", "").toUpperCase().length() > 10) {
                     errors.add("506");
                 }
                 if (procedure.getLaterality().trim().isEmpty()) {
                     procedure.setLaterality("N");
-                } else if (!Arrays.asList(laterality).contains(procedure.getLaterality().trim())) {
+                    errors.add("204");
+                } else if (!Arrays.asList("L", "R", "B").contains(procedure.getLaterality().trim())) {
                     procedure.setLaterality("N");
+                    errors.add("204");
                 }
                 if (procedure.getExt1().trim().equals("")) {
                     procedure.setExt1("1");
-                } else if (!Arrays.asList(exten).contains(procedure.getExt1().trim())) {
+                    errors.add("205");
+                } else if (!Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(procedure.getExt1().trim())) {
                     procedure.setExt1("1");
+                    errors.add("206");
                 } else if (procedure.getExt1().trim().length() > 1) {
                     procedure.setExt1("1");
+                    errors.add("206");
                 }
                 if (procedure.getExt2().trim().equals("")) {
                     procedure.setExt1("1");
-                } else if (!Arrays.asList(exten).contains(procedure.getExt2().trim())) {
+                    errors.add("207");
+                } else if (!Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(procedure.getExt2().trim())) {
                     procedure.setExt1("1");
+                    errors.add("208");
                 } else if (procedure.getExt2().trim().length() > 1) {
+                    errors.add("208");
                     procedure.setExt1("1");
                 }
                 String rvs_code = procedure.getRvsCode();
                 DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
-                    CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                    CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                     statement.registerOutParameter("converter", OracleTypes.CURSOR);
                     statement.setString("rvs_code", rvs_code.trim());
                     statement.execute();
@@ -97,18 +101,17 @@ public class ValidateProcedures {
                         errors.add("203");
                     }
                     if (gendercounter > 0) {
-                        errors.add("507");
+                        errors.add("508");
                     }
                 }
 
             }
             validateprocedure = procedure;
-            if (errors.isEmpty()) {
-                result.setSuccess(true);
-            } else {
+            if (errors.size() > 0) {
                 result.setMessage("PROCEDURES has errors");
                 validateprocedure.setRemarks(String.join(",", errors));
             }
+            result.setSuccess(true);
             result.setResult(utility.objectMapper().writeValueAsString(validateprocedure)); //validateprocedure.toString());
         } catch (IOException | SQLException ex) {
             result.setMessage(ex.toString());

@@ -30,7 +30,7 @@ import org.xml.sax.SAXParseException;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class ValidateXMLWithDTD {
@@ -83,7 +83,6 @@ public class ValidateXMLWithDTD {
             Unmarshaller jaxbnmarsaller = jaxbcontext.createUnmarshaller();
             StringReader readers = new StringReader(stringdrgxml);
             CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
-
             if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
                 DRGWSResult keypervalue = new ValidateXMLValues().ValidateXMLValues(datasource, drg, lhio, claimseries, filecontent);
                 result.setMessage(keypervalue.getMessage());
@@ -107,7 +106,6 @@ public class ValidateXMLWithDTD {
                 DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, "CF5 XML format have errors : " + utility.objectMapper().writeValueAsString(xmlerrors), "FAILED", claimseries, "N/A", filecontent);
                 result.setMessage("CF5 XML format have errors , Logs Stats :" + auditrail.getMessage());
                 result.setResult(utility.objectMapper().writeValueAsString(xmlerrors));
-                result.setSuccess(false);
             }
 
         } catch (ParserConfigurationException | IOException | SAXException | JAXBException ex) {

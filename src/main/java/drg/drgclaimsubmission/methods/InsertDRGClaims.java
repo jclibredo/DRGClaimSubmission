@@ -26,16 +26,16 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class InsertDRGClaims {
-    
+
     public InsertDRGClaims() {
     }
-    
+
     private final Utility utility = new Utility();
-    
+
     public DRGWSResult InsertDRGClaims(final DRGCLAIM drgclaim,
             final DataSource datasource,
             final NClaimsData nclaimsdata,
@@ -45,7 +45,7 @@ public class InsertDRGClaims {
             final String claimnumber,
             final List<String> duplicateproc,
             final List<String> duplcatesdx,
-            final String filecontent){
+            final String filecontent) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");
         result.setSuccess(false);
@@ -57,7 +57,7 @@ public class InsertDRGClaims {
             LinkedList<String> ErrMessage = new LinkedList<>();
             connection.setAutoCommit(false);
             //Result ID Process Here
-            SimpleDateFormat formatter = new SimpleDateFormat("MMddyyyyHHmmss");
+            SimpleDateFormat formatter = new SimpleDateFormat("MMddyyyyHHmm");
             Date datetoday = new Date();
             String result_id = utility.RandomNumeric(6) + "" + formatter.format(datetoday);
             //---------------------------
@@ -77,7 +77,7 @@ public class InsertDRGClaims {
             //======================================================
             //INSERTION OF SECONDARY DIAGNOSIS 
             //END INSERTION OF SECONDARY DIAGNOSIS 
-            CallableStatement ps = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
+            CallableStatement ps = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
                     + ":Message, :Code, "
                     + ":PDX_CODE, :NB_TOB, "
                     + ":NB_ADMWEIGHT,:SERIES, "
@@ -96,7 +96,7 @@ public class InsertDRGClaims {
                 ErrMessage.add(ps.getString("Message"));
             }
             //====================================================== INSERTION FOR WARNING ERROR
-            CallableStatement error = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
+            CallableStatement error = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
                     + ":Message, :Code, "
                     + ":claimNum,:rest_id,:series_error, :code_error, "
                     + ":data_error,:desc_error, "
@@ -104,7 +104,7 @@ public class InsertDRGClaims {
             //=======================================================================================  
             //SECONDARY DIAGNOSIS INSERTION OF DATA TO DATABASE
             for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
-                CallableStatement insertsecondary = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
+                CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
                 DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
@@ -160,7 +160,7 @@ public class InsertDRGClaims {
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
-                            
+
                         } else if (!gendervalidation.isSuccess()) {
                             String desc_error = "CF5 SDx Conflict with sex ";
                             String code_error = "505";
@@ -177,7 +177,7 @@ public class InsertDRGClaims {
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
-                            
+
                         } else if (!agevalidation.isSuccess()) {
                             String desc_error = "CF5 SDx Conflict with age ";
                             String code_error = "504";
@@ -210,7 +210,7 @@ public class InsertDRGClaims {
             }
             // RVS MANIPULATION AREA ==========PROCESS FIRST THE REPITITION OF RVS 
             for (int proc = 0; proc < drgclaim.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                CallableStatement insertprocedure = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PROCEDURE("
+                CallableStatement insertprocedure = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PROCEDURE("
                         + ":Message, :Code, "
                         + ":claimNum,:RVS, "
                         + ":LATERALITY, :EXT1_CODE, "
@@ -220,7 +220,7 @@ public class InsertDRGClaims {
                 insertprocedure.registerOutParameter("Code", OracleTypes.INTEGER);
                 if (duplicateproc.contains(String.valueOf(proc))) {
                     String desc_error = "CF5 RVS Code has duplicate";
-                    String code_error = "508";
+                    String code_error = "507";
                     error.registerOutParameter("Message", OracleTypes.VARCHAR);
                     error.registerOutParameter("Code", OracleTypes.INTEGER);
                     error.setString("claimNum", drgclaim.getClaimNumber());
@@ -258,7 +258,7 @@ public class InsertDRGClaims {
                     //===========================================================CONVERTER===============================
                     DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
-                        CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                        CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
                         statement.setString("rvs_code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                         statement.execute();
@@ -276,7 +276,7 @@ public class InsertDRGClaims {
                             }
                             if (conflictcounter > 0) {
                                 String desc_error = "CF5 RVS Sex Conflict";
-                                String code_error = "509";
+                                String code_error = "508";
                                 error.registerOutParameter("Message", OracleTypes.VARCHAR);
                                 error.registerOutParameter("Code", OracleTypes.INTEGER);
                                 error.setString("claimNum", drgclaim.getClaimNumber().trim());
@@ -364,7 +364,7 @@ public class InsertDRGClaims {
                 }
                 result.setResult(gpdata.getResult());
                 result.setSuccess(true);
-                
+
             } else {
                 connection.rollback();
                 String details = "CF5 CLAIMS INSERTION FAIL";
@@ -372,13 +372,12 @@ public class InsertDRGClaims {
                 DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, stats, series, drgclaim.getClaimNumber(), filecontent);
                 result.setMessage(details + " Claims Status:" + auditrail);
                 result.setResult(utility.objectMapper().writeValueAsString(ErrMessage));
-                result.setSuccess(false);
             }
         } catch (Exception ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(InsertDRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
-        
+
     }
 }

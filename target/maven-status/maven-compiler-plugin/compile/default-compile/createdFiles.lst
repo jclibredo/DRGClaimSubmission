@@ -27,7 +27,6 @@ drg\drgclaimsubmission\structures\WarningErrorList.class
 drg\drgclaimsubmission\methods\ValidateXMLWithDTD$1.class
 drg\drgclaimsubmission\seekermethod\Series.class
 drg\drgclaimsubmission\structures\CombinationCode.class
-drg\drgclaimsubmission\seekermethod\DataArrangement.class
 drg\drgclaimsubmission\structures\EncryptedXML.class
 drg\drgclaimsubmission\structures\NClaimsData.class
 drg\drgclaimsubmission\utilities\Cryptor.class
@@ -35,7 +34,6 @@ drg\drgclaimsubmission\structures\DRGWSResult.class
 drg\drgclaimsubmission\utilities\dtd\files\CF5Parser$1.class
 drg\drgclaimsubmission\utilities\dtd\files\CF5Handler.class
 drg\drgclaimsubmission\DRGClaims.class
-drg\drgclaimsubmission\seekermethod\DataProcess.class
 drg\drgclaimsubmission\structures\DRGXML.class
 drg\drgclaimsubmission\ApplicationConfig.class
 drg\drgclaimsubmission\methods\ValidateProcedures.class

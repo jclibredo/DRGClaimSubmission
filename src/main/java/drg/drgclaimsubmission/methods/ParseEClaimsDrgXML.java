@@ -21,7 +21,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class ParseEClaimsDrgXML {
@@ -45,47 +45,71 @@ public class ParseEClaimsDrgXML {
             if (!drg.getPHospitalCode().isEmpty()) {
                 if (!drg.getPHospitalCode().trim().equals(nclaimsdatalist.get(0).getHospitalcode().trim())) {
                     // error.add("CF5 " + drg.getPHospitalCode() + " pHospitalCode code not found in eclaims xml");
-                    error.add("509");
+                    error.add("509");// ERROR
                 }
             }
             if (drg.getPHospitalCode().isEmpty()) {
                 //error.add("CF5 pHospitalCode Code is required");
-                error.add("303");
+                error.add("303");// ERROR
             }
             if (drg.getDRGCLAIM().getClaimNumber().isEmpty()) {
                 // error.add("CF5 ClaimNumber is required");
-                error.add("511");
+                error.add("511"); // ERROR
             }
+
             if (!drg.getDRGCLAIM().getClaimNumber().isEmpty()) {
                 if (!listid.contains(drg.getDRGCLAIM().getClaimNumber().trim())) {
                     // error.add("CF5 ClaimNumber: " + drg.getDRGCLAIM().getClaimNumber().trim() + " not found in EClaims XML");
-                    error.add("222");
+                    error.add("222"); // ERROR
                 }
             }
-            if (!drg.getDRGCLAIM().getPrimaryCode().isEmpty()) {
-                DRGWSResult NewResult = new CF5Method().GetICD10(datasource, drg.getDRGCLAIM().getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
-                if (!NewResult.isSuccess()) {
-                    // error.add("CF5 Err. code 201 " + drg.getDRGCLAIM().getPrimaryCode().trim() + " PrimaryCode is not valid");
-                    error.add("201");
-                }
-            }
-            if (drg.getDRGCLAIM().getPrimaryCode().trim().isEmpty()) {
-                // error.add("CF5 Err. code 101 PrimaryCode is required");
-                error.add("101");
-            }
+
             //Validate Eclaims XML
             for (int x = 0; x < nclaimsdatalist.size(); x++) {
-                if (!utility.IsValidTime(nclaimsdatalist.get(x).getTimeDischarge())) {
-                    error.add("516");
-                }
-                if (!utility.IsValidTime(nclaimsdatalist.get(x).getTimeAdmission())) {
-                    error.add("515");
-                }
-                if (!utility.IsValidDate(nclaimsdatalist.get(x).getAdmissionDate().trim())) {
-                    error.add("517");
-                }
-                if (!utility.IsValidDate(nclaimsdatalist.get(x).getDischargeDate().trim())) {
-                    error.add("518");
+                if (!drg.getDRGCLAIM().getClaimNumber().isEmpty()) {
+                    if (drg.getDRGCLAIM().getClaimNumber().trim().equals(nclaimsdatalist.get(x).getPclaimnumber().trim())) {
+                        if (!nclaimsdatalist.get(x).getTimeDischarge().trim().isEmpty()) {
+                            if (!utility.IsValidTime(nclaimsdatalist.get(x).getTimeDischarge())) {
+                                error.add("516");
+                            }
+                        }
+                        if (!nclaimsdatalist.get(x).getTimeAdmission().trim().isEmpty()) {
+                            if (!utility.IsValidTime(nclaimsdatalist.get(x).getTimeAdmission())) {
+                                error.add("515");
+                            }
+                        }
+                        if (!nclaimsdatalist.get(x).getAdmissionDate().trim().isEmpty()) {
+                            if (!utility.IsValidDate(nclaimsdatalist.get(x).getAdmissionDate().trim())) {
+                                error.add("517");
+                            }
+                        }
+                        if (!nclaimsdatalist.get(x).getDischargeDate().trim().isEmpty()) {
+                            if (!utility.IsValidDate(nclaimsdatalist.get(x).getDischargeDate().trim())) {
+                                error.add("518");
+                            }
+                        }
+                        if (nclaimsdatalist.get(x).getTimeDischarge().isEmpty()) {
+                            error.add("107");
+                        }
+                        if (nclaimsdatalist.get(x).getTimeAdmission().isEmpty()) {
+                            error.add("105");
+                        }
+                        if (nclaimsdatalist.get(x).getAdmissionDate().isEmpty()) {
+                            error.add("104");
+                        }
+                        if (nclaimsdatalist.get(x).getDischargeDate().isEmpty()) {
+                            error.add("106");
+                        }
+                        if (nclaimsdatalist.get(x).getDateofBirth().isEmpty()) {
+                            error.add("103");
+                        }
+                        if (!nclaimsdatalist.get(x).getDateofBirth().trim().isEmpty()) {
+                            if (!utility.IsValidDate(nclaimsdatalist.get(x).getDateofBirth().trim())) {
+                                error.add("403");
+                            }
+                        }
+                        break;
+                    }
                 }
             }
             if (error.size() > 0) {
@@ -147,12 +171,12 @@ public class ParseEClaimsDrgXML {
                             }
 
                             for (int sdx = 0; sdx < drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().size(); sdx++) {
-                                String SDxCode = drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getSecondaryCode();
                                 if (!drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks().isEmpty()) {
                                     warningerror.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks());
                                 }
-                                SecondaryData.add(SDxCode);
+                                SecondaryData.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getSecondaryCode().trim());
                             }
+
                             ArrayList<String> duplsdx = new ArrayList<>();
                             for (int i = 0; i < SecondaryData.size() - 1; i++) {
                                 for (int j = i + 1; j < SecondaryData.size(); j++) {
@@ -166,19 +190,16 @@ public class ParseEClaimsDrgXML {
                             for (int i = 0; i < ProcedureData.size() - 1; i++) {
                                 for (int j = i + 1; j < ProcedureData.size(); j++) {
                                     if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
-                                        warningerror.add("508");
+                                        warningerror.add("507");
                                         duplproc.add(String.valueOf(j));
                                         break;
                                     }
                                 }
                             }
-                            // drgs.getDRGCLAIM().add(drgclaim);
                             drgs.setDRGCLAIM(drgclaim);
+
                             ArrayList<String> drgcodelist = new ArrayList<>();
                             ArrayList<String> drgnamelist = new ArrayList<>();
-//                                    DRGWSResult grouperresult = accessgrouper.AccessGrouperFrontValidation(drgs.getDRGCLAIM().get(b), datasource, nclaimsdatalist.get(y), String.join(",", duplproc), String.join(",", duplsdx), errorlist);
-//                                    drgcodelist.add(grouperresult.getResult());
-//                                    drgnamelist.add(grouperresult.getMessage());
                             viewerror.setWarningerror(String.join(",", warningerror));
                             viewerror.setErrors(String.join(",", errorlist));
                             viewerror.setClaimid(drg.getDRGCLAIM().getClaimNumber().trim());
@@ -190,6 +211,7 @@ public class ParseEClaimsDrgXML {
                     }
                 }
             }
+
             //---------------------------------------------------------
             ArrayList<String> errorlist = new ArrayList<>();
             ArrayList<String> warninglist = new ArrayList<>();
@@ -199,15 +221,20 @@ public class ParseEClaimsDrgXML {
             }
             String errors = String.join(",", errorlist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim();
             String warnings = String.join(",", warninglist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim();
-            if (errors.trim().length() > 0) {
-                result.setMessage("CF5 DATA HAS AN ERROR");
+            //---------------------------------------------------------------------------
+            if (error.size() > 0) {
+                result.setMessage("CF5 DATA ECOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED");
+            } else if (errors.trim().length() > 0) {
+                result.setSuccess(true);
+                result.setMessage("CF5 DATA HAS AN ERROR EXPECT UNGROUPABLE DRG CODES RESULT");
             } else if (warnings.trim().length() > 0) {
                 result.setSuccess(true);
-                result.setMessage("CF5 DATA HAS WARNING ERROR");
+                result.setMessage("CF5 DATA HAS WARNING ERROR EXPECT THAT SOME DATA WILL NOT BE CONSIDERED IN GROUPING LOGIC");
             } else {
                 result.setMessage("CF5 DATA IS CLEAN");
                 result.setSuccess(true);
             }
+
             result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
         } catch (IOException ex) {
             result.setMessage(ex.toString());

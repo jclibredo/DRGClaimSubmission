@@ -23,7 +23,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class ValidateDRGClaims {
@@ -44,226 +44,152 @@ public class ValidateDRGClaims {
         DRGCLAIM validatedrgclaim;
         ArrayList<String> errors = new ArrayList<>();
         ArrayList<String> errorsMessage = new ArrayList<>();
-        String[] dischargefromnclaims = {"I", "R", "H", "A", "T", "E", "O"};
-        String[] gender = {"M", "F"};
-        String PDx = drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim();
-        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, PDx);
+        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim());
         try {
-//            System.out.println(SaveAttachedpdfFile(drgclaim.getRemarks()));
-
-            //  DRGWSResult getvalidicd10 = gm.GetValidCodeICD10(datasource, PDx);
-//-------------------------------------------------------------------------------
-            //PRIMARY CODES VALIDATION
-            if (drgclaim.getClaimNumber().equals("")) {
-                //errors.add("ClaimSeries is required");
-            } else if (drgclaim.getClaimNumber().length() > 20) {
-                // errors.add("ClaimSeries, " + drgclaim.getPrimaryCode().trim() + ", should not be more than 20 lenght");
+            if (!NewResult.isSuccess()) {
+                errors.add("411");
+            } else if (!new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim()).isSuccess()) {
+                errors.add("201");
             }
-            if (drgclaim.getPrimaryCode().equals("")) {
-                //errors.add("PrimaryCode is required");
+            if (drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim().isEmpty()) {
+                // error.add("CF5 Err. code 101 PrimaryCode is required");
                 errors.add("101");
-            } else if (!NewResult.isSuccess()) {
-                //errors.add("PrimaryCode , " + drgclaim.getPrimaryCode().trim() + ", not found");
-                errors.add("201");
-            } else if (!new CF5Method().GetICD10PreMDC(datasource, PDx).isSuccess()) {
-                errors.add("201");
             }
-
-//            String path = "D:\\TESTFOLDER\\";
-//            byte[] data = DatatypeConverter.parseBase64Binary(drgclaim.getPrimaryCode());
-//            File file2 = new File(path + "TestpdfFile2.pdf");
-//            try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file2))) {
-//                outputStream.write(data);
-//                System.out.println("File Save Successfully to this path " + file2);
-//            } catch (Exception ex) {
-//                System.out.println(ex.toString());
-//            }
-////            Desktop.getDesktop().open(file2);
-//            if (file2.delete()) {
-//                System.out.println("Deleted the file: " + file2.getName());
-//            } else {
-//                System.out.println("Failed to delete the file.");
-//            }
             //END PRIMARY CODES VALIDATION
-//  AGE VALIDATION AND GENDER
             if (nclaimsdata.getGender().trim().isEmpty()) {
-                // errors.add("Patient sex is required");
                 errors.add("102");
-            } else if (!Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
-                // errors.add("Patient sex " + nclaimsdata.getGender() + " is not valid");
+            } else if (!Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
                 errors.add("209");
             }
-//----------------------------------------------------------------
-            //LOS VALIDATION MUST NOT BE LESS THAN 6 HOURS
             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
-                if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
+                String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                int finalDays = 0;
+                if (Integer.parseInt(year) > 0) {
+                    finalDays = Integer.parseInt(year) * 365;
                 } else {
-                    if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) <= 0
-                            && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 0) {
-                        // errors.add("DateofBirth Must be less than or equal to AdmissionDate : ");
-                        errors.add("219");
-                    }
+                    finalDays = Integer.parseInt(days);
                 }
-            }
-            if (!nclaimsdata.getAdmissionDate().isEmpty()
-                    && !nclaimsdata.getDischargeDate().isEmpty()
-                    && !nclaimsdata.getTimeDischarge().isEmpty()
-                    && !nclaimsdata.getTimeAdmission().isEmpty()) {
-                if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate()) || !utility.IsValidDate(nclaimsdata.getDischargeDate())) {
-                } else if (!utility.IsValidTime(nclaimsdata.getTimeAdmission()) || !utility.IsValidTime(nclaimsdata.getTimeDischarge())) {
-                } else {
-                    int oras = utility.ComputeTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                    int araw = utility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
-//                    int minuto = utility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                    int taon = utility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
-                    if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) == 0) {
-                        if (araw <= 0 && oras < 0) {
-                            //errors.add("AdmissionTime Greater than DischargeTime not valid in same date");
-                            errors.add("220");
+                if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) > 124) {
+                    errors.add("416");
+                }
+                if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
+                        && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0) {
+                    if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
+                        if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
+                                && utility.ComputeDay(nclaimsdata.getDateofBirth(),
+                                        nclaimsdata.getAdmissionDate()) >= 0 && !drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim().isEmpty()) {
+                            if (NewResult.isSuccess()) {
+                                DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                                if (icd10preMDC.isSuccess()) {
+                                    //CHECKING FOR AGE CONFLICT
+                                    DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim(), String.valueOf(finalDays), year);
+                                    if (!getAgeConfictResult.isSuccess()) {
+                                        errors.add("414");
+                                    }
+                                    //  AGE VALIDATION AND GENDER
+                                    if (!nclaimsdata.getGender().trim().isEmpty() && Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
+                                        //CHECKING FOR GENDER CONFLICT
+                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim(), nclaimsdata.getGender());
+                                        if (!getSexConfictResult.isSuccess()) {
+                                            errors.add("415");
+                                        }
+                                    }
+                                } else {
+                                    errors.add("201");
+                                }
+                            }
                         }
-                    } else if (taon <= 0 && araw < 0) {
-                        // errors.add("DischargeDat Must be greater than or equal to AdmissionDate");
-                        errors.add("221");
                     }
                 }
             }
-            //END LOS VALIDATION MUST NOT BE LESS THAN 6 HOURS
-//---------------------------------------------------------------
-            //REQUIRED DATE DATA NEEDED FOR GROUPER
-            if (nclaimsdata.getAdmissionDate().isEmpty()) { //GET THE DATE OF ADMISSION
-                //errors.add("AdmissionDate is required");
-                errors.add("104");
-            } else if (!utility.IsValidDate(nclaimsdata.getAdmissionDate())) { //MM-dd-yyyy
-                //errors.add("AdmissionDate " + nclaimsdata.getAdmissionDate().trim() + ",is Invalid");
-                errors.add("214");
+            if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) <= 0
+                    && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 0) {
+                // errors.add("DateofBirth Must be less than or equal to AdmissionDate : ");
+                errors.add("219");
             }
-            if (nclaimsdata.getDischargeDate().isEmpty()) { //GET THE DISCHARGE DATA
-                //errors.add("DischargeDate is required");
-                errors.add("106");
-            } else if (!utility.IsValidDate(nclaimsdata.getDischargeDate())) {
-                //errors.add("DischargeDate " + nclaimsdata.getDischargeDate().trim() + ",is Invalid");
-                errors.add("216");
+            int oras = utility.ComputeTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+            int araw = utility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
+//                    int minuto = utility.MinutesCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+            int taon = utility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());
+            if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) == 0) {
+                if (araw <= 0 && oras < 0) {
+                    //errors.add("AdmissionTime Greater than DischargeTime not valid in same date");
+                    errors.add("220");
+                }
+            } else if (taon <= 0 && araw < 0) {
+                // errors.add("DischargeDat Must be greater than or equal to AdmissionDate");
+                errors.add("221");
             }
-            if (nclaimsdata.getDateofBirth().isEmpty()) { //GET THE DATE OF BIRTH
-                //  errors.add("DateofBirth is required");
-                errors.add("103");
-            } else if (!utility.IsValidDate(nclaimsdata.getDateofBirth())) {
-                //  errors.add("DateofBirth " + nclaimsdata.getDateofBirth().trim() + ",is Invalid");
-                errors.add("213");
+            if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) < 24) {
+                errors.add("417");
             }
-            //END REQUIRED DATE DATA NEEDED FOR GROUPER
-//---------------------------------------------------------------------------
-            // GET THE TIME DATA REQUIRED FOR THE GROUPER
-            if (nclaimsdata.getTimeAdmission().isEmpty()) { //GET THE DATE OF ADMISSION
-                // errors.add("TimeAdmission is required");
-                errors.add("105");
-            } else if (!utility.IsValidTime(nclaimsdata.getTimeAdmission())) {
-                // errors.add("TimeAdmission " + nclaimsdata.getTimeAdmission().trim() + ",is Invalid");
-                errors.add("223");
-            }
-            if (nclaimsdata.getTimeDischarge().isEmpty()) { //GET THE DATE OF ADMISSION
-                //errors.add("TimeDischarge is required : " + nclaimsdata.getTimeDischarge());
-                errors.add("107");
-            } else if (!utility.IsValidTime(nclaimsdata.getTimeDischarge())) {
-                // errors.add("TimeDischarge " + nclaimsdata.getTimeDischarge().trim() + ",is Invalid");
-                errors.add("224");
-            }
-            // END GET THE TIME DATA REQUIRED FOR THE GROUPER
-//----------------------------------------------------------------------
-            //VALIDATION FOR NEW BORN DATA
             if (nclaimsdata.getDischargeType().isEmpty()) {
                 //errors.add("DischargeType is required");
                 errors.add("108");
-            } else if (!Arrays.asList(dischargefromnclaims).contains(nclaimsdata.getDischargeType())) {
+            } else if (!Arrays.asList("I", "R", "H", "A", "T", "E", "O").contains(nclaimsdata.getDischargeType())) {
                 // errors.add("DischargeType " + nclaimsdata.getDischargeType() + " is invalid");
-                errors.add("222");
+                errors.add("226");
             }
-            if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
-                if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
-                } else {
-                    if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) == 0
-                            && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 28) {
-                        if (!drgclaim.getNewBornAdmWeight().equals("")) {
-                            if (!utility.isValidNumeric(drgclaim.getNewBornAdmWeight())) {
-                                // errors.add("NewBordAdmWeight  value , " + drgclaim.getNewBornAdmWeight() + ", is non-numeric value");
-                                errors.add("227");
-                            } else if (Double.parseDouble(drgclaim.getNewBornAdmWeight()) < 0.3) {
-                                //errors.add("NewBordAdmWeight value , " + drgclaim.getNewBornAdmWeight() + ", not meet the minimum requirements 0.3 Kilograms");
-                                errors.add("228");
-                            }
-                        } else {
-                            // errors.add("NewBordAdmWeight is required");
-                            errors.add("109");
-                        }
+            if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) == 0
+                    && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) < 28) {
+                if (!drgclaim.getNewBornAdmWeight().equals("")) {
+                    if (!utility.isValidNumeric(drgclaim.getNewBornAdmWeight())) {
+                        // errors.add("NewBordAdmWeight  value , " + drgclaim.getNewBornAdmWeight() + ", is non-numeric value");
+                        errors.add("227");
+                    } else if (Double.parseDouble(drgclaim.getNewBornAdmWeight()) < 0.3) {
+                        //errors.add("NewBordAdmWeight value , " + drgclaim.getNewBornAdmWeight() + ", not meet the minimum requirements 0.3 Kilograms");
+                        errors.add("228");
                     }
-
+                } else {
+                    // errors.add("NewBordAdmWeight is required");
+                    errors.add("109");
                 }
             }
             //END VALIDATION FOR NEW BORN DATA
             validatedrgclaim = drgclaim;
-            if (!utility.IsValidDate(nclaimsdata.getDateofBirth()) || !utility.IsValidDate(nclaimsdata.getAdmissionDate())) {
-            } else if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
-            } else {
+            validatedrgclaim.setRemarks(String.join(",", errors));
+            if (!nclaimsdata.getGender().isEmpty() && Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
                 SECONDARYDIAGS secondarydiags = new SECONDARYDIAGS();
                 for (int a = 0; a < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); a++) {
                     // sdx validation
                     DRGWSResult VSDResultS = new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
                     //mapping
-                    SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(VSDResultS.getResult(), SECONDARYDIAG.class);
-                    secondarydiags.getSECONDARYDIAG().add(secondarydiag);
-                    if (secondarydiag.getRemarks().equals("")) {
-                        errorsMessage.add(VSDResultS.getMessage());
+                    if (VSDResultS.isSuccess()) {
+                        SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(VSDResultS.getResult(), SECONDARYDIAG.class);
+                        secondarydiags.getSECONDARYDIAG().add(secondarydiag);
+                        if (secondarydiag.getRemarks().equals("")) {
+                            errorsMessage.add(VSDResultS.getMessage());
+                        }
                     }
                 }
                 validatedrgclaim.setSECONDARYDIAGS(secondarydiags);
             }
-            if (nclaimsdata.getGender().isEmpty() || !Arrays.asList(gender).contains(nclaimsdata.getGender().toUpperCase())) {
-            } else {
+            if (!nclaimsdata.getGender().isEmpty() && Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
                 PROCEDURES procedures = new PROCEDURES();
                 for (int b = 0; b < drgclaim.getPROCEDURES().getPROCEDURE().size(); b++) {
                     DRGWSResult VPResult = new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender());
-                    PROCEDURE procedure = utility.objectMapper().readValue(VPResult.getResult(), PROCEDURE.class);
-                    procedures.getPROCEDURE().add(procedure);
-                    if (procedure.getRemarks().equals("")) {
-                        errorsMessage.add(VPResult.getMessage());
+                    if (VPResult.isSuccess()) {
+                        PROCEDURE procedure = utility.objectMapper().readValue(VPResult.getResult(), PROCEDURE.class);
+                        procedures.getPROCEDURE().add(procedure);
+                        if (procedure.getRemarks().equals("")) {
+                            errorsMessage.add(VPResult.getMessage());
+                        }
                     }
                 }
                 validatedrgclaim.setPROCEDURES(procedures);
             }
-            if (errors.isEmpty()) {
-                result.setSuccess(true);
-            } else {
+            // RETURN RESULT
+            if (!errors.isEmpty()) {
                 errorsMessage.add("Patient information area has an errors");
                 result.setMessage(errorsMessage.toString());
-                // validatedrgclaim.setRemarks(String.join(",", errors));
             }
             result.setResult(utility.objectMapper().writeValueAsString(validatedrgclaim));
+            result.setSuccess(true);
         } catch (IOException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(ValidateDRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
     }
-
-//    public static String SaveAttachedpdfFile(final String pdfbase64string) {
-//        String result = "";
-//        String seriesnum = "55788964457";
-//        String hcicode = "33609";
-//        try {
-//            File myObj = new File("D:\\Java Swing\\DRG CLAIMS FILE\\ATTACHED DOCS FILE\\DRG" + seriesnum.trim() + "" + hcicode.trim() + ".pdf");
-//            if (myObj.createNewFile()) {
-//                FileOutputStream fos = new FileOutputStream(myObj);
-//                byte[] decoder = Base64.getDecoder().decode(pdfbase64string);
-//                fos.write(decoder);
-//
-//                result = String.valueOf(myObj);
-//            } else {
-//                result = "File is already exist";
-//            }
-//        } catch (IOException e) {
-//            result = e.toString();
-//            Logger.getLogger(ValidateDRGClaims.class.getName()).log(Level.SEVERE, null, e);
-//        }
-//        return result;
-//    }
 }

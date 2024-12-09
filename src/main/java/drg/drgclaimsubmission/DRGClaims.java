@@ -27,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
@@ -39,8 +38,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -60,7 +57,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -71,7 +68,6 @@ public class DRGClaims {
 
     @Resource(lookup = "jdbc/drgsbuser")
     private DataSource datasource;
-
     private final Utility utility = new Utility();
 
     @POST
@@ -235,6 +231,8 @@ public class DRGClaims {
                     }
                     //END E-CLAIMS XML PARSING AREA
                     if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
+                        
+                        
                         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                         Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
@@ -292,6 +290,7 @@ public class DRGClaims {
                         result.setSuccess(pedResult.isSuccess());
                         //END DATA VALIDATION METHOD
                     } else {
+                        
                         if (arrayfatalerror.size() > 0) {
                             ArrayList<String> fatalerrors = new ArrayList<>();
                             for (int a = 0; a < arrayfatalerror.size(); a++) {
