@@ -57,7 +57,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -65,7 +65,6 @@ public class DRGClaims {
 
     public DRGClaims() {
     }
-
     @Resource(lookup = "jdbc/drgsbuser")
     private DataSource datasource;
     private final Utility utility = new Utility();
@@ -231,8 +230,6 @@ public class DRGClaims {
                     }
                     //END E-CLAIMS XML PARSING AREA
                     if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
-                        
-                        
                         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
                         Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
@@ -290,7 +287,7 @@ public class DRGClaims {
                         result.setSuccess(pedResult.isSuccess());
                         //END DATA VALIDATION METHOD
                     } else {
-                        
+
                         if (arrayfatalerror.size() > 0) {
                             ArrayList<String> fatalerrors = new ArrayList<>();
                             for (int a = 0; a < arrayfatalerror.size(); a++) {
@@ -316,7 +313,6 @@ public class DRGClaims {
         }
         return result;
     }
-
 
     @GET
     @Path("GetServerDateTime")

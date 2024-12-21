@@ -7,7 +7,7 @@ package drg.drgclaimsubmission.structures;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 public class ValidatedXMLResult {
 

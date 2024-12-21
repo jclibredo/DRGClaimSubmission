@@ -23,7 +23,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateDRGClaims {
@@ -121,9 +121,11 @@ public class ValidateDRGClaims {
                 // errors.add("DischargeDat Must be greater than or equal to AdmissionDate");
                 errors.add("221");
             }
-            if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) < 24) {
-                errors.add("417");
-            }
+            if (utility.ComputeDay(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate()) < 1) {
+                if (utility.ComputeLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge()) < 24) {
+                    errors.add("417");
+                }
+            } 
             if (nclaimsdata.getDischargeType().isEmpty()) {
                 //errors.add("DischargeType is required");
                 errors.add("108");

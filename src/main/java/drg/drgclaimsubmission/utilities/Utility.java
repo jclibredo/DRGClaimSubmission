@@ -35,7 +35,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @ApplicationScoped
 @Singleton
@@ -294,7 +294,6 @@ public class Utility {
             String IN = DateIn + TimeIn;
             String OUT = DateOut + TimeOut;
             SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
-            // SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssa");
             Date AdmissionTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
             Date DischargeTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
             long Time_difference = DischargeTime.getTime() - AdmissionTime.getTime();
@@ -314,7 +313,6 @@ public class Utility {
             String IN = datein + timein;
             String OUT = dateout + timeout;
             SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
-            //   SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssa");
             Date AdmissionDateTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
             Date DischargeDateTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
             long difference_In_Time = DischargeDateTime.getTime() - AdmissionDateTime.getTime();
