@@ -11,7 +11,7 @@ import javax.enterprise.context.RequestScoped;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class RemoveTrailingSpaces {

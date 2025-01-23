@@ -57,7 +57,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @Path("DRGClaim")
 @RequestScoped

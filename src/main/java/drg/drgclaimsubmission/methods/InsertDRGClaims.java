@@ -26,7 +26,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class InsertDRGClaims {
@@ -77,34 +77,33 @@ public class InsertDRGClaims {
             //======================================================
             //INSERTION OF SECONDARY DIAGNOSIS 
             //END INSERTION OF SECONDARY DIAGNOSIS 
-            CallableStatement ps = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
+            CallableStatement ps = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
                     + ":Message, :Code, "
-                    + ":PDX_CODE, :NB_TOB, "
-                    + ":NB_ADMWEIGHT,:SERIES, "
-                    + ":LHIO,:ACCRENO,:CLAIMNUMBER)");
+                    + ":updxcode, :unbtob, "
+                    + ":unadmweight,:useries, "
+                    + ":ulhio,:uaccreno,:uclaimnumber)");
             ps.registerOutParameter("Message", OracleTypes.VARCHAR);
             ps.registerOutParameter("Code", OracleTypes.INTEGER);
-            ps.setString("PDX_CODE", drgclaim.getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
-            ps.setString("NB_TOB", drgclaim.getNewBornAdmWeight());
-            ps.setString("NB_ADMWEIGHT", drgclaim.getNewBornAdmWeight());
-            ps.setString("SERIES", series.trim());
-            ps.setString("LHIO", lhio.trim());
-            ps.setString("ACCRENO", accreno.trim());
-            ps.setString("CLAIMNUMBER", drgclaim.getClaimNumber().trim());
+            ps.setString("updxcode", drgclaim.getPrimaryCode().trim().replaceAll("\\.", "").toUpperCase());
+            ps.setString("unbtob", drgclaim.getNewBornAdmWeight());
+            ps.setString("unadmweight", drgclaim.getNewBornAdmWeight());
+            ps.setString("useries", series.trim());
+            ps.setString("ulhio", lhio.trim());
+            ps.setString("uaccreno", accreno.trim());
+            ps.setString("uclaimnumber", drgclaim.getClaimNumber().trim());
             ps.executeUpdate();
             if (!ps.getString("Message").equals("SUCC")) {
                 ErrMessage.add(ps.getString("Message"));
             }
             //====================================================== INSERTION FOR WARNING ERROR
-            CallableStatement error = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
-                    + ":Message, :Code, "
-                    + ":claimNum,:rest_id,:series_error, :code_error, "
-                    + ":data_error,:desc_error, "
-                    + ":lhio_error)");
+            CallableStatement error = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
+                    + ":Message, :Code,"
+                    + ":uclaimid,:uresultid,:useries,:ucode,"
+                    + ":udata,:udesc,:ulhio)");
             //=======================================================================================  
             //SECONDARY DIAGNOSIS INSERTION OF DATA TO DATABASE
             for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
-                CallableStatement insertsecondary = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:claimNum,:SDX_CODE,:SERIES,:LHIO)");
+                CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:uclaimid,:usdxcode,:useries,:ulhio)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
                 DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
@@ -116,13 +115,13 @@ public class InsertDRGClaims {
                         String code_error = "503";
                         error.registerOutParameter("Message", OracleTypes.VARCHAR);
                         error.registerOutParameter("Code", OracleTypes.INTEGER);
-                        error.setString("claimNum", drgclaim.getClaimNumber());
-                        error.setString("rest_id", result_id.trim());
-                        error.setString("series_error", series.trim());
-                        error.setString("code_error", code_error.trim());
-                        error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
-                        error.setString("desc_error", desc_error);
-                        error.setString("lhio_error", lhio.trim());
+                        error.setString("uclaimid", drgclaim.getClaimNumber());
+                        error.setString("uresultid", result_id.trim());
+                        error.setString("useries", series.trim());
+                        error.setString("ucode", code_error.trim());
+                        error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                        error.setString("udesc", desc_error);
+                        error.setString("ulhio", lhio.trim());
                         error.executeUpdate();
                         if (!error.getString("Message").equals("SUCC")) {
                             ErrMessage.add(error.getString("Message"));
@@ -133,13 +132,13 @@ public class InsertDRGClaims {
                             String code_error = "502";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
-                            error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id.trim());
-                            error.setString("series_error", series.trim());
-                            error.setString("code_error", code_error.trim());
-                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
-                            error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio.trim());
+                            error.setString("uclaimid", drgclaim.getClaimNumber());
+                            error.setString("uresultid", result_id.trim());
+                            error.setString("useries", series.trim());
+                            error.setString("ucode", code_error.trim());
+                            error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                            error.setString("udesc", desc_error);
+                            error.setString("ulhio", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
@@ -149,13 +148,13 @@ public class InsertDRGClaims {
                             String code_error = "501";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
-                            error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id);
-                            error.setString("series_error", series.trim());
-                            error.setString("code_error", code_error.trim());
-                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
-                            error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio.trim());
+                            error.setString("uclaimid", drgclaim.getClaimNumber());
+                            error.setString("uresultid", result_id);
+                            error.setString("useries", series.trim());
+                            error.setString("ucode", code_error.trim());
+                            error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                            error.setString("udesc", desc_error);
+                            error.setString("ulhio", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
@@ -166,13 +165,13 @@ public class InsertDRGClaims {
                             String code_error = "505";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
-                            error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id.trim());
-                            error.setString("series_error", series.trim());
-                            error.setString("code_error", code_error.trim());
-                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
-                            error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio.trim());
+                            error.setString("uclaimid", drgclaim.getClaimNumber());
+                            error.setString("uresultid", result_id.trim());
+                            error.setString("useries", series.trim());
+                            error.setString("ucode", code_error.trim());
+                            error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                            error.setString("udesc", desc_error);
+                            error.setString("ulhio", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
@@ -183,22 +182,22 @@ public class InsertDRGClaims {
                             String code_error = "504";
                             error.registerOutParameter("Message", OracleTypes.VARCHAR);
                             error.registerOutParameter("Code", OracleTypes.INTEGER);
-                            error.setString("claimNum", drgclaim.getClaimNumber());
-                            error.setString("rest_id", result_id.trim());
-                            error.setString("series_error", series.trim());
-                            error.setString("code_error", code_error.trim());
-                            error.setString("data_error", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
-                            error.setString("desc_error", desc_error);
-                            error.setString("lhio_error", lhio.trim());
+                            error.setString("uclaimid", drgclaim.getClaimNumber());
+                            error.setString("uresultid", result_id.trim());
+                            error.setString("useries", series.trim());
+                            error.setString("ucode", code_error.trim());
+                            error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                            error.setString("udesc", desc_error);
+                            error.setString("ulhio", lhio.trim());
                             error.executeUpdate();
                             if (!error.getString("Message").equals("SUCC")) {
                                 ErrMessage.add(error.getString("Message"));
                             }
                         } else {
-                            insertsecondary.setString("claimNum", drgclaim.getClaimNumber());
-                            insertsecondary.setString("SDX_CODE", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
-                            insertsecondary.setString("SERIES", series.trim());
-                            insertsecondary.setString("LHIO", lhio.trim());
+                            insertsecondary.setString("uclaimid", drgclaim.getClaimNumber());
+                            insertsecondary.setString("usdxcode", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
+                            insertsecondary.setString("useries", series.trim());
+                            insertsecondary.setString("ulhio", lhio.trim());
                             secondaryjoin.add(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
                             insertsecondary.executeUpdate();
                             if (!insertsecondary.getString("Message").equals("SUCC")) {
@@ -210,12 +209,12 @@ public class InsertDRGClaims {
             }
             // RVS MANIPULATION AREA ==========PROCESS FIRST THE REPITITION OF RVS 
             for (int proc = 0; proc < drgclaim.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                CallableStatement insertprocedure = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PROCEDURE("
-                        + ":Message, :Code, "
-                        + ":claimNum,:RVS, "
-                        + ":LATERALITY, :EXT1_CODE, "
-                        + ":EXT2_CODE, :ICD9_CODE, "
-                        + ":SERIES, :LHIO)");
+                CallableStatement insertprocedure = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PROCEDURE("
+                        + ":Message,:Code, "
+                        + ":uclaimid,:urvs,"
+                        + ":ulaterality,:uext1code, "
+                        + ":uext2code,:uicd9code, "
+                        + ":useries,:ulhio)");
                 insertprocedure.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertprocedure.registerOutParameter("Code", OracleTypes.INTEGER);
                 if (duplicateproc.contains(String.valueOf(proc))) {
@@ -223,13 +222,13 @@ public class InsertDRGClaims {
                     String code_error = "507";
                     error.registerOutParameter("Message", OracleTypes.VARCHAR);
                     error.registerOutParameter("Code", OracleTypes.INTEGER);
-                    error.setString("claimNum", drgclaim.getClaimNumber());
-                    error.setString("rest_id", result_id.trim());
-                    error.setString("series_error", series.trim());
-                    error.setString("code_error", code_error.trim());
-                    error.setString("data_error", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
-                    error.setString("desc_error", desc_error);
-                    error.setString("lhio_error", lhio.trim());
+                    error.setString("uclaimid", drgclaim.getClaimNumber());
+                    error.setString("uresultid", result_id.trim());
+                    error.setString("useries", series.trim());
+                    error.setString("ucode", code_error.trim());
+                    error.setString("udata", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
+                    error.setString("udesc", desc_error);
+                    error.setString("ulhio", lhio.trim());
                     error.executeUpdate();
                     if (!error.getString("Message").equals("SUCC")) {
                         ErrMessage.add(error.getString("Message"));
@@ -258,7 +257,7 @@ public class InsertDRGClaims {
                     //===========================================================CONVERTER===============================
                     DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
-                        CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                        CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
                         statement.setString("rvs_code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                         statement.execute();
@@ -279,13 +278,13 @@ public class InsertDRGClaims {
                                 String code_error = "508";
                                 error.registerOutParameter("Message", OracleTypes.VARCHAR);
                                 error.registerOutParameter("Code", OracleTypes.INTEGER);
-                                error.setString("claimNum", drgclaim.getClaimNumber().trim());
-                                error.setString("rest_id", result_id.trim());
-                                error.setString("series_error", series.trim());
-                                error.setString("code_error", code_error.trim());
-                                error.setString("data_error", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
-                                error.setString("desc_error", desc_error);
-                                error.setString("lhio_error", lhio);
+                                error.setString("uclaimid", drgclaim.getClaimNumber().trim());
+                                error.setString("uresultid", result_id.trim());
+                                error.setString("useries", series.trim());
+                                error.setString("ucode", code_error.trim());
+                                error.setString("udata", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
+                                error.setString("udesc", desc_error);
+                                error.setString("ulhio", lhio);
                                 error.executeUpdate();
                                 if (!error.getString("Message").equals("SUCC")) {
                                     ErrMessage.add(error.getString("Message"));
@@ -293,21 +292,21 @@ public class InsertDRGClaims {
                             } else {
                                 for (int g = 0; g < ConverterResult.size(); g++) {
                                     if (new CF5Method().CountProc(datasource, ConverterResult.get(g).trim()).isSuccess()) {
-                                        insertprocedure.setString("claimNum", drgclaim.getClaimNumber().trim());
-                                        insertprocedure.setString("RVS", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
-                                        insertprocedure.setString("LATERALITY", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
-                                        insertprocedure.setString("EXT1_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
-                                        insertprocedure.setString("EXT2_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
+                                        insertprocedure.setString("uclaimid", drgclaim.getClaimNumber().trim());
+                                        insertprocedure.setString("urvs", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
+                                        insertprocedure.setString("ulaterality", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
+                                        insertprocedure.setString("uext1code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
+                                        insertprocedure.setString("uext2code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
                                         String extcom = drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim() + "" + drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim();
                                         if (extcom.trim().equals("11")) {
                                             procedurejoin.add(ConverterResult.get(g).trim());
-                                            insertprocedure.setString("ICD9_CODE", ConverterResult.get(g).trim());
+                                            insertprocedure.setString("uicd9code", ConverterResult.get(g).trim());
                                         } else {
                                             procedurejoin.add(ConverterResult.get(g).trim() + ">1");
-                                            insertprocedure.setString("ICD9_CODE", ConverterResult.get(g).trim() + ">1");
+                                            insertprocedure.setString("uicd9code", ConverterResult.get(g).trim() + ">1");
                                         }
-                                        insertprocedure.setString("SERIES", series);
-                                        insertprocedure.setString("LHIO", lhio);
+                                        insertprocedure.setString("useries", series);
+                                        insertprocedure.setString("ulhio", lhio);
                                         insertprocedure.executeUpdate();
                                     }
                                 }
@@ -321,13 +320,13 @@ public class InsertDRGClaims {
                                 String code_error = "506";
                                 error.registerOutParameter("Message", OracleTypes.VARCHAR);
                                 error.registerOutParameter("Code", OracleTypes.INTEGER);
-                                error.setString("claimNum", drgclaim.getClaimNumber().trim());
-                                error.setString("rest_id", result_id.trim());
-                                error.setString("series_error", series.trim());
-                                error.setString("code_error", code_error.trim());
-                                error.setString("data_error", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
-                                error.setString("desc_error", desc_error);
-                                error.setString("lhio_error", lhio.trim());
+                                error.setString("uclaimid", drgclaim.getClaimNumber().trim());
+                                error.setString("uresultid", result_id.trim());
+                                error.setString("useries", series.trim());
+                                error.setString("ucode", code_error.trim());
+                                error.setString("udata", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim());
+                                error.setString("udesc", desc_error);
+                                error.setString("ulhio", lhio.trim());
                                 error.executeUpdate();
                                 if (!error.getString("Message").equals("SUCC")) {
                                     ErrMessage.add(error.getString("Message"));
@@ -335,15 +334,15 @@ public class InsertDRGClaims {
                             }
                         }
                     } else {
-                        insertprocedure.setString("claimNum", drgclaim.getClaimNumber().trim());
-                        insertprocedure.setString("RVS", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
-                        insertprocedure.setString("LATERALITY", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
-                        insertprocedure.setString("EXT1_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
-                        insertprocedure.setString("EXT2_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
+                        insertprocedure.setString("uclaimid", drgclaim.getClaimNumber().trim());
+                        insertprocedure.setString("urvs", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
+                        insertprocedure.setString("ulaterality", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
+                        insertprocedure.setString("uext1code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
+                        insertprocedure.setString("uext2code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
                         procedurejoin.add(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
-                        insertprocedure.setString("ICD9_CODE", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
-                        insertprocedure.setString("SERIES", series);
-                        insertprocedure.setString("LHIO", lhio);
+                        insertprocedure.setString("uicd9code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
+                        insertprocedure.setString("useries", series);
+                        insertprocedure.setString("ulhio", lhio);
                         insertprocedure.executeUpdate();
                     }
                 }
