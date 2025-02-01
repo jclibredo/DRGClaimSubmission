@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateSecondaryDiag {

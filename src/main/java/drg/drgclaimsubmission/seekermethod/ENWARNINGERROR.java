@@ -7,7 +7,7 @@ package drg.drgclaimsubmission.seekermethod;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 
  public class ENWARNINGERROR {

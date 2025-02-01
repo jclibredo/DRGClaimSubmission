@@ -51,3 +51,4 @@ drg\drgclaimsubmission\structures\ValidateXMLResult.class
 drg\drgclaimsubmission\structures\ICD10PreMDCResult.class
 drg\drgclaimsubmission\methods\ValidateSecondaryDiag.class
 drg\drgclaimsubmission\utilities\dtd\files\CF5Parser.class
+drg\drgclaimsubmission\methods\phic\phic.class

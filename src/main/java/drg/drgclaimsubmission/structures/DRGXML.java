@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 
 public class DRGXML implements Serializable {

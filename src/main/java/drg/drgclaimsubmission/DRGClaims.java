@@ -15,6 +15,7 @@ import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.XMLErrors;
 import drg.drgclaimsubmission.structures.dtd.CF5;
 import drg.drgclaimsubmission.methods.CF5Method;
+import drg.drgclaimsubmission.methods.phic.phic;
 import drg.drgclaimsubmission.utilities.NamedParameterStatement;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
@@ -57,7 +58,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -336,11 +337,23 @@ public class DRGClaims {
     }
 
     @GET
-    @Path(value = "TEST/{icd10codes}")
+    @Path(value = "TESTValidatePDx/{icd10codes}")
     @Produces(value = MediaType.APPLICATION_JSON)
-    public DRGWSResult TEST(@PathParam("icd10codes") String icd10codes) {
+    public DRGWSResult TESTValidatePDx(@PathParam("icd10codes") String icd10codes) {
         DRGWSResult result = utility.DRGWSResult();
         DRGWSResult NewResult = new CF5Method().GetICD10(datasource, icd10codes.trim().replaceAll("\\.", "").toUpperCase());
+        result.setMessage(NewResult.getMessage());
+        result.setResult(NewResult.getResult());
+        result.setSuccess(NewResult.isSuccess());
+        return result;
+    }
+
+    @GET
+    @Path(value = "TESTGetClaims/{seriesnumber}")
+    @Produces(value = MediaType.APPLICATION_JSON)
+    public DRGWSResult TESTGetClaims(@PathParam("seriesnumber") String seriesnumber) {
+        DRGWSResult result = utility.DRGWSResult();
+        DRGWSResult NewResult = new phic().GeteClaims(datasource, seriesnumber);
         result.setMessage(NewResult.getMessage());
         result.setResult(NewResult.getResult());
         result.setSuccess(NewResult.isSuccess());

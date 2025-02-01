@@ -9,7 +9,7 @@ import lombok.Data;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @Data
 public class ValidICD10 {

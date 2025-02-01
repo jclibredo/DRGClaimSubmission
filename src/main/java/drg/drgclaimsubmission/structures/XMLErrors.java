@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 public class XMLErrors {
 

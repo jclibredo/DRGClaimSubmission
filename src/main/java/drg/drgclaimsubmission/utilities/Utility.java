@@ -15,6 +15,7 @@ import drg.drgclaimsubmission.structures.KeyPerValueError;
 import drg.drgclaimsubmission.structures.WarningErrorList;
 import drg.drgclaimsubmission.structures.XMLReport;
 import java.security.SecureRandom;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -35,7 +36,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @ApplicationScoped
 @Singleton
@@ -493,5 +494,20 @@ public class Utility {
                 + "   >";
         return DTDFile;
     }
+
+    public boolean isParsableDate(String dateString, String dateFormat) {
+        boolean result = false;
+        DateFormat sdf = this.SimpleDateFormat(dateFormat);
+        sdf.setLenient(false);
+        try {
+            sdf.parse(dateString);
+            result = true;
+        } catch (ParseException e) {
+        }
+        return result;
+    }
+    
+    
+    
 
 }

@@ -30,7 +30,7 @@ import org.xml.sax.SAXParseException;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateXMLWithDTD {
