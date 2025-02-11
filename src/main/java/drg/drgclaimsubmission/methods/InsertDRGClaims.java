@@ -345,8 +345,16 @@ public class InsertDRGClaims {
                         insertprocedure.setString("ulhio", lhio);
                         insertprocedure.executeUpdate();
                     }
+                    
+                    
+                    
                 }
             }
+            
+            
+            
+            
+            
             //END HERE
             if (ErrMessage.isEmpty()) {
                 connection.commit();

@@ -82,26 +82,21 @@ public class DRGClaims {
         result.setMessage("");
         result.setResult("");
         result.setSuccess(false);
-        // String ClaimSeriesNum = ClaimSeriesNums.replaceAll("\\s+", "");
-        if (uploadeddrg == null || ClaimSeriesNum == null) {
-            String details = "Unreadable file directory or variable name error in FormDataParam";
-            DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "", "", "CF5 Claim Form");
-            result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
-            result.setResult("Request status :" + auditrail.getMessage());
-        } else {
-            String drgfilename = drgdetail.getFileName();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
-            if (drgfilename.length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-                result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
-            } else if (drgfilename.length() == 0) {
-                result.setMessage("CF5 DRG XML File NOT FOUND");
-            } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-                String drgfilelines = "";
-                String drgfilecontents = "";
-                try {
-                    while ((drgfilelines = reader.readLine()) != null) {
-                        drgfilecontents += drgfilelines;
-                    }
+        try {
+            // String ClaimSeriesNum = ClaimSeriesNums.replaceAll("\\s+", "");
+            if (uploadeddrg == null || ClaimSeriesNum == null) {
+                String details = "Unreadable file directory or variable name error in FormDataParam";
+                DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "", "", "CF5 Claim Form");
+                result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
+                result.setResult("Request status :" + auditrail.getMessage());
+            } else {
+                String drgfilename = drgdetail.getFileName();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
+                if (drgfilename.length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
+                    result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
+                } else if (drgfilename.length() == 0) {
+                    result.setMessage("CF5 DRG XML File NOT FOUND");
+                } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                     String stats = "FAILED";
                     String series = "";
                     String claimnum = "";
@@ -113,18 +108,12 @@ public class DRGClaims {
                     }
                     DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, stats, series, claimnum, drgfilename);
                     result.setMessage(details + " DRG Claims Status " + auditrail.getMessage());
-                } catch (IOException ex) {
-                    result.setMessage(ex.toString());
-                    Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            } else {
-                String drgfileline = "";
-                String drgfilecontent = "";
-                try {
+                } else {
+                    String drgfileline = "";
+                    String drgfilecontent = "";
                     while ((drgfileline = reader.readLine()) != null) {
                         drgfilecontent += drgfileline;
                     }
-                    //  METHOD THIS AREA SI TO GET DATA FROM NCLAIMS USING CLAIM SERRIES NUMBER
                     String claimsSeriesLhioNums = ClaimSeriesNum.replaceAll("\\s+", "");
                     String claimsSerries = claimsSeriesLhioNums.substring(0, Math.min(claimsSeriesLhioNums.length(), 13));
                     String lhio = claimsSeriesLhioNums.substring(Math.max(claimsSeriesLhioNums.length() - 2, 0));
@@ -144,11 +133,11 @@ public class DRGClaims {
                         result.setMessage(cleanData.getMessage() + " , " + auditrail.getMessage());
                         result.setSuccess(cleanData.isSuccess());
                     }
-                } catch (IOException ex) {
-                    result.setMessage(ex.toString());
-                    Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+        } catch (IOException ex) {
+            result.setMessage(ex.toString());
+            Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
     }

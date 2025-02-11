@@ -67,7 +67,6 @@ public class ValidateXMLValues {
                     error.add("513");
                     detailList.add("Claim Number has duplicate");
                 }
-
                 if (!nClaimsData.getPclaimnumber().isEmpty() || nClaimsData.getPclaimnumber() != null || !nClaimsData.getPclaimnumber().equals("")) {
                     if (!nClaimsData.getPclaimnumber().trim().equals(drg.getDRGCLAIM().getClaimNumber().trim())) {
                         detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber not found in Eclaims DB");
