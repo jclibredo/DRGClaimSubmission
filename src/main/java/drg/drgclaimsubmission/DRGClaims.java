@@ -156,7 +156,7 @@ public class DRGClaims {
         result.setResult("");
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
-        try {
+        try {     
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
