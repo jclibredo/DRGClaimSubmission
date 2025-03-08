@@ -48,7 +48,7 @@ public class ValidateProcedures {
                 if (procedure.getLaterality().trim().isEmpty()) {
                     procedure.setLaterality("N");
                     errors.add("204");
-                } else if (!Arrays.asList("L", "R", "B").contains(procedure.getLaterality().trim())) {
+                } else if (!Arrays.asList("L", "R", "B", "N").contains(procedure.getLaterality().trim())) {
                     procedure.setLaterality("N");
                     errors.add("204");
                 }
