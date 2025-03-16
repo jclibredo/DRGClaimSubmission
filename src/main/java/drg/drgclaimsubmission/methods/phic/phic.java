@@ -19,7 +19,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class phic {
@@ -36,7 +36,7 @@ public class phic {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :nclaims := DRG_SHADOWBILLING.UHCDRGPKG.GET_NCLAIMS(:seriesnum); end;");
+            CallableStatement statement = connection.prepareCall("begin :nclaims := MINOSUN.UHCDRGPKG.GET_NCLAIMS(:seriesnum); end;");
             statement.registerOutParameter("nclaims", OracleTypes.CURSOR);
             statement.setString("seriesnum", seriesnum.trim());
             statement.execute();
@@ -63,7 +63,7 @@ public class phic {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :v_result := DRG_SHADOWBILLING.UHCDRGPKG.GETPATIENTDATA(:seriesnum); end;");
+            CallableStatement statement = connection.prepareCall("begin :v_result := MINOSUN.UHCDRGPKG.GETPATIENTDATA(:seriesnum); end;");
             statement.registerOutParameter("v_result", OracleTypes.CURSOR);
             statement.setString("seriesnum", seriesnum.trim());
             statement.execute();

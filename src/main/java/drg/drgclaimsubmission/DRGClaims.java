@@ -7,15 +7,15 @@ package drg.drgclaimsubmission;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
-import drg.drgclaimsubmission.methods.ParseEClaimsDrgXML;
 import drg.drgclaimsubmission.methods.RemoveTrailingSpaces;
-import drg.drgclaimsubmission.methods.ValidateXMLWithDTD;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.NClaimsData;
 import drg.drgclaimsubmission.structures.XMLErrors;
 import drg.drgclaimsubmission.structures.dtd.CF5;
 import drg.drgclaimsubmission.methods.CF5Method;
+import drg.drgclaimsubmission.methods.frontvalidation.FrontValidation;
 import drg.drgclaimsubmission.methods.phic.phic;
+import drg.drgclaimsubmission.methods.upload.Upload;
 import drg.drgclaimsubmission.utilities.NamedParameterStatement;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.BufferedReader;
@@ -58,7 +58,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -119,7 +119,7 @@ public class DRGClaims {
                     String lhio = claimsSeriesLhioNums.substring(Math.max(claimsSeriesLhioNums.length() - 2, 0));
                     DRGWSResult cleanData = new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent);
                     if (cleanData.isSuccess()) {
-                        DRGWSResult validatedData = new ValidateXMLWithDTD().ValidateXMLWithDTD(cleanData.getResult(), datasource, lhio, claimsSerries, drgfilename);
+                        DRGWSResult validatedData = new Upload().ValidateXMLWithDTD(cleanData.getResult(), datasource, lhio, claimsSerries, drgfilename);
                         result.setResult(validatedData.getResult());
                         result.setMessage(validatedData.getMessage());
                         result.setSuccess(validatedData.isSuccess());
@@ -156,7 +156,7 @@ public class DRGClaims {
         result.setResult("");
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
-        try {     
+        try {
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
@@ -269,9 +269,8 @@ public class DRGClaims {
                             }
                             nclaimsdatalist.add(nclaimsdata);
                         }
-                        //  System.out.println("NClaims Data " + utility.objectMapper().writeValueAsString(nclaimsdatalist));
                         //DATA VALIDATION METHOD
-                        DRGWSResult pedResult = new ParseEClaimsDrgXML().ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
+                        DRGWSResult pedResult = new FrontValidation().ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
                         result.setResult(pedResult.getResult());
                         result.setMessage(pedResult.getMessage());
                         result.setSuccess(pedResult.isSuccess());

@@ -26,7 +26,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class InsertDRGClaims {
@@ -61,8 +61,16 @@ public class InsertDRGClaims {
             Date datetoday = new Date();
             String result_id = utility.RandomNumeric(6) + "" + formatter.format(datetoday);
             //---------------------------
-            String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
-            String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+            String days = "0";
+            String year = "0";
+            if (nclaimsdata.getDateofBirth().isEmpty() && nclaimsdata.getAdmissionDate().isEmpty()) {
+            } else if (nclaimsdata.getDateofBirth().isEmpty()) {
+            } else if (nclaimsdata.getAdmissionDate().isEmpty()) {
+            } else {
+                days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+                year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
+            }
+
             int finalDays = 0;
             if (Integer.parseInt(year) > 0) {
                 finalDays = Integer.parseInt(year) * 365;
@@ -77,7 +85,7 @@ public class InsertDRGClaims {
             //======================================================
             //INSERTION OF SECONDARY DIAGNOSIS 
             //END INSERTION OF SECONDARY DIAGNOSIS 
-            CallableStatement ps = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
+            CallableStatement ps = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PATIENT_INFO("
                     + ":Message, :Code, "
                     + ":updxcode, :unbtob, "
                     + ":unadmweight,:useries, "
@@ -96,14 +104,14 @@ public class InsertDRGClaims {
                 ErrMessage.add(ps.getString("Message"));
             }
             //====================================================== INSERTION FOR WARNING ERROR
-            CallableStatement error = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
+            CallableStatement error = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_DRG_WARNING_ERROR("
                     + ":Message, :Code,"
                     + ":uclaimid,:uresultid,:useries,:ucode,"
                     + ":udata,:udesc,:ulhio)");
             //=======================================================================================  
             //SECONDARY DIAGNOSIS INSERTION OF DATA TO DATABASE
             for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
-                CallableStatement insertsecondary = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:uclaimid,:usdxcode,:useries,:ulhio)");
+                CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:uclaimid,:usdxcode,:useries,:ulhio)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
                 DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().replaceAll("\\.", "").toUpperCase());
@@ -209,7 +217,7 @@ public class InsertDRGClaims {
             }
             // RVS MANIPULATION AREA ==========PROCESS FIRST THE REPITITION OF RVS 
             for (int proc = 0; proc < drgclaim.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                CallableStatement insertprocedure = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_PROCEDURE("
+                CallableStatement insertprocedure = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PROCEDURE("
                         + ":Message,:Code, "
                         + ":uclaimid,:urvs,"
                         + ":ulaterality,:uext1code, "
@@ -235,19 +243,26 @@ public class InsertDRGClaims {
                     }
                 } else {
                     //=============================================================================
-                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim().isEmpty()) {
+                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim().isEmpty()
+                            || drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim().isEmpty()
+                            || drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim() == null) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setLaterality("N");
                     } else if (!Arrays.asList(laterality).contains(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim())) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setLaterality("N");
                     }
-                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim().equals("")) {
+                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim().equals("")
+                            || drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim().isEmpty()
+                            || drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim() == null) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
                     } else if (!Arrays.asList(exten).contains(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim())) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
                     } else if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim().length() > 1) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt1("1");
                     }
-                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim().equals("")) {
+
+                    if (drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim().equals("")
+                            || drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim().isEmpty()
+                            || drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim() == null) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt2("1");
                     } else if (!Arrays.asList(exten).contains(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim())) {
                         drgclaim.getPROCEDURES().getPROCEDURE().get(proc).setExt2("1");
@@ -257,7 +272,7 @@ public class InsertDRGClaims {
                     //===========================================================CONVERTER===============================
                     DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                     if (!checkRVStoICD9cm.isSuccess()) {
-                        CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                        CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
                         statement.setString("rvs_code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim().replaceAll("\\.", ""));
                         statement.execute();
@@ -345,16 +360,10 @@ public class InsertDRGClaims {
                         insertprocedure.setString("ulhio", lhio);
                         insertprocedure.executeUpdate();
                     }
-                    
-                    
-                    
+
                 }
             }
-            
-            
-            
-            
-            
+
             //END HERE
             if (ErrMessage.isEmpty()) {
                 connection.commit();
@@ -371,10 +380,8 @@ public class InsertDRGClaims {
                 }
                 result.setResult(gpdata.getResult());
                 result.setSuccess(true);
-//                System.out.println("YOU ARE HERE");
 
             } else {
-//                System.out.println("YOU ARE HERE");
                 connection.rollback();
                 String details = "CF5 CLAIMS INSERTION FAIL";
                 String stats = "FAILED";

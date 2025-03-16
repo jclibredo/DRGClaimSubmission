@@ -10,7 +10,7 @@ import lombok.Data;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @Data
 public class KeyPerValueError {

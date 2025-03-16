@@ -36,7 +36,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @ApplicationScoped
 @Singleton
@@ -202,8 +202,13 @@ public class Utility {
         return result;
     }
 
-    public boolean IsValidTime(String time) {
+    public boolean IsSURGEValidTime(String time) {
         boolean isValid = time.matches("(1[0-2]|0?[1-9]):[0-5][0-9](\\s)(?i)(am|pm)");
+        return isValid;
+    }
+
+    public boolean IsITMDValidTime(String time) {
+        boolean isValid = time.matches("(1[0-2]|0?[1-9]):[0-5][0-9]:[0-5][0-9](?i)(am|pm)");
         return isValid;
     }
 
@@ -289,7 +294,7 @@ public class Utility {
 
     }
 
-    public int ComputeTime(String DateIn, String TimeIn, String DateOut, String TimeOut) {
+    public int ComputeSURGETime(String DateIn, String TimeIn, String DateOut, String TimeOut) {
         int result = 0;
         try {
             String IN = DateIn + TimeIn;
@@ -308,7 +313,44 @@ public class Utility {
         return result;
     }
 
-    public int MinutesCompute(String datein, String timein, String dateout, String timeout) {
+    public int ComputeITMDTime(String DateIn, String TimeIn, String DateOut, String TimeOut) {
+        int result = 0;
+        try {
+            String IN = DateIn + TimeIn;
+            String OUT = DateOut + TimeOut;
+            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa");
+            Date AdmissionTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
+            Date DischargeTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+            long Time_difference = DischargeTime.getTime() - AdmissionTime.getTime();
+            long Hours_difference = (Time_difference / (1000 * 60 * 60)) % 24;
+            result = (int) Hours_difference;
+            return result;
+        } catch (ParseException ex) {
+            ex.getLocalizedMessage();
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public int MinutesSURGECompute(String datein, String timein, String dateout, String timeout) {
+        int result = 0;
+        try {
+            String IN = datein + timein;
+            String OUT = dateout + timeout;
+            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
+            Date AdmissionDateTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
+            Date DischargeDateTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+            long difference_In_Time = DischargeDateTime.getTime() - AdmissionDateTime.getTime();
+            long Minutes = (difference_In_Time / (1000 * 60)) % 60;
+            result = (int) Minutes;
+        } catch (ParseException ex) {
+            ex.getLocalizedMessage();
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public int MinutesITMDCompute(String datein, String timein, String dateout, String timeout) {
         int result = 0;
         try {
             String IN = datein + timein;
@@ -388,11 +430,30 @@ public class Utility {
         return result;
     }
 
-    public int ComputeLOS(String datein, String timein, String dateout, String timeout) {
+    public int ComputeSURGELOS(String datein, String timein, String dateout, String timeout) {
         int result = 0;
         try {
             //   SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssa");
             SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
+            String IN = datein + timein;
+            String OUT = dateout + timeout;
+            Date AdmissioDate = times.parse(IN.replaceAll("\\s", "")); //PARAM
+            Date DischargeDate = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+            long difference_In_Time = DischargeDate.getTime() - AdmissioDate.getTime();
+            long CalLOS = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
+            result = (int) CalLOS;
+        } catch (ParseException ex) {
+            ex.getLocalizedMessage();
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public int ComputeITMDLOS(String datein, String timein, String dateout, String timeout) {
+        int result = 0;
+        try {
+            //   SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssa");
+            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa");
             String IN = datein + timein;
             String OUT = dateout + timeout;
             Date AdmissioDate = times.parse(IN.replaceAll("\\s", "")); //PARAM
@@ -506,8 +567,5 @@ public class Utility {
         }
         return result;
     }
-    
-    
-    
 
 }
