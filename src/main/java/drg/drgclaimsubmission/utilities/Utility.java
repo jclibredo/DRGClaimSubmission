@@ -36,7 +36,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @ApplicationScoped
 @Singleton
@@ -350,23 +350,23 @@ public class Utility {
         return result;
     }
 
-    public int MinutesITMDCompute(String datein, String timein, String dateout, String timeout) {
-        int result = 0;
-        try {
-            String IN = datein + timein;
-            String OUT = dateout + timeout;
-            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
-            Date AdmissionDateTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
-            Date DischargeDateTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
-            long difference_In_Time = DischargeDateTime.getTime() - AdmissionDateTime.getTime();
-            long Minutes = (difference_In_Time / (1000 * 60)) % 60;
-            result = (int) Minutes;
-        } catch (ParseException ex) {
-            ex.getLocalizedMessage();
-            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return result;
-    }
+//    public int MinutesITMDCompute(String datein, String timein, String dateout, String timeout) {
+//        int result = 0;
+//        try {
+//            String IN = datein + timein;
+//            String OUT = dateout + timeout;
+//            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa");
+//            Date AdmissionDateTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
+//            Date DischargeDateTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+//            long difference_In_Time = DischargeDateTime.getTime() - AdmissionDateTime.getTime();
+//            long Minutes = (difference_In_Time / (1000 * 60)) % 60;
+//            result = (int) Minutes;
+//        } catch (ParseException ex) {
+//            ex.getLocalizedMessage();
+//            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        return result;
+//    }
 
     public int ComputeYear(String DOB, String AD) {
         int result = 0;

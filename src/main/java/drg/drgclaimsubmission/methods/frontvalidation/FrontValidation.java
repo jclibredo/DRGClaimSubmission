@@ -29,7 +29,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author MinoSun
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class FrontValidation {
@@ -79,16 +79,14 @@ public class FrontValidation {
                     if (drg.getDRGCLAIM().getClaimNumber().trim().equals(nclaimsdatalist.get(x).getPclaimnumber().trim())) {
 
                         if (!nclaimsdatalist.get(x).getTimeDischarge().trim().isEmpty()) {
-                            if (utility.IsSURGEValidTime(nclaimsdatalist.get(x).getTimeDischarge())) {
-                            } else if (utility.IsITMDValidTime(nclaimsdatalist.get(x).getTimeDischarge())) {
+                            if (utility.IsSURGEValidTime(nclaimsdatalist.get(x).getTimeDischarge()) || utility.IsITMDValidTime(nclaimsdatalist.get(x).getTimeDischarge())) {
                             } else {
                                 error.add("516");
                             }
                         }
                         //------------------------------------------------------
                         if (!nclaimsdatalist.get(x).getTimeAdmission().trim().isEmpty()) {
-                            if (utility.IsSURGEValidTime(nclaimsdatalist.get(x).getTimeAdmission())) {
-                            } else if (utility.IsITMDValidTime(nclaimsdatalist.get(x).getTimeAdmission())) {
+                            if (utility.IsSURGEValidTime(nclaimsdatalist.get(x).getTimeAdmission()) || utility.IsITMDValidTime(nclaimsdatalist.get(x).getTimeAdmission())) {
                             } else {
                                 error.add("515");
                             }
@@ -251,7 +249,7 @@ public class FrontValidation {
             String warnings = String.join(",", warninglist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim();
             //---------------------------------------------------------------------------
             if (error.size() > 0) {
-                result.setMessage("CF5 DATA ECOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED");
+                result.setMessage("CF5 DATA ENCOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED");
             } else if (errors.trim().length() > 0) {
                 result.setSuccess(true);
                 result.setMessage("CF5 DATA HAS AN ERROR EXPECT UNGROUPABLE DRG CODES RESULT");
@@ -352,15 +350,12 @@ public class FrontValidation {
             int araw = 0;
             int taon = 0;
             int los = 0;
-            int minuto = 0;
             if (utility.IsSURGEValidTime(nclaimsdata.getTimeAdmission()) && utility.IsSURGEValidTime(nclaimsdata.getTimeDischarge())) {
                 los = utility.ComputeSURGELOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                 oras = utility.ComputeSURGETime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                minuto = utility.MinutesSURGECompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
             } else if (utility.IsITMDValidTime(nclaimsdata.getTimeAdmission()) && utility.IsSURGEValidTime(nclaimsdata.getTimeDischarge())) {
                 oras = utility.ComputeITMDTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                 los = utility.ComputeITMDLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                minuto = utility.MinutesITMDCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
             }
             //------------------------------------------------------------------
             taon = utility.ComputeYear(nclaimsdata.getAdmissionDate(), nclaimsdata.getDischargeDate());

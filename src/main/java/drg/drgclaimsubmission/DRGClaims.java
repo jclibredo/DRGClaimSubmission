@@ -58,7 +58,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -157,6 +157,7 @@ public class DRGClaims {
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
         try {
+            
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
