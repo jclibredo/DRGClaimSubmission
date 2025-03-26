@@ -41,8 +41,8 @@ public class ValidateProcedures {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            if (!procedure.getRvsCode().replaceAll("\\.", "").toUpperCase().trim().isEmpty()) {
-                if (procedure.getRvsCode().replaceAll("\\.", "").toUpperCase().length() > 10) {
+            if (!utility.CleanCode(procedure.getRvsCode()).trim().isEmpty()) {
+                if (utility.CleanCode(procedure.getRvsCode()).trim().length() > 10) {
                     errors.add("506");
                 }
                 if (procedure.getLaterality().trim().isEmpty()) {
@@ -73,7 +73,7 @@ public class ValidateProcedures {
                     procedure.setExt1("1");
                 }
                 String rvs_code = procedure.getRvsCode();
-                DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
+                DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, utility.CleanCode(rvs_code).trim());
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
                     CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");

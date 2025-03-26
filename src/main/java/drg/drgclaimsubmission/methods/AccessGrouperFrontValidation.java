@@ -194,9 +194,9 @@ public class AccessGrouperFrontValidation {
                 for (int second = 0; second < drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().size(); second++) {
                     WarningErrorList warningerror = utility.WarningErrorList();
                     String datas = drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode();
-                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, datas.replaceAll("\\.", "").toUpperCase());
-                    DRGWSResult gendervalidation = new CF5Method().GenderConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), nclaimsdata.getGender());
-                    DRGWSResult agevalidation = new CF5Method().AgeConfictValidation(datasource, datas.replaceAll("\\.", "").toUpperCase(), days, year);
+                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, utility.CleanCode(datas).trim());
+                    DRGWSResult gendervalidation = new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(datas).trim(), nclaimsdata.getGender());
+                    DRGWSResult agevalidation = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(datas).trim(), days, year);
                     if (datas.length() != 0) {
                         int indexvalue = duplcatesdx.indexOf(String.valueOf(second));
                         if (indexvalue >= 0) {
@@ -205,7 +205,7 @@ public class AccessGrouperFrontValidation {
                             warningerror.setDetails("SDx is the repetition with other SDx");
                             warningerrorlist.add(warningerror);
                         } else {
-                            if (datas.replaceAll("\\.", "").toUpperCase().equals(drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase())) {
+                            if (utility.CleanCode(datas).trim().equals(utility.CleanCode(drgclaim.getPrimaryCode()).trim())) {
                                 warningerror.setCode(datas);
                                 warningerror.setErrorcode("502");
                                 warningerror.setDetails("Case that SDx is the repetition with PDx");
@@ -226,7 +226,7 @@ public class AccessGrouperFrontValidation {
                                 warningerror.setDetails("SDx Conflict with age");
                                 warningerrorlist.add(warningerror);
                             } else {
-                                secondaryjoin.add(datas.replaceAll("\\.", "").toUpperCase());
+                                secondaryjoin.add(utility.CleanCode(datas).trim());
                             }
 
                         }
@@ -266,7 +266,7 @@ public class AccessGrouperFrontValidation {
                         }
 
                         //IF RVS NOT FOUND IN THE ICD9 CODES LIBRARY CONVERT THE CODE
-                        DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim().replaceAll("\\.", ""));
+                        DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, utility.CleanCode(rvs_code).trim());
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
                             CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
@@ -314,7 +314,7 @@ public class AccessGrouperFrontValidation {
                             }
 
                         } else {
-                            procedurejoin.add(rvs_code.trim().replaceAll("\\.", ""));
+                            procedurejoin.add(utility.CleanCode(rvs_code).trim());
                         }
                     }
                 }

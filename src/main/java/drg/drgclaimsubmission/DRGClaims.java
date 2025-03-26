@@ -157,7 +157,7 @@ public class DRGClaims {
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
         try {
-            
+
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
@@ -330,7 +330,7 @@ public class DRGClaims {
     @Produces(value = MediaType.APPLICATION_JSON)
     public DRGWSResult TESTValidatePDx(@PathParam("icd10codes") String icd10codes) {
         DRGWSResult result = utility.DRGWSResult();
-        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, icd10codes.trim().replaceAll("\\.", "").toUpperCase());
+        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, utility.CleanCode(icd10codes).trim());
         result.setMessage(NewResult.getMessage());
         result.setResult(NewResult.getResult());
         result.setSuccess(NewResult.isSuccess());

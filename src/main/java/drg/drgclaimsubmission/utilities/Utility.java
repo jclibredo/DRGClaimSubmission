@@ -15,12 +15,10 @@ import drg.drgclaimsubmission.structures.KeyPerValueError;
 import drg.drgclaimsubmission.structures.WarningErrorList;
 import drg.drgclaimsubmission.structures.XMLReport;
 import java.security.SecureRandom;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -103,30 +101,27 @@ public class Utility {
         return result;
     }
 
+    public String CleanCode(String data) {
+        return data.trim().replaceAll("\\.", "").toUpperCase();
+    }
+
     public String RandomAlphaNumeric(int length) {
-        String char_lower = "abcdefghijklmnopqrstuvwxyz";
-        String char_upper = char_lower.toUpperCase();
-        String number = "0123456789";
-        String data = char_lower + char_upper + number;
         SecureRandom random = new SecureRandom();
         StringBuilder builder = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            int rndCharAt = random.nextInt(data.length());
-            char rndChar = data.charAt(rndCharAt);
+            int rndCharAt = random.nextInt(("abcdefghijklmnopqrstuvwxyz" + "abcdefghijklmnopqrstuvwxyz".toUpperCase() + "0123456789").length());
+            char rndChar = ("abcdefghijklmnopqrstuvwxyz" + "abcdefghijklmnopqrstuvwxyz".toUpperCase() + "0123456789").charAt(rndCharAt);
             builder.append(rndChar);
         }
         return builder.toString();
     }
 
     public String RandomAlpha(int length) {
-        String char_lower = "abcdefghijklmnopqrstuvwxyz";
-        String char_upper = char_lower.toUpperCase();
-        String data = char_lower + char_upper;
         SecureRandom random = new SecureRandom();
         StringBuilder builder = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            int rndCharAt = random.nextInt(data.length());
-            char rndChar = data.charAt(rndCharAt);
+            int rndCharAt = random.nextInt(("abcdefghijklmnopqrstuvwxyz" + "abcdefghijklmnopqrstuvwxyz".toUpperCase()).length());
+            char rndChar = ("abcdefghijklmnopqrstuvwxyz" + "abcdefghijklmnopqrstuvwxyz".toUpperCase()).charAt(rndCharAt);
             builder.append(rndChar);
         }
         return builder.toString();
@@ -134,13 +129,11 @@ public class Utility {
 
     public String RandomNumeric(int length) {
         //reset daily random number series 
-        String number = "0123456789";
-        String data = number;
         SecureRandom random = new SecureRandom();
         StringBuilder builder = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            int rndCharAt = random.nextInt(data.length());
-            char rndChar = data.charAt(rndCharAt);
+            int rndCharAt = random.nextInt("0123456789".length());
+            char rndChar = "0123456789".charAt(rndCharAt);
             builder.append(rndChar);
         }
         return builder.toString();
@@ -157,12 +150,6 @@ public class Utility {
         }
     }
 
-//    public String getFullUrl(HttpServletRequest request) {
-//        if (request.getQueryString() == null) {
-//            return request.getRequestURI();
-//        }
-//        return request.getRequestURI() + "?" + request.getQueryString();
-//    }
     public boolean isStringFromatVAlid(String claimnumber) {
         boolean isValid = claimnumber.matches("\\d{6}-\\d{8}-\\d{1}-\\d{1}");
         return isValid;
@@ -174,10 +161,9 @@ public class Utility {
     }
 
     public boolean IsValidDate(String string) {
-        SimpleDateFormat newsdf = new SimpleDateFormat("MM-dd-yyyy");
-        newsdf.setLenient(false);
+        this.SimpleDateFormat("MM-dd-yyyy").setLenient(false);
         try {
-            newsdf.parse(string);
+            this.SimpleDateFormat("MM-dd-yyyy").parse(string);
             return true;
         } catch (ParseException e) {
             e.getLocalizedMessage();
@@ -196,7 +182,6 @@ public class Utility {
             result = true;
         } catch (NumberFormatException e) {
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, e);
-            e.getLocalizedMessage();
             result = false;
         }
         return result;
@@ -207,8 +192,13 @@ public class Utility {
         return isValid;
     }
 
-    public boolean IsITMDValidTime(String time) {
+    public boolean IsAITMDValidTime(String time) {
         boolean isValid = time.matches("(1[0-2]|0?[1-9]):[0-5][0-9]:[0-5][0-9](?i)(am|pm)");
+        return isValid;
+    }
+
+    public boolean IsBITMDValidTime(String time) {
+        boolean isValid = time.matches("(1[0-2]|0?[1-9]):[0-5][0-9]:[0-5][0-9](\\s)(?i)(am|pm)");
         return isValid;
     }
 
@@ -248,10 +238,9 @@ public class Utility {
     }
 
     public boolean ValidDate(String stringdate, String pattern) {
-        SimpleDateFormat newsdf = this.SimpleDateFormat(pattern);
-        newsdf.setLenient(false);
+        this.SimpleDateFormat(pattern).setLenient(false);
         try {
-            newsdf.parse(stringdate);
+            this.SimpleDateFormat(pattern).parse(stringdate);
             return true;
         } catch (ParseException e) {
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, e);
@@ -279,11 +268,10 @@ public class Utility {
     //==============================================
     public boolean MaxAge(String DOB, String AD) {
         boolean result = false;
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH);
         try {
-            java.util.Date DateOfBirth = sdf.parse(DOB);
-            java.util.Date AdmissioDate = sdf.parse(AD);//PARAM
-            long difference_In_Time = Math.abs(AdmissioDate.getTime() - DateOfBirth.getTime());
+//            Date DateOfBirth = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(DOB);
+//            Date AdmissioDate = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(AD);//PARAM
+            long difference_In_Time = Math.abs(new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(AD).getTime() - new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(DOB).getTime());
             long AgeY = (difference_In_Time / (1000l * 60 * 60 * 24 * 365));
             result = AgeY > 124;
         } catch (ParseException ex) {
@@ -297,12 +285,9 @@ public class Utility {
     public int ComputeSURGETime(String DateIn, String TimeIn, String DateOut, String TimeOut) {
         int result = 0;
         try {
-            String IN = DateIn + TimeIn;
-            String OUT = DateOut + TimeOut;
-            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
-            Date AdmissionTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
-            Date DischargeTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
-            long Time_difference = DischargeTime.getTime() - AdmissionTime.getTime();
+//            Date AdmissionTime = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((DateIn + "" + TimeIn).replaceAll("\\s", "")); //PARAM
+//            Date DischargeTime = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((DateOut + "" + TimeOut).replaceAll("\\s", ""));//PARAM
+            long Time_difference = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((DateOut + "" + TimeOut).replaceAll("\\s", "")).getTime() - this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((DateIn + "" + TimeIn).replaceAll("\\s", "")).getTime();
             long Hours_difference = (Time_difference / (1000 * 60 * 60)) % 24;
             result = (int) Hours_difference;
             return result;
@@ -316,12 +301,9 @@ public class Utility {
     public int ComputeITMDTime(String DateIn, String TimeIn, String DateOut, String TimeOut) {
         int result = 0;
         try {
-            String IN = DateIn + TimeIn;
-            String OUT = DateOut + TimeOut;
-            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa");
-            Date AdmissionTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
-            Date DischargeTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
-            long Time_difference = DischargeTime.getTime() - AdmissionTime.getTime();
+//            Date AdmissionTime = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa").parse((DateIn + "" + TimeIn).replaceAll("\\s", "")); //PARAM
+//            Date DischargeTime = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa").parse((DateOut + "" + TimeOut).replaceAll("\\s", ""));//PARAM
+            long Time_difference = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa").parse((DateOut + "" + TimeOut).replaceAll("\\s", "")).getTime() - this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa").parse((DateIn + "" + TimeIn).replaceAll("\\s", "")).getTime();
             long Hours_difference = (Time_difference / (1000 * 60 * 60)) % 24;
             result = (int) Hours_difference;
             return result;
@@ -335,12 +317,9 @@ public class Utility {
     public int MinutesSURGECompute(String datein, String timein, String dateout, String timeout) {
         int result = 0;
         try {
-            String IN = datein + timein;
-            String OUT = dateout + timeout;
-            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
-            Date AdmissionDateTime = times.parse(IN.replaceAll("\\s", "")); //PARAM
-            Date DischargeDateTime = times.parse(OUT.replaceAll("\\s", ""));//PARAM
-            long difference_In_Time = DischargeDateTime.getTime() - AdmissionDateTime.getTime();
+//            Date AdmissionDateTime = this.SimpleDateFormat("MM-dd-yyyyhh:mm aa").parse((datein + "" + timein).replaceAll("\\s", "")); //PARAM
+//            Date DischargeDateTime = this.SimpleDateFormat("MM-dd-yyyyhh:mm aa").parse((dateout + "" + timeout).replaceAll("\\s", ""));//PARAM
+            long difference_In_Time = this.SimpleDateFormat("MM-dd-yyyyhh:mm aa").parse((dateout + "" + timeout).replaceAll("\\s", "")).getTime() - this.SimpleDateFormat("MM-dd-yyyyhh:mm aa").parse((datein + "" + timein).replaceAll("\\s", "")).getTime();
             long Minutes = (difference_In_Time / (1000 * 60)) % 60;
             result = (int) Minutes;
         } catch (ParseException ex) {
@@ -367,14 +346,27 @@ public class Utility {
 //        }
 //        return result;
 //    }
+    public boolean TimeDif(String timein, String timeout) {
+        boolean result = false;
+        try {
+            if (this.IsSURGEValidTime(timein) && this.IsSURGEValidTime(timeout)) {
+                result = this.SimpleDateFormat("hh:mm a").parse(timein).after(this.SimpleDateFormat("hh:mm a").parse(timeout));
+            } else if (this.IsAITMDValidTime(timein) && this.IsAITMDValidTime(timeout)) {
+                result = this.SimpleDateFormat("hh:mm:ssaa").parse(timein).after(this.SimpleDateFormat("hh:mm:ssaa").parse(timeout));
+            } else if (this.IsBITMDValidTime(timein) && this.IsBITMDValidTime(timeout)) {
+                result = this.SimpleDateFormat("hh:mm:ss aa").parse(timein).after(this.SimpleDateFormat("hh:mm:ss aa").parse(timeout));
+            }
+        } catch (ParseException ex) {
+            Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+
+    }
 
     public int ComputeYear(String DOB, String AD) {
         int result = 0;
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH);
         try {
-            Date DateOfBirth = sdf.parse(DOB);
-            Date AdmissioDate = sdf.parse(AD);//PARAM
-            long difference_In_Time = AdmissioDate.getTime() - DateOfBirth.getTime();
+            long difference_In_Time = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(AD).getTime() - new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(DOB).getTime();
             long AgeY = (difference_In_Time / (1000l * 60 * 60 * 24 * 365));
             result = (int) AgeY;
         } catch (ParseException ex) {
@@ -386,12 +378,8 @@ public class Utility {
 
     public String Convert12to24(String times) {
         String result = "";
-        SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm");
-        SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mm a");
         try {
-            Date dates = parseFormat.parse(times);
-            result = displayFormat.format(dates);
-
+            result = this.SimpleDateFormat("HH:mm").format(this.SimpleDateFormat("hh:mm a").parse(times));
         } catch (ParseException ex) {
             ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
@@ -401,11 +389,8 @@ public class Utility {
 
     public String Convert24to12(String times) {
         String result = "";
-        SimpleDateFormat displayFormat = new SimpleDateFormat("HH:mm");
-        SimpleDateFormat parseFormat = new SimpleDateFormat("hh:mma");
         try {
-            Date time24 = displayFormat.parse(times);
-            result = parseFormat.format(time24);
+            result = this.SimpleDateFormat("hh:mma").format(new SimpleDateFormat("HH:mm").parse(times));
         } catch (ParseException ex) {
             ex.getLocalizedMessage();
             Logger.getLogger(Utility.class.getName()).log(Level.SEVERE, null, ex);
@@ -416,10 +401,7 @@ public class Utility {
     public int ComputeDay(String DOB, String AD) {
         int result = 0;
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH);
-            Date DateOfBirth = sdf.parse(DOB);
-            Date AdmissioDate = sdf.parse(AD);//PARAM
-            long difference_In_Time = AdmissioDate.getTime() - DateOfBirth.getTime();
+            long difference_In_Time = new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(AD).getTime() - new SimpleDateFormat("MM-dd-yyyy", Locale.ENGLISH).parse(DOB).getTime();
             long difference_In_Days = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
             result = (int) difference_In_Days;
             return result;
@@ -433,13 +415,9 @@ public class Utility {
     public int ComputeSURGELOS(String datein, String timein, String dateout, String timeout) {
         int result = 0;
         try {
-            //   SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssa");
-            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa");
-            String IN = datein + timein;
-            String OUT = dateout + timeout;
-            Date AdmissioDate = times.parse(IN.replaceAll("\\s", "")); //PARAM
-            Date DischargeDate = times.parse(OUT.replaceAll("\\s", ""));//PARAM
-            long difference_In_Time = DischargeDate.getTime() - AdmissioDate.getTime();
+//            Date AdmissioDate = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((datein + "" + timein).replaceAll("\\s", "")); //PARAM
+//            Date DischargeDate = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((dateout + "" + timeout).replaceAll("\\s", ""));//PARAM
+            long difference_In_Time = this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((dateout + "" + timeout).replaceAll("\\s", "")).getTime() - this.SimpleDateFormat("MM-dd-yyyyhh:mmaa").parse((datein + "" + timein).replaceAll("\\s", "")).getTime();
             long CalLOS = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
             result = (int) CalLOS;
         } catch (ParseException ex) {
@@ -452,12 +430,8 @@ public class Utility {
     public int ComputeITMDLOS(String datein, String timein, String dateout, String timeout) {
         int result = 0;
         try {
-            //   SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssa");
-            SimpleDateFormat times = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa");
-            String IN = datein + timein;
-            String OUT = dateout + timeout;
-            Date AdmissioDate = times.parse(IN.replaceAll("\\s", "")); //PARAM
-            Date DischargeDate = times.parse(OUT.replaceAll("\\s", ""));//PARAM
+            Date AdmissioDate = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa").parse((datein + "" + timein).replaceAll("\\s", "")); //PARAM
+            Date DischargeDate = this.SimpleDateFormat("MM-dd-yyyyhh:mm:ssaa").parse((dateout + "" + timeout).replaceAll("\\s", ""));//PARAM
             long difference_In_Time = DischargeDate.getTime() - AdmissioDate.getTime();
             long CalLOS = (difference_In_Time / (1000 * 60 * 60 * 24)) % 365;
             result = (int) CalLOS;
@@ -469,63 +443,16 @@ public class Utility {
     }
 
     public String CodeConverter(DataSource datasouce, String rvs) {
-        CF5Method gm = new CF5Method();
         String result = "";
-        List<String> ProcList = Arrays.asList(rvs.split(","));
-        for (int m = 0; m < ProcList.size(); m++) {
-            String rvs_code = ProcList.get(m);
-            DRGWSResult finalResult = gm.GetICD9cm(datasouce, rvs_code);
-            if (String.valueOf(finalResult.isSuccess()).equals(true)) {
+        for (int m = 0; m < Arrays.asList(rvs.split(",")).size(); m++) {
+            DRGWSResult finalResult = new CF5Method().GetICD9cm(datasouce, Arrays.asList(rvs.split(",")).get(m).trim());
+            if (finalResult.isSuccess()) {
                 result = finalResult.getResult();
             }
         }
         return result;
     }
 
-    public String SDxSecondary(DataSource datasouce, String icd10) {
-        CF5Method gm = new CF5Method();
-        String result = "";
-        List<String> ProcList = Arrays.asList(icd10.split(","));
-        for (int m = 0; m < ProcList.size(); m++) {
-            String rvs_code = ProcList.get(m);
-            DRGWSResult finalResult = gm.GetICD9cm(datasouce, rvs_code);
-            if (String.valueOf(finalResult.isSuccess()).equals(true)) {
-                result = finalResult.getResult();
-            }
-        }
-        return result;
-    }
-
-    //DTD File in string format
-//    public String DTDFilePath() {
-//        String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)>\n"
-//                + "<!ATTLIST CF5 \n"
-//                + "     pHospitalCode       CDATA #REQUIRED\n"
-//                + "   >\n"
-//                + "<!ELEMENT DRGCLAIM (SECONDARYDIAGS,PROCEDURES)>\n "
-//                + "<!ATTLIST DRGCLAIM \n"
-//                + "     PrimaryCode         CDATA #REQUIRED\n"
-//                + "     NewBornAdmWeight    CDATA #REQUIRED\n"
-//                + "     Remarks             CDATA #REQUIRED\n"
-//                + "     ClaimNumber         CDATA #REQUIRED\n"
-//                + ">\n"
-//                + "<!ELEMENT SECONDARYDIAGS (SECONDARYDIAG)+>\n"
-//                + "<!ELEMENT SECONDARYDIAG EMPTY>\n"
-//                + "<!ATTLIST SECONDARYDIAG\n"
-//                + "     SecondaryCode       CDATA #REQUIRED\n"
-//                + "     Remarks             CDATA #REQUIRED\n"
-//                + "   >\n"
-//                + "<!ELEMENT PROCEDURES (PROCEDURE)+>\n"
-//                + "<!ELEMENT PROCEDURE EMPTY>\n"
-//                + "<!ATTLIST PROCEDURE\n"
-//                + "  RvsCode 		CDATA #REQUIRED\n"
-//                + "  Laterality         CDATA #REQUIRED\n"
-//                + "  Ext1 		CDATA #REQUIRED\n"
-//                + "  Ext2 		CDATA #REQUIRED\n"
-//                + "  Remarks 		CDATA #REQUIRED\n"
-//                + "   >";
-//        return DTDFile;
-//    }
     public String DTDFilePath() {
         String DTDFile = "<!ELEMENT CF5 (DRGCLAIM)>\n"
                 + "<!ATTLIST CF5 \n"
@@ -558,10 +485,9 @@ public class Utility {
 
     public boolean isParsableDate(String dateString, String dateFormat) {
         boolean result = false;
-        DateFormat sdf = this.SimpleDateFormat(dateFormat);
-        sdf.setLenient(false);
+        this.SimpleDateFormat(dateFormat).setLenient(false);
         try {
-            sdf.parse(dateString);
+            this.SimpleDateFormat(dateFormat).parse(dateString);
             result = true;
         } catch (ParseException e) {
         }

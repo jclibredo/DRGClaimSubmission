@@ -52,7 +52,7 @@ public class CF5Method {
             result.setResult("");
             CallableStatement statement = connection.prepareCall("begin :p_validcode := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
             statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
-            statement.setString("p_icd10_code", p_icd10_code.trim().replaceAll("\\.", "").toUpperCase());
+            statement.setString("p_icd10_code", p_icd10_code);
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
             if (resultset.next()) {
@@ -74,11 +74,10 @@ public class CF5Method {
             final DataSource datasource,
             final String rvs_code) {
         DRGWSResult result = utility.DRGWSResult();
+        result.setSuccess(false);
+        result.setMessage("");
+        result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            result.setSuccess(false);
-            result.setMessage("");
-            result.setResult("");
-            String ProcListNew = "";
             List<String> FinalNewProcList = new ArrayList<>();
             CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
             statement.registerOutParameter("converter", OracleTypes.CURSOR);
@@ -86,17 +85,18 @@ public class CF5Method {
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("converter");
             if (resultset.next()) {
-                ProcListNew = resultset.getString("ICD9CODE");
-                List<String> ConverterResult = Arrays.asList(ProcListNew.split(","));
+                List<String> ConverterResult = Arrays.asList(resultset.getString("ICD9CODE").split(","));
                 for (int g = 0; g < ConverterResult.size(); g++) {
-                    String ICD9Codes = ConverterResult.get(g).trim();
-                    FinalNewProcList.add(ICD9Codes);
+                    if (!ConverterResult.get(g).trim().isEmpty()) {
+                        FinalNewProcList.add(ConverterResult.get(g).trim());
+                    }
                 }
-                result.setResult(ProcListNew);
-                result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
+                if (FinalNewProcList.size() > 0) {
+                    result.setResult(String.join(",", FinalNewProcList));
+                    result.setSuccess(true);
+                }
             }
+
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
@@ -117,7 +117,6 @@ public class CF5Method {
             ResultSet resultset = (ResultSet) statement.getObject("icd10");
             ArrayList<ValidICD10> list_icd = new ArrayList<>();
             while (resultset.next()) {
-                result.setSuccess(true);
                 ValidICD10 cd = new ValidICD10();
                 cd.setValidcode(resultset.getString("validcode"));
                 cd.setDescription(resultset.getString("description"));
@@ -125,12 +124,9 @@ public class CF5Method {
                 list_icd.add(cd);
             }
             if (list_icd.size() > 0) {
-                String datas = utility.objectMapper().writeValueAsString(list_icd);// supplier.toString();
-                result.setResult(datas);
+                result.setResult(utility.objectMapper().writeValueAsString(list_icd));
                 result.setMessage("OK");
                 result.setSuccess(true);
-            } else {
-                result.setMessage("No Record Found");
             }
         } catch (SQLException | IOException ex) {
             result.setMessage(ex.toString());
@@ -159,7 +155,7 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             CallableStatement statement = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
             statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
-            statement.setString("pdx", pdx.trim().replaceAll("\\.", "").toUpperCase());
+            statement.setString("pdx", pdx);
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("accpdxs");
             if (resultset.next()) {
@@ -181,8 +177,6 @@ public class CF5Method {
                 result.setMessage(resultset.getString("CCROW"));
                 result.setResult(utility.objectMapper().writeValueAsString(premdc));
                 result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
             }
         } catch (SQLException | IOException ex) {
             result.setMessage(ex.toString());
@@ -207,8 +201,6 @@ public class CF5Method {
             ResultSet resultSet = (ResultSet) statement.getObject("dupnclaims");
             if (resultSet.next()) {
                 result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -253,13 +245,11 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            SimpleDateFormat sdf = utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss");
-            Date date = new Date();
             CallableStatement auditrail = connection.prepareCall("call DRG_SHADOWBILLING.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:udatein,:udesc,:ustats,:useries,:uclaimnumber,:ufilecontent)");
             auditrail.registerOutParameter("Message", OracleTypes.VARCHAR);
             auditrail.registerOutParameter("Code", OracleTypes.INTEGER);
             //=====================================================================End Process SDx duplication================================ 
-            auditrail.setString("udatein", sdf.format(date));
+            auditrail.setString("udatein", utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date()));
             auditrail.setString("udesc", details);
             auditrail.setString("ustats", status);
             auditrail.setString("useries", series);
@@ -269,9 +259,9 @@ public class CF5Method {
             //======================================================================
             if (auditrail.getString("Message").equals("SUCC")) {
                 result.setSuccess(true);
-                result.setMessage("success Date:" + sdf.format(date));
+                result.setMessage("success Date:" + utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date()));
             } else {
-                result.setMessage(auditrail.getString("Message") + " Date:" + sdf.format(date));
+                result.setMessage(auditrail.getString("Message") + " Date:" + utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date()));
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -407,10 +397,10 @@ public class CF5Method {
             getAgeValidation.setString("age_min_year", age_min_year);
             getAgeValidation.execute();
             ResultSet getAgeValidationResult = (ResultSet) getAgeValidation.getObject("age_validation");
-            if (getAgeValidationResult.next()) {
-                result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
+            if (getAgeValidationResult != null) {
+                if (getAgeValidationResult.next()) {
+                    result.setSuccess(true);
+                }
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -436,8 +426,6 @@ public class CF5Method {
             ResultSet getSexValidationResult = (ResultSet) getSexValidation.getObject("gender_validation");
             if (getSexValidationResult.next()) {
                 result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -463,8 +451,6 @@ public class CF5Method {
             ResultSet getSexProcValidationResult = (ResultSet) getSexProcValidation.getObject("age_proc_validation");
             if (getSexProcValidationResult.next()) {
                 result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());
@@ -489,8 +475,6 @@ public class CF5Method {
             ResultSet getResultSet = (ResultSet) getResult.getObject("icd9code_output");
             if (getResultSet.next()) {
                 result.setSuccess(true);
-            } else {
-                result.setMessage("N/A");
             }
         } catch (SQLException ex) {
             result.setMessage(ex.toString());

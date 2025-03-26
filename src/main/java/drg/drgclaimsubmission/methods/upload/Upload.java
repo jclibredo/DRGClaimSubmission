@@ -149,10 +149,9 @@ public class Upload {
                 error.add(getClaimsData.getResult());
             }
             CF5 drgs = new CF5();
-            DRGWSResult getdupresults
-                    = new CF5Method().GetClaimDuplication(datasource,
-                            drg.getPHospitalCode().trim(),
-                            drg.getDRGCLAIM().getClaimNumber().trim(), claimseries);
+            DRGWSResult getdupresults = new CF5Method().GetClaimDuplication(datasource,
+                    drg.getPHospitalCode().trim(),
+                    drg.getDRGCLAIM().getClaimNumber().trim(), claimseries);
             //-------------------------------------------
             if (drg.getDRGCLAIM().getClaimNumber().trim().isEmpty()) {
                 detailList.add("CF5 ClaimNumber required");
@@ -164,7 +163,7 @@ public class Upload {
             }
             if (!drg.getDRGCLAIM().getClaimNumber().trim().isEmpty() && getClaimsData.isSuccess()) {
                 if (getdupresults.isSuccess()) {
-                    detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber is exist already and duplicated");
+                    detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber already exist");
                     error.add("513");
                     detailList.add("Claim Number has duplicate");
                 }
@@ -173,34 +172,6 @@ public class Upload {
                         detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber not found in Eclaims DB");
                         error.add("512");
                     }
-
-//                    else {
-//                        
-//                        if (nClaimsData.getTimeDischarge().isEmpty() || nClaimsData.getTimeDischarge() == null || nClaimsData.getTimeDischarge().equals("")) {
-//                            //error.add("107");
-//                            detailList.add("TimeDischarge is required");
-//                        }
-//                        if (nClaimsData.getTimeAdmission().isEmpty() || nClaimsData.getTimeAdmission() == null || nClaimsData.getTimeAdmission().equals("")) {
-//                            //error.add("105");
-//                            detailList.add("TimeAdmission is required");
-//                        }
-//                        if (nClaimsData.getAdmissionDate().isEmpty() || nClaimsData.getAdmissionDate() == null || nClaimsData.getAdmissionDate().equals("")) {
-//                            //error.add("104");
-//                            detailList.add("AdmissionDate is required");
-//                        }
-//                        if (nClaimsData.getDischargeDate().isEmpty() || nClaimsData.getDischargeDate() == null || nClaimsData.getDischargeDate().equals("")) {
-//                            //error.add("106");
-//                            detailList.add("DischargeDate is required");
-//                        }
-//                        if (nClaimsData.getDateofBirth().isEmpty() || nClaimsData.getDateofBirth() == null || nClaimsData.getDateofBirth().equals("")) {
-//                            //error.add("103");
-//                            detailList.add("BirthDate is required");
-//                        } else if (!utility.IsValidDate(nClaimsData.getDateofBirth().trim())) {
-//                            //error.add("403");
-//                            detailList.add("BirthDate invalid format");
-//                        } 
-//                        
-//                    }
                 }
             }
             //---------------------------------------------------------------------
@@ -337,7 +308,7 @@ public class Upload {
                 allErrorList.add(viewerrors);
                 //SET AUDITRAIL
                 DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, String.join(",", detailList), "FALSE", claimseries, drg.getDRGCLAIM().getClaimNumber(), filecontent);
-                result.setMessage(String.join(",", detailList) + " CF5 DATA ECOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED, Logs Stats: " + auditrail.getMessage());
+                result.setMessage(String.join(",", detailList) + " CF5 DATA ENCOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED, Logs Stats: " + auditrail.getMessage());
             }
             result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
         } catch (IOException ex) {
@@ -358,15 +329,15 @@ public class Upload {
         DRGCLAIM validatedrgclaim;
         ArrayList<String> errors = new ArrayList<>();
         ArrayList<String> errorsMessage = new ArrayList<>();
-        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim());
+        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim());
         try {
 
             if (!NewResult.isSuccess()) {
                 errors.add("411");
-            } else if (!new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim()).isSuccess()) {
+            } else if (!new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim()).isSuccess()) {
                 errors.add("201");
             }
-            if (drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim().isEmpty()) {
+            if (utility.CleanCode(drgclaim.getPrimaryCode()).trim().isEmpty()) {
                 // error.add("CF5 Err. code 101 PrimaryCode is required");
                 errors.add("101");
             }
@@ -393,19 +364,19 @@ public class Upload {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                         if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                 && utility.ComputeDay(nclaimsdata.getDateofBirth(),
-                                        nclaimsdata.getAdmissionDate()) >= 0 && !drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim().isEmpty()) {
+                                        nclaimsdata.getAdmissionDate()) >= 0 && !utility.CleanCode(drgclaim.getPrimaryCode()).trim().isEmpty()) {
                             if (NewResult.isSuccess()) {
-                                DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim());
+                                DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim());
                                 if (icd10preMDC.isSuccess()) {
                                     //CHECKING FOR AGE CONFLICT
-                                    DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim(), String.valueOf(finalDays), year);
+                                    DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), String.valueOf(finalDays), year);
                                     if (!getAgeConfictResult.isSuccess()) {
                                         errors.add("414");
                                     }
                                     //  AGE VALIDATION AND GENDER
                                     if (!nclaimsdata.getGender().trim().isEmpty() && Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
                                         //CHECKING FOR GENDER CONFLICT
-                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, drgclaim.getPrimaryCode().replaceAll("\\.", "").toUpperCase().trim(), nclaimsdata.getGender());
+                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), nclaimsdata.getGender());
                                         if (!getSexConfictResult.isSuccess()) {
                                             errors.add("415");
                                         }
@@ -441,7 +412,11 @@ public class Upload {
                     los = utility.ComputeSURGELOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                     oras = utility.ComputeSURGETime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
 //                    minuto = utility.MinutesSURGECompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
-                } else if (utility.IsITMDValidTime(nclaimsdata.getTimeAdmission()) && utility.IsSURGEValidTime(nclaimsdata.getTimeDischarge())) {
+                } else if (utility.IsAITMDValidTime(nclaimsdata.getTimeAdmission()) && utility.IsAITMDValidTime(nclaimsdata.getTimeDischarge())) {
+                    oras = utility.ComputeITMDTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+                    los = utility.ComputeITMDLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+//                    minuto = utility.MinutesITMDCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
+                } else if (utility.IsBITMDValidTime(nclaimsdata.getTimeAdmission()) && utility.IsBITMDValidTime(nclaimsdata.getTimeDischarge())) {
                     oras = utility.ComputeITMDTime(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
                     los = utility.ComputeITMDLOS(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
 //                    minuto = utility.MinutesITMDCompute(nclaimsdata.getAdmissionDate(), nclaimsdata.getTimeAdmission(), nclaimsdata.getDischargeDate(), nclaimsdata.getTimeDischarge());
