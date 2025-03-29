@@ -19,7 +19,7 @@ import java.util.Map;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 public class NamedParameterStatement {
     private final PreparedStatement statement;

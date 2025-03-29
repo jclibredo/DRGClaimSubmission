@@ -42,14 +42,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
+//import javax.xml.bind.Unmarshaller;
+//import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+//import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -58,7 +58,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -83,55 +83,54 @@ public class DRGClaims {
         result.setResult("");
         result.setSuccess(false);
         try {
-            // String ClaimSeriesNum = ClaimSeriesNums.replaceAll("\\s+", "");
             if (uploadeddrg == null || ClaimSeriesNum == null) {
-                String details = "Unreadable file directory or variable name error in FormDataParam";
-                DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "", "", "CF5 Claim Form");
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
-                result.setResult("Request status :" + auditrail.getMessage());
+                result.setResult("Request status :" + new CF5Method().InsertDRGAuditTrail(datasource, "Unreadable file directory or variable name error in FormDataParam", "FAILED", "", "", "CF5 Claim Form").getMessage());
             } else {
-                String drgfilename = drgdetail.getFileName();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
-                if (drgfilename.length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
+                if (drgdetail.getFileName().length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                     result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
-                } else if (drgfilename.length() == 0) {
+                } else if (drgdetail.getFileName().length() == 0) {
                     result.setMessage("CF5 DRG XML File NOT FOUND");
                 } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-                    String stats = "FAILED";
-                    String series = "";
-                    String claimnum = "";
                     String details = "";
                     if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                         details = "CF5 ClaimSeriesNum is Empty";
                     } else {
                         details = "CF5 Claim Series size is not valid and does not match the 14 digit format";
                     }
-                    DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource, details, stats, series, claimnum, drgfilename);
-                    result.setMessage(details + " DRG Claims Status " + auditrail.getMessage());
+                    result.setMessage(details + " DRG Claims Status " + new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "0", "0", drgdetail.getFileName()).getMessage());
                 } else {
                     String drgfileline = "";
                     String drgfilecontent = "";
                     while ((drgfileline = reader.readLine()) != null) {
                         drgfilecontent += drgfileline;
                     }
-                    String claimsSeriesLhioNums = ClaimSeriesNum.replaceAll("\\s+", "");
-                    String claimsSerries = claimsSeriesLhioNums.substring(0, Math.min(claimsSeriesLhioNums.length(), 13));
-                    String lhio = claimsSeriesLhioNums.substring(Math.max(claimsSeriesLhioNums.length() - 2, 0));
-                    DRGWSResult cleanData = new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent);
-                    if (cleanData.isSuccess()) {
-                        DRGWSResult validatedData = new Upload().ValidateXMLWithDTD(cleanData.getResult(), datasource, lhio, claimsSerries, drgfilename);
+//                    String claimsSeriesLhioNums = ClaimSeriesNum.replaceAll("\\s+", "");
+//                    String claimsSerries = ClaimSeriesNum.replaceAll("\\s+", "").substring(0, Math.min(ClaimSeriesNum.replaceAll("\\s+", "").length(), 13));
+//                    String lhio = ClaimSeriesNum.replaceAll("\\s+", "").substring(Math.max(ClaimSeriesNum.replaceAll("\\s+", "").length() - 2, 0));
+//                    DRGWSResult cleanData = new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent);
+                    if (new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess()) {
+                        DRGWSResult validatedData = new Upload().ValidateXMLWithDTD(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getResult(), datasource,
+                                ClaimSeriesNum.replaceAll("\\s+", "").substring(Math.max(ClaimSeriesNum.replaceAll("\\s+", "").length() - 2, 0)),
+                                ClaimSeriesNum.replaceAll("\\s+", "").substring(0, Math.min(ClaimSeriesNum.replaceAll("\\s+", "").length(), 13)), drgdetail.getFileName());
                         result.setResult(validatedData.getResult());
                         result.setMessage(validatedData.getMessage());
                         result.setSuccess(validatedData.isSuccess());
                     } else {
-                        DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource,
-                                cleanData.getMessage(),
-                                String.valueOf(cleanData.isSuccess()).toUpperCase(),
-                                claimsSerries,
-                                claimsSeriesLhioNums,
-                                drgfilename);
-                        result.setMessage(cleanData.getMessage() + " , " + auditrail.getMessage());
-                        result.setSuccess(cleanData.isSuccess());
+//                        DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource,
+//                                new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getMessage(),
+//                                String.valueOf(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess()).toUpperCase(),
+//                                ClaimSeriesNum.replaceAll("\\s+", "").substring(0, Math.min(ClaimSeriesNum.replaceAll("\\s+", "").length(), 13)),
+//                                ClaimSeriesNum.replaceAll("\\s+", ""),
+//                                drgdetail.getFileName());
+                        result.setMessage(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getMessage() + " , " + new CF5Method().InsertDRGAuditTrail(datasource,
+                                new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getMessage(),
+                                String.valueOf(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess()).toUpperCase(),
+                                ClaimSeriesNum.replaceAll("\\s+", "").substring(0, Math.min(ClaimSeriesNum.replaceAll("\\s+", "").length(), 13)),
+                                ClaimSeriesNum.replaceAll("\\s+", ""),
+                                drgdetail.getFileName()).getMessage());
+                        result.setSuccess(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess());
                     }
                 }
             }
@@ -157,37 +156,36 @@ public class DRGClaims {
         result.setSuccess(false);
         XMLErrors xmlerrors = new XMLErrors();
         try {
-
             if (uploadeddrg == null || uploadedeclaims == null) {
                 result.setMessage("Variable name for DRGXML not equal to (drg) OR ECLAIMSXML not equal to (eclaims) or file directory not found");
                 result.setResult("");
             } else {
-                String drgfilename = drgdetail.getFileName();
-                String eclaimsfilename = eclaimsdetail.getFileName();
-                if (drgfilename.length() == 0) {
+//                String drgfilename = drgdetail.getFileName();
+//                String eclaimsfilename = eclaimsdetail.getFileName();
+                if (drgdetail.getFileName().length() == 0) {
                     result.setMessage("CF5 XML File NOT FOUND");
                     result.setResult("");
-                } else if (eclaimsfilename.length() == 0) {
+                } else if (eclaimsdetail.getFileName().length() == 0) {
                     result.setMessage("ECLAIMS XML File NOT FOUND");
                     result.setResult("");
                 } else {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
                     String drgfileline = "";
                     String stringdrgxml = "";
-                    while ((drgfileline = reader.readLine()) != null) {
+                    while ((drgfileline = new BufferedReader(new InputStreamReader(uploadeddrg)).readLine()) != null) {
                         stringdrgxml += drgfileline;
                     }
                     //  XML CONTENT AND DTD CONTENT COMBINE AREA
                     String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + utility.DTDFilePath() + "]>\n" + stringdrgxml;
-                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                    dbf.setValidating(true);
-                    DocumentBuilder db;
-                    db = dbf.newDocumentBuilder();
+//                    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                    DocumentBuilderFactory.newInstance().setValidating(true);
+//                    DocumentBuilder db;
+//                    db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
                     //  END XML CONTENT AND DTD CONTENT COMBINE AREA
                     final ArrayList<String> arraywarning = new ArrayList<>();
                     final ArrayList<String> arrayerror = new ArrayList<>();
                     final ArrayList<String> arrayfatalerror = new ArrayList<>();
-                    db.setErrorHandler(new ErrorHandler() {
+                    DocumentBuilderFactory.newInstance().newDocumentBuilder().setErrorHandler(new ErrorHandler() {
                         @Override
                         public void warning(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();
@@ -207,59 +205,59 @@ public class DRGClaims {
                         }
                     });
                     //-------------------------------------------------------
-                    Document doc = db.parse(new InputSource(new StringReader(stringxml)));
-                    JAXBContext jaxbcontext = JAXBContext.newInstance(CF5.class);
-                    Unmarshaller jaxbnmarsaller = jaxbcontext.createUnmarshaller();
-                    StringReader readers = new StringReader(stringdrgxml);
-                    CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
+                    Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(stringxml)));
+//                    JAXBContext jaxbcontext = JAXBContext.newInstance(CF5.class);
+//                    Unmarshaller jaxbnmarsaller = JAXBContext.newInstance(CF5.class).createUnmarshaller();
+//                    StringReader readers = new StringReader(stringdrgxml);
+//                    CF5 drg = (CF5) JAXBContext.newInstance(CF5.class).createUnmarshaller().unmarshal(new StringReader(stringdrgxml));
                     //E-CLAIMS XML PARSING AREA
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(uploadedeclaims));
+//                    BufferedReader rd = new BufferedReader(new InputStreamReader(uploadedeclaims));
                     String eclaimfileline = "";
                     String eclaimfilecontent = "";
-                    while ((eclaimfileline = rd.readLine()) != null) {
+                    while ((eclaimfileline = new BufferedReader(new InputStreamReader(uploadedeclaims)).readLine()) != null) {
                         eclaimfilecontent += eclaimfileline;
                     }
                     //END E-CLAIMS XML PARSING AREA
                     if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
-                        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                        Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
-                        docs.getDocumentElement().normalize();
+//                        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+//                        DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+//                        Document docs = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent)));
+                        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getDocumentElement().normalize();
                         ArrayList<String> idlist = new ArrayList<>();
                         //-----------------------------------------------
-                        NodeList eclaimspHospitalCode = docs.getElementsByTagName("eCLAIMS");
+//                        NodeList eclaimspHospitalCode = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("eCLAIMS");
                         //-----------------------------------------------
                         ArrayList<NClaimsData> nclaimsdatalist = new ArrayList<>();
-                        NodeList nList = docs.getElementsByTagName("CLAIM");
+//                        NodeList nList = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CLAIM");
                         //------------------------------------------------
-                        for (int temp = 0; temp < nList.getLength(); temp++) {
+                        for (int temp = 0; temp < DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CLAIM").getLength(); temp++) {
                             NClaimsData nclaimsdata = new NClaimsData();
                             //GET THE HOSPITAL CODE
-                            Node nNodess = eclaimspHospitalCode.item(0);
-                            if (nNodess.getNodeType() == Node.ELEMENT_NODE) {
-                                Element eElements = (Element) nNodess;
+//                            Node nNodess = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("eCLAIMS").item(0);
+                            if (DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("eCLAIMS").item(0).getNodeType() == Node.ELEMENT_NODE) {
+                                Element eElements = (Element) DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("eCLAIMS").item(0);
                                 nclaimsdata.setHospitalcode(eElements.getAttribute("pHospitalCode"));
                             }
                             //GET THE pClaimNumber
-                            Node nNodes = nList.item(temp);
-                            if (nNodes.getNodeType() == Node.ELEMENT_NODE) {
-                                Element eElements = (Element) nNodes;
+//                            Node nNodes = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CLAIM").item(temp);
+                            if (DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CLAIM").item(temp).getNodeType() == Node.ELEMENT_NODE) {
+                                Element eElements = (Element) DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CLAIM").item(temp);
                                 nclaimsdata.setPclaimnumber(eElements.getAttribute("pClaimNumber"));
                                 idlist.add(eElements.getAttribute("pClaimNumber"));
                             }
                             //GET DATA FROM CF1
-                            NodeList cf1 = docs.getElementsByTagName("CF1");
-                            Node nNodecf1 = cf1.item(temp);
-                            if (nNodecf1.getNodeType() == Node.ELEMENT_NODE) {
-                                Element eElementcf1 = (Element) nNodecf1;
+//                            NodeList cf1 = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF1");
+//                            Node nNodecf1 = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF1").item(temp);
+                            if (DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF1").item(temp).getNodeType() == Node.ELEMENT_NODE) {
+                                Element eElementcf1 = (Element) DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF1").item(temp);
                                 nclaimsdata.setDateofBirth(eElementcf1.getAttribute("pPatientBirthDate"));
                                 nclaimsdata.setGender(eElementcf1.getAttribute("pPatientSex"));
                             }
                             //GET DATA FROM CF2
-                            NodeList cf2 = docs.getElementsByTagName("CF2");
-                            Node nNodecf2 = cf2.item(temp);
-                            if (nNodecf2.getNodeType() == Node.ELEMENT_NODE) {
-                                Element eElementcf2 = (Element) nNodecf2;
+//                            NodeList cf2 = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF2");
+//                            Node nNodecf2 = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF2").item(temp);
+                            if (DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF2").item(temp).getNodeType() == Node.ELEMENT_NODE) {
+                                Element eElementcf2 = (Element) DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(eclaimfilecontent))).getElementsByTagName("CF2").item(temp);
                                 nclaimsdata.setAdmissionDate(eElementcf2.getAttribute("pAdmissionDate"));
                                 nclaimsdata.setTimeAdmission(eElementcf2.getAttribute("pAdmissionTime"));
                                 nclaimsdata.setDischargeDate(eElementcf2.getAttribute("pDischargeDate"));
@@ -270,14 +268,15 @@ public class DRGClaims {
                             }
                             nclaimsdatalist.add(nclaimsdata);
                         }
+                        
+                        
                         //DATA VALIDATION METHOD
-                        DRGWSResult pedResult = new FrontValidation().ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
+                        DRGWSResult pedResult = new FrontValidation().ParseEClaimsDrgXML(datasource, (CF5) JAXBContext.newInstance(CF5.class).createUnmarshaller().unmarshal(new StringReader(stringdrgxml)), nclaimsdatalist, idlist);
                         result.setResult(pedResult.getResult());
                         result.setMessage(pedResult.getMessage());
                         result.setSuccess(pedResult.isSuccess());
                         //END DATA VALIDATION METHOD
                     } else {
-
                         if (arrayfatalerror.size() > 0) {
                             ArrayList<String> fatalerrors = new ArrayList<>();
                             for (int a = 0; a < arrayfatalerror.size(); a++) {
@@ -326,8 +325,8 @@ public class DRGClaims {
     }
 
     @GET
-    @Path(value = "TESTValidatePDx/{icd10codes}")
-    @Produces(value = MediaType.APPLICATION_JSON)
+    @Path("TESTValidatePDx/{icd10codes}")
+    @Produces(MediaType.APPLICATION_JSON)
     public DRGWSResult TESTValidatePDx(@PathParam("icd10codes") String icd10codes) {
         DRGWSResult result = utility.DRGWSResult();
         DRGWSResult NewResult = new CF5Method().GetICD10(datasource, utility.CleanCode(icd10codes).trim());
@@ -338,8 +337,8 @@ public class DRGClaims {
     }
 
     @GET
-    @Path(value = "TESTGetClaims/{seriesnumber}")
-    @Produces(value = MediaType.APPLICATION_JSON)
+    @Path("TESTGetClaims/{seriesnumber}")
+    @Produces(MediaType.APPLICATION_JSON)
     public DRGWSResult TESTGetClaims(@PathParam("seriesnumber") String seriesnumber) {
         DRGWSResult result = utility.DRGWSResult();
         DRGWSResult NewResult = new phic().GeteClaims(datasource, seriesnumber);

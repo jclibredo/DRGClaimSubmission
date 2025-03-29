@@ -31,11 +31,11 @@ import javax.enterprise.context.RequestScoped;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
+//import javax.xml.bind.Unmarshaller;
+//import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
+//import org.w3c.dom.Document;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -43,7 +43,7 @@ import org.xml.sax.SAXParseException;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class Upload {
@@ -67,38 +67,36 @@ public class Upload {
         try {
             //End line to Generate DTD File 
             String stringxml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE CF5 [" + utility.DTDFilePath() + "]>\n" + stringdrgxml;
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setValidating(true);
-            DocumentBuilder db = dbf.newDocumentBuilder();
+//            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory.newInstance().setValidating(true);
+//            DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             final ArrayList<String> arraywarning = new ArrayList<>();
             final ArrayList<String> arrayerror = new ArrayList<>();
             final ArrayList<String> arrayfatalerror = new ArrayList<>();
-            db.setErrorHandler(new ErrorHandler() {
+            DocumentBuilderFactory.newInstance().newDocumentBuilder().setErrorHandler(new ErrorHandler() {
                 @Override
                 public void warning(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber() - 2;
                     arraywarning.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
-
                 @Override
                 public void fatalError(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber() - 2;
                     arrayfatalerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
-
                 @Override
                 public void error(SAXParseException exception) throws SAXException {
                     int lineno = exception.getLineNumber() - 2;
                     arrayerror.add("Line No. " + lineno + " : " + exception.getMessage());
                 }
             });
-            Document doc = db.parse(new InputSource(new StringReader(stringxml)));
-            JAXBContext jaxbcontext = JAXBContext.newInstance(CF5.class);
-            Unmarshaller jaxbnmarsaller = jaxbcontext.createUnmarshaller();
-            StringReader readers = new StringReader(stringdrgxml);
-            CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
+            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(stringxml)));
+//            JAXBContext jaxbcontext = JAXBContext.newInstance(CF5.class);
+//            Unmarshaller jaxbnmarsaller = JAXBContext.newInstance(CF5.class).createUnmarshaller();
+//            StringReader readers = new StringReader(stringdrgxml);
+//            CF5 drg = (CF5) JAXBContext.newInstance(CF5.class).createUnmarshaller().unmarshal(new StringReader(stringdrgxml));
             if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
-                DRGWSResult keypervalue = this.ValidateXMLValues(datasource, drg, lhio, claimseries, filecontent);
+                DRGWSResult keypervalue = this.ValidateXMLValues(datasource, (CF5) JAXBContext.newInstance(CF5.class).createUnmarshaller().unmarshal(new StringReader(stringdrgxml)), lhio, claimseries, filecontent);
                 result.setMessage(keypervalue.getMessage());
                 result.setSuccess(keypervalue.isSuccess());
                 result.setResult(keypervalue.getResult());
@@ -135,11 +133,14 @@ public class Upload {
             final String claimseries,
             final String filecontent) {
         DRGWSResult result = utility.DRGWSResult();
-        ArrayList<KeyPerValueError> allErrorList = new ArrayList<>();
-        ArrayList<String> detailList = new ArrayList<>();
-        ArrayList<String> error = new ArrayList<>();
-        NClaimsData nClaimsData = new NClaimsData();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
         try {
+            ArrayList<KeyPerValueError> allErrorList = new ArrayList<>();
+            ArrayList<String> detailList = new ArrayList<>();
+            ArrayList<String> error = new ArrayList<>();
+            NClaimsData nClaimsData = new NClaimsData();
             // GET DATA FROM ECLAIMS TABLE FOR FROMT VALIDATION
             DRGWSResult getClaimsData = new phic().GeteClaims(datasource, claimseries);
             if (getClaimsData.isSuccess()) {
