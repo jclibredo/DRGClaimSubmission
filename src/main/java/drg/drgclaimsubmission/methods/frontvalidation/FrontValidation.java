@@ -335,9 +335,10 @@ public class FrontValidation {
                                             errors.add("415");
                                         }
                                     }
-                                } else {
-                                    errors.add("201");
                                 }
+//                                    else {
+//                                    errors.add("201");
+//                                }
                             }
                         }
                     }

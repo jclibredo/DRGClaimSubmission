@@ -247,7 +247,6 @@ public class CF5Method {
             CallableStatement auditrail = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_AUDITRAIL(:Message,:Code,:udatein,:udesc,:ustats,:useries,:uclaimnumber,:ufilecontent)");
             auditrail.registerOutParameter("Message", OracleTypes.VARCHAR);
             auditrail.registerOutParameter("Code", OracleTypes.INTEGER);
-            //=====================================================================End Process SDx duplication================================ 
             auditrail.setString("udatein", utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date()));
             auditrail.setString("udesc", details);
             auditrail.setString("ustats", status);
