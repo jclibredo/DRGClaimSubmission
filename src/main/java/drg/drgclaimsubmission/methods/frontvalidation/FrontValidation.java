@@ -407,8 +407,8 @@ public class FrontValidation {
 //                System.out.println("AGE DAYS " + finalDays);
 //                System.out.println("AGE YEAR " + utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
 ////                try {
-//                DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), String.valueOf(finalDays), String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate())));
-                if (new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), String.valueOf(finalDays), String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()))).isSuccess()) {
+                DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), String.valueOf(finalDays), String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate())));
+                if (getAgeConfictResult.isSuccess()) {
                     if (!drgclaim.getNewBornAdmWeight().equals("")) {
                         if (!utility.isValidNumeric(drgclaim.getNewBornAdmWeight())) {
                             // errors.add("NewBordAdmWeight  value , " + drgclaim.getNewBornAdmWeight() + ", is non-numeric value");

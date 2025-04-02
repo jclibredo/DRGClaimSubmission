@@ -168,17 +168,25 @@ public class Upload {
                 detailList.add("CF5 pHospitalCode required");
                 error.add("303");
             }
+//            System.out.println("GET NCLAIMS DATA  " + getClaimsData);
             if (!drg.getDRGCLAIM().getClaimNumber().trim().isEmpty() && getClaimsData.isSuccess()) {
                 if (getdupresults.isSuccess()) {
                     detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber already exist");
                     error.add("513");
                     detailList.add("Claim Number has duplicate");
                 }
-                if (!nClaimsData.getPclaimnumber().isEmpty() || nClaimsData.getPclaimnumber() != null || !nClaimsData.getPclaimnumber().equals("")) {
+
+//                System.out.println("DRG " + drg.getDRGCLAIM().getClaimNumber());
+//                System.out.println("ECLAIMS " + nClaimsData.getPclaimnumber());
+                if (nClaimsData.getPclaimnumber() == null
+                        || nClaimsData.getPclaimnumber().isEmpty()
+                        || nClaimsData.getPclaimnumber().equals("")) {
+                } else {
                     if (!nClaimsData.getPclaimnumber().trim().equals(drg.getDRGCLAIM().getClaimNumber().trim())) {
                         detailList.add("CF5 " + drg.getDRGCLAIM().getClaimNumber() + " ClaimNumber not found in Eclaims DB");
                         error.add("512");
                     }
+
                 }
             }
             //---------------------------------------------------------------------
@@ -307,6 +315,7 @@ public class Upload {
 //                        break;
                 }
             } else {
+//                System.out.println(detailList);
                 KeyPerValueError viewerrors = utility.KeyPerValueError();
                 viewerrors.setClaimid(drg.getDRGCLAIM().getClaimNumber());
                 viewerrors.setSeries(claimseries + "");
