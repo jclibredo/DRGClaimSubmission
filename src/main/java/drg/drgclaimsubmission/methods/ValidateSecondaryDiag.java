@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateSecondaryDiag {
@@ -35,10 +35,11 @@ public class ValidateSecondaryDiag {
             result.setSuccess(false);
             result.setMessage("");
             result.setResult("");
-            if (!utility.CleanCode(secondarydiag.getSecondaryCode()).trim().equals("")) {
-                if (utility.CleanCode(secondarydiag.getSecondaryCode()).trim().length() > 10) {
-                    errors.add("501");
-                } else if (utility.CleanCode(secondarydiag.getSecondaryCode()).trim().equals(utility.CleanCode(pdxS).trim())) {
+            if (!secondarydiag.getSecondaryCode().trim().equals("")) {
+//                if (secondarydiag.getSecondaryCode().trim().length() > 10) {
+//                    errors.add("501");
+//                } else 
+                if (secondarydiag.getSecondaryCode().trim().equals(pdxS.trim())) {
                     errors.add("502");
                 } else {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
@@ -55,26 +56,28 @@ public class ValidateSecondaryDiag {
                             if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                                 if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                         && utility.ComputeDay(nclaimsdata.getDateofBirth(),
-                                                nclaimsdata.getAdmissionDate()) >= 0 && !utility.CleanCode(secondarydiag.getSecondaryCode()).isEmpty()) {
-                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, utility.CleanCode(secondarydiag.getSecondaryCode()).trim());
+                                                nclaimsdata.getAdmissionDate()) >= 0 && !secondarydiag.getSecondaryCode().isEmpty()) {
+                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, secondarydiag.getSecondaryCode().trim());
                                     if (SDxResult.isSuccess()) {
-                                        DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(secondarydiag.getSecondaryCode()).trim());
+                                        DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, secondarydiag.getSecondaryCode().trim());
                                         if (icd10preMDC.isSuccess()) {
                                             //CHECKING FOR AGE CONFLICT
-                                            DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(secondarydiag.getSecondaryCode()).trim(), String.valueOf(finalDays), year);
+                                            DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, secondarydiag.getSecondaryCode().trim(), String.valueOf(finalDays), year);
                                             if (!getAgeConfictResult.isSuccess()) {
                                                 errors.add("504");
                                             }
                                             //CHECKING FOR GENDER CONFLICT
-                                            DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(secondarydiag.getSecondaryCode()).trim(), nclaimsdata.getGender());
+                                            DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, secondarydiag.getSecondaryCode().trim(), nclaimsdata.getGender());
                                             if (!getSexConfictResult.isSuccess()) {
                                                 errors.add("505");
                                             }
                                         } else {
+                                            System.out.println("HERE A");
                                             errors.add("501");
                                         }
                                     } else {
                                         errors.add("501");
+                                        System.out.println("HERE B");
                                     }
                                 }
                             }
@@ -91,7 +94,7 @@ public class ValidateSecondaryDiag {
             result.setSuccess(true);
             result.setResult(utility.objectMapper().writeValueAsString(validatesecondiag));
         } catch (IOException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(ValidateSecondaryDiag.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;

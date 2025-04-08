@@ -25,7 +25,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class InsertDRGClaims {
@@ -85,7 +85,7 @@ public class InsertDRGClaims {
                     + ":ulhio,:uaccreno,:uclaimnumber)");
             ps.registerOutParameter("Message", OracleTypes.VARCHAR);
             ps.registerOutParameter("Code", OracleTypes.INTEGER);
-            ps.setString("updxcode", utility.CleanCode(drgclaim.getPrimaryCode()));
+            ps.setString("updxcode", drgclaim.getPrimaryCode());
             ps.setString("unbtob", drgclaim.getNewBornAdmWeight());
             ps.setString("unadmweight", drgclaim.getNewBornAdmWeight());
             ps.setString("useries", series.trim());
@@ -106,9 +106,9 @@ public class InsertDRGClaims {
                 CallableStatement insertsecondary = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_SECONDARY(:Message,:Code,:uclaimid,:usdxcode,:useries,:ulhio)");
                 insertsecondary.registerOutParameter("Message", OracleTypes.VARCHAR);
                 insertsecondary.registerOutParameter("Code", OracleTypes.NUMBER);
-                DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
-                DRGWSResult gendervalidation = new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()), nclaimsdata.getGender());
-                DRGWSResult agevalidation = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()), String.valueOf(finalDays), String.valueOf(year));
+                DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
+                DRGWSResult gendervalidation = new CF5Method().GenderConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode(), nclaimsdata.getGender());
+                DRGWSResult agevalidation = new CF5Method().AgeConfictValidation(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode(), String.valueOf(finalDays), String.valueOf(year));
                 if (duplcatesdx.contains(String.valueOf(second))) {
                     error.registerOutParameter("Message", OracleTypes.VARCHAR);
                     error.registerOutParameter("Code", OracleTypes.INTEGER);
@@ -116,7 +116,7 @@ public class InsertDRGClaims {
                     error.setString("uresultid", result_id.trim());
                     error.setString("useries", series.trim());
                     error.setString("ucode", "503".trim());
-                    error.setString("udata", utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
+                    error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
                     error.setString("udesc", "CF5 SDx is the repetition with other SDx");
                     error.setString("ulhio", lhio.trim());
                     error.executeUpdate();
@@ -124,14 +124,14 @@ public class InsertDRGClaims {
                         ErrMessage.add(error.getString("Message"));
                     }
                 } else {
-                    if (utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()).equals(utility.CleanCode(drgclaim.getPrimaryCode()))) {
+                    if (drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode().equals(drgclaim.getPrimaryCode())) {
                         error.registerOutParameter("Message", OracleTypes.VARCHAR);
                         error.registerOutParameter("Code", OracleTypes.INTEGER);
                         error.setString("uclaimid", drgclaim.getClaimNumber());
                         error.setString("uresultid", result_id.trim());
                         error.setString("useries", series.trim());
                         error.setString("ucode", "502".trim());
-                        error.setString("udata", utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
+                        error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
                         error.setString("udesc", "CF5 Case that SDx is the repetition with PDx");
                         error.setString("ulhio", lhio.trim());
                         error.executeUpdate();
@@ -145,7 +145,7 @@ public class InsertDRGClaims {
                         error.setString("uresultid", result_id);
                         error.setString("useries", series.trim());
                         error.setString("ucode", "501".trim());
-                        error.setString("udata", utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
+                        error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
                         error.setString("udesc", "CF5 SDx Invalid Code");
                         error.setString("ulhio", lhio.trim());
                         error.executeUpdate();
@@ -160,7 +160,7 @@ public class InsertDRGClaims {
                         error.setString("uresultid", result_id.trim());
                         error.setString("useries", series.trim());
                         error.setString("ucode", "505".trim());
-                        error.setString("udata", utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
+                        error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
                         error.setString("udesc", "CF5 SDx Conflict with sex ");
                         error.setString("ulhio", lhio.trim());
                         error.executeUpdate();
@@ -175,7 +175,7 @@ public class InsertDRGClaims {
                         error.setString("uresultid", result_id.trim());
                         error.setString("useries", series.trim());
                         error.setString("ucode", "504".trim());
-                        error.setString("udata", utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
+                        error.setString("udata", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
                         error.setString("udesc", "CF5 SDx Conflict with age");
                         error.setString("ulhio", lhio.trim());
                         error.executeUpdate();
@@ -184,7 +184,7 @@ public class InsertDRGClaims {
                         }
                     } else {
                         insertsecondary.setString("uclaimid", drgclaim.getClaimNumber());
-                        insertsecondary.setString("usdxcode", utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
+                        insertsecondary.setString("usdxcode", drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode());
                         insertsecondary.setString("useries", series.trim());
                         insertsecondary.setString("ulhio", lhio.trim());
                         secondaryjoin.add(utility.CleanCode(drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(second).getSecondaryCode()));
@@ -195,7 +195,7 @@ public class InsertDRGClaims {
                     }
                 }
             }
-            // RVS MANIPULATION AREA ==========PROCESS FIRST THE REPITITION OF RVS 
+
             for (int proc = 0; proc < drgclaim.getPROCEDURES().getPROCEDURE().size(); proc++) {
                 CallableStatement insertprocedure = connection.prepareCall("call MINOSUN.DRGPKGPROCEDURE.INSERT_PROCEDURE("
                         + ":Message,:Code, "
@@ -249,7 +249,7 @@ public class InsertDRGClaims {
                     if (!checkRVStoICD9cm.isSuccess()) {
                         CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                         statement.registerOutParameter("converter", OracleTypes.CURSOR);
-                        statement.setString("rvs_code", utility.CleanCode(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode()));
+                        statement.setString("rvs_code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode());
                         statement.execute();
                         ResultSet resultset = (ResultSet) statement.getObject("converter");
                         if (resultset.next()) {
@@ -285,8 +285,7 @@ public class InsertDRGClaims {
                                         insertprocedure.setString("ulaterality", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
                                         insertprocedure.setString("uext1code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
                                         insertprocedure.setString("uext2code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
-                                        String extcom = drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim() + "" + drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim();
-                                        if (extcom.trim().equals("11")) {
+                                        if ((drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim() + "" + drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim()).equals("11")) {
                                             procedurejoin.add(ConverterResult.get(g).trim());
                                             insertprocedure.setString("uicd9code", ConverterResult.get(g).trim());
                                         } else {
@@ -321,12 +320,12 @@ public class InsertDRGClaims {
                         }
                     } else {
                         insertprocedure.setString("uclaimid", drgclaim.getClaimNumber().trim());
-                        insertprocedure.setString("urvs", utility.CleanCode(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode()));
+                        insertprocedure.setString("urvs", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode());
                         insertprocedure.setString("ulaterality", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim());
                         insertprocedure.setString("uext1code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim());
                         insertprocedure.setString("uext2code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim());
                         procedurejoin.add(utility.CleanCode(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode()));
-                        insertprocedure.setString("uicd9code", utility.CleanCode(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode()));
+                        insertprocedure.setString("uicd9code", drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode());
                         insertprocedure.setString("useries", series);
                         insertprocedure.setString("ulhio", lhio);
                         insertprocedure.executeUpdate();
@@ -357,7 +356,7 @@ public class InsertDRGClaims {
                 result.setResult(utility.objectMapper().writeValueAsString(ErrMessage));
             }
         } catch (Exception ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(InsertDRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;

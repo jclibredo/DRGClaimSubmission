@@ -46,7 +46,7 @@ import org.xml.sax.SAXParseException;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class Upload {
@@ -127,7 +127,7 @@ public class Upload {
             }
 
         } catch (ParserConfigurationException | IOException | SAXException | JAXBException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(Upload.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -155,6 +155,8 @@ public class Upload {
                 detailList.add(getClaimsData.getMessage());
                 error.add(getClaimsData.getResult());
             }
+
+//            System.out.println(getClaimsData);
             CF5 drgs = new CF5();
             DRGWSResult getdupresults = new CF5Method().GetClaimDuplication(datasource,
                     drg.getPHospitalCode().trim(),
@@ -328,7 +330,7 @@ public class Upload {
             }
             result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
         } catch (IOException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(Upload.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -345,15 +347,18 @@ public class Upload {
         DRGCLAIM validatedrgclaim;
         ArrayList<String> errors = new ArrayList<>();
         ArrayList<String> errorsMessage = new ArrayList<>();
-        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim());
+        String primarycode = "";
+
+//        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().trim());
         try {
 
-            if (!NewResult.isSuccess()) {
+            if (!new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()
+                    && !new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
                 errors.add("411");
-            } else if (!new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim()).isSuccess()) {
+            } else if (!new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
                 errors.add("201");
             }
-            if (utility.CleanCode(drgclaim.getPrimaryCode()).trim().isEmpty()) {
+            if (drgclaim.getPrimaryCode().trim().isEmpty()) {
                 // error.add("CF5 Err. code 101 PrimaryCode is required");
                 errors.add("101");
             }
@@ -380,19 +385,19 @@ public class Upload {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                         if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                 && utility.ComputeDay(nclaimsdata.getDateofBirth(),
-                                        nclaimsdata.getAdmissionDate()) >= 0 && !utility.CleanCode(drgclaim.getPrimaryCode()).trim().isEmpty()) {
-                            if (NewResult.isSuccess()) {
-                                DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim());
+                                        nclaimsdata.getAdmissionDate()) >= 0 && !drgclaim.getPrimaryCode().trim().isEmpty()) {
+                            if (new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
+                                DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().trim());
                                 if (icd10preMDC.isSuccess()) {
                                     //CHECKING FOR AGE CONFLICT
-                                    DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), String.valueOf(finalDays), year);
+                                    DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, drgclaim.getPrimaryCode().trim(), String.valueOf(finalDays), year);
                                     if (!getAgeConfictResult.isSuccess()) {
                                         errors.add("414");
                                     }
                                     //  AGE VALIDATION AND GENDER
                                     if (!nclaimsdata.getGender().trim().isEmpty() && Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
                                         //CHECKING FOR GENDER CONFLICT
-                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), nclaimsdata.getGender());
+                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, drgclaim.getPrimaryCode().trim(), nclaimsdata.getGender());
                                         if (!getSexConfictResult.isSuccess()) {
                                             errors.add("415");
                                         }
@@ -518,7 +523,7 @@ public class Upload {
             result.setResult(utility.objectMapper().writeValueAsString(validatedrgclaim));
             result.setSuccess(true);
         } catch (IOException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(Upload.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;

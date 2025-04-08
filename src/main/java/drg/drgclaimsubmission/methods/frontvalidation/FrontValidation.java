@@ -29,7 +29,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class FrontValidation {
@@ -139,134 +139,153 @@ public class FrontValidation {
                 viewerrors.setRemarks("Major Error");
                 allErrorList.add(viewerrors);
             }
-            if (error.isEmpty()) {
-                for (int y = 0; y < nclaimsdatalist.size(); y++) {
-                    if (drg.getPHospitalCode().trim().equals(nclaimsdatalist.get(0).getHospitalcode().trim())) {
-                        if (drg.getDRGCLAIM().getClaimNumber().trim().equals(nclaimsdatalist.get(y).getPclaimnumber().trim())) {
-                            DRGCLAIM drgclaims = new DRGCLAIM();
-                            ArrayList<String> SecondaryData = new ArrayList<>();
-                            ArrayList<String> ProcedureData = new ArrayList<>();
-                            KeyPerValueError viewerror = utility.KeyPerValueError();
-                            ArrayList<String> errorlist = new ArrayList<>();
-                            ArrayList<String> warningerror = new ArrayList<>();
-                            //KEY VALUE PAIR VALIDATION
-                            DRGWSResult vprodResult = this.ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdatalist.get(y));
-                            //KEY VALUE PAIR VALIDATION
-                            DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
-                            //drgs.add(drgclaim);
-                            drgclaims.setClaimNumber(drgclaim.getClaimNumber());
-                            drgclaims.setPrimaryCode(drgclaim.getPrimaryCode());
-                            drgclaims.setNewBornAdmWeight(drgclaim.getNewBornAdmWeight());
-                            drgclaims.setRemarks(drgclaim.getRemarks());
-                            drgclaims.setPROCEDURES(drgclaim.getPROCEDURES());
-                            drgclaims.setSECONDARYDIAGS(drgclaim.getSECONDARYDIAGS());
-                            //-----------------------------------------------------
-                            if (!drgclaims.getRemarks().isEmpty()) {
-                                errorlist.add(drgclaims.getRemarks());
-                            }
-                            for (int proc = 0; proc < drgclaims.getPROCEDURES().getPROCEDURE().size(); proc++) {
-                                //=============================================================================
+            //VALIDATE HCF SECTOR
+            if (new CF5Method().ValidateHcfSector(datasource, drg.getPHospitalCode()).isSuccess()) {
+                if (new CF5Method().ValidateHcfSector(datasource, drg.getPHospitalCode()).getResult().trim().toUpperCase().equals("P")) {
+                    if (error.isEmpty()) {
+                        for (int y = 0; y < nclaimsdatalist.size(); y++) {
+                            if (drg.getPHospitalCode().trim().equals(nclaimsdatalist.get(0).getHospitalcode().trim())) {
+                                if (drg.getDRGCLAIM().getClaimNumber().trim().equals(nclaimsdatalist.get(y).getPclaimnumber().trim())) {
+                                    DRGCLAIM drgclaims = new DRGCLAIM();
+                                    ArrayList<String> SecondaryData = new ArrayList<>();
+                                    ArrayList<String> ProcedureData = new ArrayList<>();
+                                    KeyPerValueError viewerror = utility.KeyPerValueError();
+                                    ArrayList<String> errorlist = new ArrayList<>();
+                                    ArrayList<String> warningerror = new ArrayList<>();
+                                    //KEY VALUE PAIR VALIDATION
+                                    DRGWSResult vprodResult = this.ValidateDRGClaims(datasource, drg.getDRGCLAIM(), nclaimsdatalist.get(y));
+                                    //KEY VALUE PAIR VALIDATION
+                                    DRGCLAIM drgclaim = utility.objectMapper().readValue(vprodResult.getResult(), DRGCLAIM.class);
+                                    //drgs.add(drgclaim);
+                                    drgclaims.setClaimNumber(drgclaim.getClaimNumber());
+                                    drgclaims.setPrimaryCode(drgclaim.getPrimaryCode());
+                                    drgclaims.setNewBornAdmWeight(drgclaim.getNewBornAdmWeight());
+                                    drgclaims.setRemarks(drgclaim.getRemarks());
+                                    drgclaims.setPROCEDURES(drgclaim.getPROCEDURES());
+                                    drgclaims.setSECONDARYDIAGS(drgclaim.getSECONDARYDIAGS());
+                                    //-----------------------------------------------------
+                                    if (!drgclaims.getRemarks().isEmpty()) {
+                                        errorlist.add(drgclaims.getRemarks());
+                                    }
+                                    for (int proc = 0; proc < drgclaims.getPROCEDURES().getPROCEDURE().size(); proc++) {
+                                        //=============================================================================
 //                                String ProcsCode = drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode();
 //                                String ext1 = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1();
 //                                String ext2 = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2();
 //                                String lat = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality();
 //                                String remarks = drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks();
-                                //=========================================================================
-                                if (!drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks().isEmpty()) {
-                                    warningerror.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
-                                }
-                                ProcAssign procassign = new ProcAssign();
-                                if (drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1().isEmpty()) {
-                                    procassign.setEx1("1");
-                                } else if (!Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim())) {
-                                    procassign.setEx1("1");
-                                } else {
-                                    procassign.setEx1(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1());
-                                }
-                                if (drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2().isEmpty()) {
-                                    procassign.setEx2("1");
-                                } else if (!Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim())) {
-                                    procassign.setEx2("1");
-                                } else {
-                                    procassign.setEx2(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2());
-                                }
-                                if (drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().isEmpty()) {
-                                    procassign.setLat("N");
-                                } else if (!Arrays.asList("L", "R", "B", "N").contains(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim())) {
-                                    procassign.setLat("N");
-                                } else {
-                                    procassign.setLat(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality());
-                                }
-                                ProcedureData.add(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim() + "+" + procassign.getLat().trim() + "" + procassign.getEx1().trim() + "" + procassign.getEx2().trim());
-                                //validate extension code
-                            }
-
-                            for (int sdx = 0; sdx < drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().size(); sdx++) {
-                                if (!drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks().isEmpty()) {
-                                    warningerror.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks());
-                                }
-                                SecondaryData.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getSecondaryCode().trim());
-                            }
-
-                            ArrayList<String> duplsdx = new ArrayList<>();
-                            for (int i = 0; i < SecondaryData.size() - 1; i++) {
-                                for (int j = i + 1; j < SecondaryData.size(); j++) {
-                                    if (SecondaryData.get(i).equals(SecondaryData.get(j)) && (i != j)) {
-                                        warningerror.add("503");
-                                        duplsdx.add(String.valueOf(j));
+                                        //=========================================================================
+                                        if (!drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks().isEmpty()) {
+                                            warningerror.add(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getRemarks());
+                                        }
+                                        ProcAssign procassign = new ProcAssign();
+                                        if (drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1().isEmpty()) {
+                                            procassign.setEx1("1");
+                                        } else if (!Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1().trim())) {
+                                            procassign.setEx1("1");
+                                        } else {
+                                            procassign.setEx1(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt1());
+                                        }
+                                        if (drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2().isEmpty()) {
+                                            procassign.setEx2("1");
+                                        } else if (!Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9").contains(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2().trim())) {
+                                            procassign.setEx2("1");
+                                        } else {
+                                            procassign.setEx2(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getExt2());
+                                        }
+                                        if (drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().isEmpty()) {
+                                            procassign.setLat("N");
+                                        } else if (!Arrays.asList("L", "R", "B", "N").contains(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality().trim())) {
+                                            procassign.setLat("N");
+                                        } else {
+                                            procassign.setLat(drgclaims.getPROCEDURES().getPROCEDURE().get(proc).getLaterality());
+                                        }
+                                        ProcedureData.add(drgclaim.getPROCEDURES().getPROCEDURE().get(proc).getRvsCode().trim() + "+" + procassign.getLat().trim() + "" + procassign.getEx1().trim() + "" + procassign.getEx2().trim());
+                                        //validate extension code
                                     }
-                                }
-                            }
-                            ArrayList<String> duplproc = new ArrayList<>();
-                            for (int i = 0; i < ProcedureData.size() - 1; i++) {
-                                for (int j = i + 1; j < ProcedureData.size(); j++) {
-                                    if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
-                                        warningerror.add("507");
-                                        duplproc.add(String.valueOf(j));
-                                        break;
+
+                                    for (int sdx = 0; sdx < drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().size(); sdx++) {
+                                        if (!drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks().isEmpty()) {
+                                            warningerror.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getRemarks());
+                                        }
+                                        SecondaryData.add(drgclaims.getSECONDARYDIAGS().getSECONDARYDIAG().get(sdx).getSecondaryCode().trim());
                                     }
+
+                                    ArrayList<String> duplsdx = new ArrayList<>();
+                                    for (int i = 0; i < SecondaryData.size() - 1; i++) {
+                                        for (int j = i + 1; j < SecondaryData.size(); j++) {
+                                            if (SecondaryData.get(i).equals(SecondaryData.get(j)) && (i != j)) {
+                                                warningerror.add("503");
+                                                duplsdx.add(String.valueOf(j));
+                                            }
+                                        }
+                                    }
+                                    ArrayList<String> duplproc = new ArrayList<>();
+                                    for (int i = 0; i < ProcedureData.size() - 1; i++) {
+                                        for (int j = i + 1; j < ProcedureData.size(); j++) {
+                                            if (ProcedureData.get(i).equals(ProcedureData.get(j)) && (i != j)) {
+                                                warningerror.add("507");
+                                                duplproc.add(String.valueOf(j));
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    drgs.setDRGCLAIM(drgclaim);
+                                    ArrayList<String> drgcodelist = new ArrayList<>();
+                                    ArrayList<String> drgnamelist = new ArrayList<>();
+                                    viewerror.setWarningerror(String.join(",", warningerror));
+                                    viewerror.setErrors(String.join(",", errorlist));
+                                    viewerror.setClaimid(drg.getDRGCLAIM().getClaimNumber().trim());
+                                    viewerror.setDrg(drgcodelist);
+                                    viewerror.setDrgname(drgnamelist);
+                                    allErrorList.add(viewerror);
+                                    break;
                                 }
                             }
-                            drgs.setDRGCLAIM(drgclaim);
-                            ArrayList<String> drgcodelist = new ArrayList<>();
-                            ArrayList<String> drgnamelist = new ArrayList<>();
-                            viewerror.setWarningerror(String.join(",", warningerror));
-                            viewerror.setErrors(String.join(",", errorlist));
-                            viewerror.setClaimid(drg.getDRGCLAIM().getClaimNumber().trim());
-                            viewerror.setDrg(drgcodelist);
-                            viewerror.setDrgname(drgnamelist);
-                            allErrorList.add(viewerror);
-                            break;
                         }
                     }
-                }
-            }
 
-            //---------------------------------------------------------
-            ArrayList<String> errorlist = new ArrayList<>();
-            ArrayList<String> warninglist = new ArrayList<>();
-            for (int x = 0; x < allErrorList.size(); x++) {
-                errorlist.add(allErrorList.get(x).getErrors());
-                warninglist.add(allErrorList.get(x).getWarningerror());
-            }
+                    //---------------------------------------------------------
+                    ArrayList<String> errorlist = new ArrayList<>();
+                    ArrayList<String> warninglist = new ArrayList<>();
+                    for (int x = 0; x < allErrorList.size(); x++) {
+                        errorlist.add(allErrorList.get(x).getErrors());
+                        warninglist.add(allErrorList.get(x).getWarningerror());
+                    }
 //            String errors = String.join(",", errorlist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim();
 //            String warnings = String.join(",", warninglist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim();
-            //---------------------------------------------------------------------------
-            if (error.size() > 0) {
-                result.setMessage("CF5 DATA ENCOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED");
-            } else if (String.join(",", errorlist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim().length() > 0) {
-                result.setSuccess(true);
-                result.setMessage("CF5 DATA HAS AN ERROR EXPECT UNGROUPABLE DRG CODES RESULT");
-            } else if (String.join(",", warninglist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim().length() > 0) {
-                result.setSuccess(true);
-                result.setMessage("CF5 DATA HAS WARNING ERROR EXPECT THAT SOME DATA WILL NOT BE CONSIDERED IN GROUPING LOGIC");
+                    //---------------------------------------------------------------------------
+                    if (error.size() > 0) {
+                        result.setMessage("CF5 DATA ENCOUNTER ERROR EXPECT THAT GROUPING LOGIC CAN'T BE PROCEED");
+                    } else if (String.join(",", errorlist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim().length() > 0) {
+                        result.setSuccess(true);
+                        result.setMessage("CF5 DATA HAS AN ERROR EXPECT UNGROUPABLE DRG CODES RESULT");
+                    } else if (String.join(",", warninglist.toString()).replaceAll("\\]", "").replaceAll("\\[", "").replaceAll("\\,", "").trim().length() > 0) {
+                        result.setSuccess(true);
+                        result.setMessage("CF5 DATA HAS WARNING ERROR EXPECT THAT SOME DATA WILL NOT BE CONSIDERED IN GROUPING LOGIC");
+                    } else {
+                        result.setMessage("CF5 DATA IS CLEAN");
+                        result.setSuccess(true);
+                    }
+                    result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
+                } else {
+                    //CLEARING PUBLIC FACILITY
+                    KeyPerValueError viewerrors = utility.KeyPerValueError();
+                    viewerrors.setErrors("");
+                    viewerrors.setSeries("");
+                    viewerrors.setClaimid(drg.getDRGCLAIM().getClaimNumber() + "");
+                    viewerrors.setWarningerror("");
+                    viewerrors.setRemarks("Public Facility");
+                    allErrorList.add(viewerrors);
+                    result.setMessage("CF5 DATA IS CLEAN ");
+                    result.setSuccess(true);
+                    result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
+                }
             } else {
-                result.setMessage("CF5 DATA IS CLEAN");
-                result.setSuccess(true);
+                result.setMessage(new CF5Method().ValidateHcfSector(datasource, drg.getPHospitalCode()).getMessage());
             }
-            result.setResult(utility.objectMapper().writeValueAsString(allErrorList));
         } catch (IOException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(FrontValidation.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -284,13 +303,14 @@ public class FrontValidation {
         ArrayList<String> errors = new ArrayList<>();
         ArrayList<String> errorsMessage = new ArrayList<>();
 //        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim());
+//token.substring(0, token.length() - 1)
         try {
-            if (!new CF5Method().GetICD10(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim()).isSuccess()) {
+            if (!new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
                 errors.add("411");
-            } else if (!new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim()).isSuccess()) {
+            } else if (!new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
                 errors.add("201");
             }
-            if (utility.CleanCode(drgclaim.getPrimaryCode()).trim().isEmpty()) {
+            if (drgclaim.getPrimaryCode().trim().isEmpty()) {
                 // error.add("CF5 Err. code 101 PrimaryCode is required");
                 errors.add("101");
             }
@@ -318,20 +338,20 @@ public class FrontValidation {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
                         if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                 && utility.ComputeDay(nclaimsdata.getDateofBirth(),
-                                        nclaimsdata.getAdmissionDate()) >= 0 && !utility.CleanCode(drgclaim.getPrimaryCode()).trim().isEmpty()) {
-                            if (new CF5Method().GetICD10(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim()).isSuccess()) {
+                                        nclaimsdata.getAdmissionDate()) >= 0 && !drgclaim.getPrimaryCode().trim().isEmpty()) {
+                            if (new CF5Method().GetICD10(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
 //                                DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim());
-                                if (new CF5Method().GetICD10PreMDC(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim()).isSuccess()) {
+                                if (new CF5Method().GetICD10PreMDC(datasource, drgclaim.getPrimaryCode().trim()).isSuccess()) {
                                     //CHECKING FOR AGE CONFLICT
 //                                    DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode().trim()), String.valueOf(finalDays), String.valueOf(year));
-                                    if (!new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode().trim()), String.valueOf(finalDays), String.valueOf(year)).isSuccess()) {
+                                    if (!new CF5Method().AgeConfictValidation(datasource, drgclaim.getPrimaryCode().trim(), String.valueOf(finalDays), String.valueOf(year)).isSuccess()) {
                                         errors.add("414");
                                     }
                                     //  AGE VALIDATION AND GENDER
                                     if (!nclaimsdata.getGender().trim().isEmpty() && Arrays.asList("M", "F").contains(nclaimsdata.getGender().toUpperCase())) {
                                         //CHECKING FOR GENDER CONFLICT
 //                                        DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), nclaimsdata.getGender());
-                                        if (!new CF5Method().GenderConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), nclaimsdata.getGender()).isSuccess()) {
+                                        if (!new CF5Method().GenderConfictValidation(datasource, drgclaim.getPrimaryCode().trim(), nclaimsdata.getGender()).isSuccess()) {
                                             errors.add("415");
                                         }
                                     }
@@ -407,7 +427,7 @@ public class FrontValidation {
 //                System.out.println("AGE DAYS " + finalDays);
 //                System.out.println("AGE YEAR " + utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
 ////                try {
-                DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, utility.CleanCode(drgclaim.getPrimaryCode()).trim(), String.valueOf(finalDays), String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate())));
+                DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, drgclaim.getPrimaryCode().trim(), String.valueOf(finalDays), String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate())));
                 if (getAgeConfictResult.isSuccess()) {
                     if (!drgclaim.getNewBornAdmWeight().equals("")) {
                         if (!utility.isValidNumeric(drgclaim.getNewBornAdmWeight())) {
@@ -434,7 +454,8 @@ public class FrontValidation {
 //                    DRGWSResult VSDResultS = new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata);
                     //mapping
                     if (new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata).isSuccess()) {
-                        SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata).getResult(), SECONDARYDIAG.class);
+                        SECONDARYDIAG secondarydiag = utility.objectMapper().readValue(new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata).getResult(), SECONDARYDIAG.class
+                        );
                         secondarydiags.getSECONDARYDIAG().add(secondarydiag);
                         if (secondarydiag.getRemarks().equals("")) {
                             errorsMessage.add(new ValidateSecondaryDiag().ValidateSecondaryDiag(datasource, drgclaim.getSECONDARYDIAGS().getSECONDARYDIAG().get(a), drgclaim.getPrimaryCode(), nclaimsdata).getMessage());
@@ -448,7 +469,8 @@ public class FrontValidation {
                 for (int b = 0; b < drgclaim.getPROCEDURES().getPROCEDURE().size(); b++) {
 //                    DRGWSResult VPResult = new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender());
                     if (new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender()).isSuccess()) {
-                        PROCEDURE procedure = utility.objectMapper().readValue(new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender()).getResult(), PROCEDURE.class);
+                        PROCEDURE procedure = utility.objectMapper().readValue(new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender()).getResult(), PROCEDURE.class
+                        );
                         procedures.getPROCEDURE().add(procedure);
                         if (procedure.getRemarks().equals("")) {
                             errorsMessage.add(new ValidateProcedures().ValidateProcedures(datasource, drgclaim.getPROCEDURES().getPROCEDURE().get(b), nclaimsdata.getGender()).getMessage());
@@ -465,10 +487,13 @@ public class FrontValidation {
             result.setResult(utility.objectMapper().writeValueAsString(validatedrgclaim));
             result.setSuccess(true);
         } catch (IOException ex) {
-            result.setMessage(ex.toString());
-            Logger.getLogger(FrontValidation.class.getName()).log(Level.SEVERE, null, ex);
+            result.setMessage("Something went wrong");
+            Logger
+                    .getLogger(FrontValidation.class
+                            .getName()).log(Level.SEVERE, null, ex);
         }
         return result;
+
     }
 
     public class ProcAssign {

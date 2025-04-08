@@ -24,7 +24,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class ValidateProcedures {
@@ -41,8 +41,8 @@ public class ValidateProcedures {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            if (!utility.CleanCode(procedure.getRvsCode()).trim().isEmpty()) {
-                if (utility.CleanCode(procedure.getRvsCode()).trim().length() > 10) {
+            if (!procedure.getRvsCode().trim().isEmpty()) {
+                if (procedure.getRvsCode().trim().length() > 10) {
                     errors.add("506");
                 }
                 if (procedure.getLaterality().trim().isEmpty()) {
@@ -73,7 +73,7 @@ public class ValidateProcedures {
                     procedure.setExt1("1");
                 }
                 String rvs_code = procedure.getRvsCode();
-                DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, utility.CleanCode(rvs_code).trim());
+                DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim());
                 if (!checkRVStoICD9cm.isSuccess()) {
                     int gendercounter = 0;
                     CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
@@ -114,7 +114,7 @@ public class ValidateProcedures {
             result.setSuccess(true);
             result.setResult(utility.objectMapper().writeValueAsString(validateprocedure)); //validateprocedure.toString());
         } catch (IOException | SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(ValidateProcedures.class.getName()).log(Level.SEVERE, null, ex);
         }
 

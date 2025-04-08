@@ -58,7 +58,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -126,7 +126,7 @@ public class DRGClaims {
                 }
             }
         } catch (IOException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -284,7 +284,7 @@ public class DRGClaims {
                 }
             }
         } catch (IOException | SAXException | ParserConfigurationException | JAXBException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -305,7 +305,7 @@ public class DRGClaims {
                 result = "SERVER DATE AND TIME : " + String.valueOf(sdf.format(rest.getDate("SYSDATE")));
             }
         } catch (SQLException ex) {
-            result = ex.toString();
+            result = "Something went wrong";
             Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -316,10 +316,7 @@ public class DRGClaims {
     @Produces(MediaType.APPLICATION_JSON)
     public DRGWSResult TESTValidatePDx(@PathParam("icd10codes") String icd10codes) {
         DRGWSResult result = utility.DRGWSResult();
-        DRGWSResult NewResult = new CF5Method().GetICD10(datasource, utility.CleanCode(icd10codes).trim());
-        result.setMessage(NewResult.getMessage());
-        result.setResult(NewResult.getResult());
-        result.setSuccess(NewResult.isSuccess());
+        result = new CF5Method().GetICD10(datasource, icd10codes.trim());
         return result;
     }
 
@@ -328,10 +325,7 @@ public class DRGClaims {
     @Produces(MediaType.APPLICATION_JSON)
     public DRGWSResult TESTGetClaims(@PathParam("seriesnumber") String seriesnumber) {
         DRGWSResult result = utility.DRGWSResult();
-        DRGWSResult NewResult = new phic().GeteClaims(datasource, seriesnumber);
-        result.setMessage(NewResult.getMessage());
-        result.setResult(NewResult.getResult());
-        result.setSuccess(NewResult.isSuccess());
+        result = new phic().GeteClaims(datasource, seriesnumber);
         return result;
     }
 

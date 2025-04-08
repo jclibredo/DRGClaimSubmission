@@ -8,7 +8,6 @@ package drg.drgclaimsubmission.methods;
 import drg.drgclaimsubmission.structures.CombinationCode;
 import drg.drgclaimsubmission.structures.DRGWSResult;
 import drg.drgclaimsubmission.structures.ICD10PreMDCResult;
-import drg.drgclaimsubmission.structures.ValidICD10;
 import drg.drgclaimsubmission.utilities.Utility;
 import java.io.IOException;
 import java.sql.CallableStatement;
@@ -30,7 +29,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class CF5Method {
@@ -51,7 +50,7 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             CallableStatement statement = connection.prepareCall("begin :p_validcode := MINOSUN.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
             statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
-            statement.setString("p_icd10_code", p_icd10_code);
+            statement.setString("p_icd10_code", utility.CleanCode(p_icd10_code));
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
             if (resultset.next()) {
@@ -62,7 +61,7 @@ public class CF5Method {
                 result.setMessage("No ICD10 Record Found");
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -80,7 +79,7 @@ public class CF5Method {
             List<String> FinalNewProcList = new ArrayList<>();
             CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
             statement.registerOutParameter("converter", OracleTypes.CURSOR);
-            statement.setString("rvs_code", rvs_code.trim());
+            statement.setString("rvs_code", utility.CleanCode(rvs_code).trim());
             statement.execute();
             ResultSet resultset = (ResultSet) statement.getObject("converter");
             if (resultset.next()) {
@@ -97,43 +96,42 @@ public class CF5Method {
             }
 
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
     }
 
     // GET ALL ICD10
-    public DRGWSResult GetAllICD10(final DataSource datasource) {
-        DRGWSResult result = utility.DRGWSResult();
-        result.setSuccess(false);
-        result.setMessage("");
-        result.setResult("");
-        try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :icd10 := MINOSUN.DRGPKGFUNCTION.get_all_icd10(); end;");
-            statement.registerOutParameter("icd10", OracleTypes.CURSOR);
-            statement.execute();
-            ResultSet resultset = (ResultSet) statement.getObject("icd10");
-            ArrayList<ValidICD10> list_icd = new ArrayList<>();
-            while (resultset.next()) {
-                ValidICD10 cd = new ValidICD10();
-                cd.setValidcode(resultset.getString("validcode"));
-                cd.setDescription(resultset.getString("description"));
-                cd.setCode(resultset.getString("code").trim());
-                list_icd.add(cd);
-            }
-            if (list_icd.size() > 0) {
-                result.setResult(utility.objectMapper().writeValueAsString(list_icd));
-                result.setMessage("OK");
-                result.setSuccess(true);
-            }
-        } catch (SQLException | IOException ex) {
-            result.setMessage(ex.toString());
-            Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return result;
-    }
-
+//    public DRGWSResult GetAllICD10(final DataSource datasource) {
+//        DRGWSResult result = utility.DRGWSResult();
+//        result.setSuccess(false);
+//        result.setMessage("");
+//        result.setResult("");
+//        try (Connection connection = datasource.getConnection()) {
+//            CallableStatement statement = connection.prepareCall("begin :icd10 := MINOSUN.DRGPKGFUNCTION.get_all_icd10(); end;");
+//            statement.registerOutParameter("icd10", OracleTypes.CURSOR);
+//            statement.execute();
+//            ResultSet resultset = (ResultSet) statement.getObject("icd10");
+//            ArrayList<ValidICD10> list_icd = new ArrayList<>();
+//            while (resultset.next()) {
+//                ValidICD10 cd = new ValidICD10();
+//                cd.setValidcode(resultset.getString("validcode"));
+//                cd.setDescription(resultset.getString("description"));
+//                cd.setCode(resultset.getString("code").trim());
+//                list_icd.add(cd);
+//            }
+//            if (list_icd.size() > 0) {
+//                result.setResult(utility.objectMapper().writeValueAsString(list_icd));
+//                result.setMessage("OK");
+//                result.setSuccess(true);
+//            }
+//        } catch (SQLException | IOException ex) {
+//            result.setMessage(ex.toString());
+//            Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        return result;
+//    }
     //Removed duplication for Proc Code with extension code
     public static <T> ArrayList<T> RemovedDuplicates(ArrayList<T> list) {
         ArrayList<T> newList = new ArrayList<>();
@@ -152,33 +150,59 @@ public class CF5Method {
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
-            statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
-            statement.setString("pdx", pdx);
-            statement.execute();
-            ResultSet resultset = (ResultSet) statement.getObject("accpdxs");
-            if (resultset.next()) {
+            CallableStatement statementA = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
+            statementA.registerOutParameter("accpdxs", OracleTypes.CURSOR);
+            statementA.setString("pdx", utility.CleanCode(pdx));
+            statementA.execute();
+            ResultSet resultsetA = (ResultSet) statementA.getObject("accpdxs");
+            if (resultsetA.next()) {
                 ICD10PreMDCResult premdc = new ICD10PreMDCResult();
-                premdc.setAccPDX(resultset.getString("ACCPDX"));
-                premdc.setAgeDMin(resultset.getString("AGEDMIN"));
-                premdc.setAgeDUse(resultset.getString("AGEDUSE"));
-                premdc.setAgeMax(resultset.getString("AGEMAX"));
-                premdc.setAgeMin(resultset.getString("AGEMIN"));
-                premdc.setCC(resultset.getString("CC"));
-                premdc.setCCRow(resultset.getString("CCROW"));
-                premdc.setCode(resultset.getString("CODE"));
-                premdc.setHIV_AX(resultset.getString("HIV_AX"));
-                premdc.setMDC(resultset.getString("MDC"));
-                premdc.setMainCC(resultset.getString("MAINCC"));
-                premdc.setPDC(resultset.getString("PDC"));
-                premdc.setSex(resultset.getString("SEX"));
-                premdc.setTrauma(resultset.getString("TRAUMA"));
-                result.setMessage(resultset.getString("CCROW"));
+                premdc.setAccPDX(resultsetA.getString("ACCPDX"));
+                premdc.setAgeDMin(resultsetA.getString("AGEDMIN"));
+                premdc.setAgeDUse(resultsetA.getString("AGEDUSE"));
+                premdc.setAgeMax(resultsetA.getString("AGEMAX"));
+                premdc.setAgeMin(resultsetA.getString("AGEMIN"));
+                premdc.setCC(resultsetA.getString("CC"));
+                premdc.setCCRow(resultsetA.getString("CCROW"));
+                premdc.setCode(resultsetA.getString("CODE"));
+                premdc.setHIV_AX(resultsetA.getString("HIV_AX"));
+                premdc.setMDC(resultsetA.getString("MDC"));
+                premdc.setMainCC(resultsetA.getString("MAINCC"));
+                premdc.setPDC(resultsetA.getString("PDC"));
+                premdc.setSex(resultsetA.getString("SEX"));
+                premdc.setTrauma(resultsetA.getString("TRAUMA"));
+                result.setMessage(resultsetA.getString("CCROW"));
                 result.setResult(utility.objectMapper().writeValueAsString(premdc));
                 result.setSuccess(true);
+            } else {
+                CallableStatement statement = connection.prepareCall("begin :accpdxs := MINOSUN.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
+                statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
+                statement.setString("pdx", utility.CleanCode(pdx.substring(0, pdx.length() - 1)));
+                statement.execute();
+                ResultSet resultset = (ResultSet) statement.getObject("accpdxs");
+                if (resultset.next()) {
+                    ICD10PreMDCResult premdc = new ICD10PreMDCResult();
+                    premdc.setAccPDX(resultset.getString("ACCPDX"));
+                    premdc.setAgeDMin(resultset.getString("AGEDMIN"));
+                    premdc.setAgeDUse(resultset.getString("AGEDUSE"));
+                    premdc.setAgeMax(resultset.getString("AGEMAX"));
+                    premdc.setAgeMin(resultset.getString("AGEMIN"));
+                    premdc.setCC(resultset.getString("CC"));
+                    premdc.setCCRow(resultset.getString("CCROW"));
+                    premdc.setCode(resultset.getString("CODE"));
+                    premdc.setHIV_AX(resultset.getString("HIV_AX"));
+                    premdc.setMDC(resultset.getString("MDC"));
+                    premdc.setMainCC(resultset.getString("MAINCC"));
+                    premdc.setPDC(resultset.getString("PDC"));
+                    premdc.setSex(resultset.getString("SEX"));
+                    premdc.setTrauma(resultset.getString("TRAUMA"));
+                    result.setMessage(resultset.getString("CCROW"));
+                    result.setResult(utility.objectMapper().writeValueAsString(premdc));
+                    result.setSuccess(true);
+                }
             }
         } catch (SQLException | IOException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -202,7 +226,7 @@ public class CF5Method {
                 result.setSuccess(true);
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -218,7 +242,7 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             CallableStatement statement = connection.prepareCall("begin :count_output := MINOSUN.DRGPKGFUNCTION.GET_COUNT(:codes); end;");
             statement.registerOutParameter("count_output", OracleTypes.CURSOR);
-            statement.setString("codes", codes.trim());
+            statement.setString("codes", utility.CleanCode(codes).trim());
             statement.execute();
             ResultSet resultSet = (ResultSet) statement.getObject("count_output");
             if (resultSet.next()) {
@@ -226,7 +250,7 @@ public class CF5Method {
                 result.setSuccess(true);
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.getLocalizedMessage());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -262,7 +286,7 @@ public class CF5Method {
                 result.setMessage(auditrail.getString("Message") + " Date:" + utility.SimpleDateFormat("MM-dd-yyyy HH:mm:ss").format(new Date()));
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -305,7 +329,6 @@ public class CF5Method {
             List<String> ProcList = Arrays.asList(proc.split(","));
             LinkedList<String> procduplicate = new LinkedList<>();
             LinkedList<String> procnewlist = new LinkedList<>();
-
             for (int y = 0; y < ProcList.size(); y++) {
                 procnewlist.add(ProcList.get(y));
             }
@@ -339,7 +362,7 @@ public class CF5Method {
                 result.setMessage(grouperdata.getString("Message"));
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -388,20 +411,34 @@ public class CF5Method {
         result.setResult("");
         result.setSuccess(false);
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement getAgeValidation = connection.prepareCall("begin :age_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
-            getAgeValidation.registerOutParameter("age_validation", OracleTypes.CURSOR);
-            getAgeValidation.setString("p_pdx_code", p_pdx_code.trim());
-            getAgeValidation.setString("age_day", age_day);
-            getAgeValidation.setString("age_min_year", age_min_year);
-            getAgeValidation.execute();
-            ResultSet getAgeValidationResult = (ResultSet) getAgeValidation.getObject("age_validation");
-            if (getAgeValidationResult != null) {
-                if (getAgeValidationResult.next()) {
+            CallableStatement stateA = connection.prepareCall("begin :age_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
+            stateA.registerOutParameter("age_validation", OracleTypes.CURSOR);
+            stateA.setString("p_pdx_code", utility.CleanCode(p_pdx_code).trim());
+            stateA.setString("age_day", age_day);
+            stateA.setString("age_min_year", age_min_year);
+            stateA.execute();
+            ResultSet resultSetA = (ResultSet) stateA.getObject("age_validation");
+            if (resultSetA == null) {
+                CallableStatement stateB = connection.prepareCall("begin :age_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_AGE(:p_pdx_code,:age_day,:age_min_year); end;");
+                stateB.registerOutParameter("age_validation", OracleTypes.CURSOR);
+                stateB.setString("p_pdx_code", p_pdx_code.substring(0, p_pdx_code.length() - 1).replaceAll("\\.", "").toUpperCase().trim());
+                stateB.setString("age_day", age_day);
+                stateB.setString("age_min_year", age_min_year);
+                stateB.execute();
+                ResultSet resultSetB = (ResultSet) stateB.getObject("age_validation");
+                if (resultSetB == null) {
+                } else {
+                    if (resultSetB.next()) {
+                        result.setSuccess(true);
+                    }
+                }
+            } else {
+                if (resultSetA.next()) {
                     result.setSuccess(true);
                 }
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -418,15 +455,25 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getSexValidation = connection.prepareCall("begin :gender_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
             getSexValidation.registerOutParameter("gender_validation", OracleTypes.CURSOR);
-            getSexValidation.setString("p_pdx_code", p_pdx_code.trim());
+            getSexValidation.setString("p_pdx_code", utility.CleanCode(p_pdx_code).trim());
             getSexValidation.setString("gender", gender);
             getSexValidation.execute();
             ResultSet getSexValidationResult = (ResultSet) getSexValidation.getObject("gender_validation");
             if (getSexValidationResult.next()) {
                 result.setSuccess(true);
+            } else {
+                CallableStatement statement = connection.prepareCall("begin :gender_validation := MINOSUN.DRGPKGFUNCTION.VALIDATE_GENDER(:p_pdx_code,:gender); end;");
+                statement.registerOutParameter("gender_validation", OracleTypes.CURSOR);
+                statement.setString("p_pdx_code", utility.CleanCode(p_pdx_code.substring(0, p_pdx_code.length() - 1)).trim());
+                statement.setString("gender", gender);
+                statement.execute();
+                ResultSet resultSet = (ResultSet) statement.getObject("gender_validation");
+                if (resultSet.next()) {
+                    result.setSuccess(true);
+                }
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -443,15 +490,15 @@ public class CF5Method {
         try (Connection connection = datasource.getConnection()) {
             CallableStatement getSexProcValidation = connection.prepareCall("begin :age_proc_validation := MINOSUN.DRGPKGFUNCTION.PROC_AGE_VALIDATION(:procode,:gender); end;");
             getSexProcValidation.registerOutParameter("age_proc_validation", OracleTypes.CURSOR);
-            getSexProcValidation.setString("procode", procode.trim());
-            getSexProcValidation.setString("gender", gender);
+            getSexProcValidation.setString("procode", utility.CleanCode(procode).trim());
+            getSexProcValidation.setString("gender", gender.toUpperCase());
             getSexProcValidation.execute();
             ResultSet getSexProcValidationResult = (ResultSet) getSexProcValidation.getObject("age_proc_validation");
             if (getSexProcValidationResult.next()) {
                 result.setSuccess(true);
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -475,7 +522,33 @@ public class CF5Method {
                 result.setSuccess(true);
             }
         } catch (SQLException ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
+            Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public DRGWSResult ValidateHcfSector(final DataSource datasource,
+            final String upmcc) {
+        DRGWSResult result = utility.DRGWSResult();
+        result.setMessage("");
+        result.setResult("");
+        result.setSuccess(false);
+        try (Connection connection = datasource.getConnection()) {
+            CallableStatement statement = connection.prepareCall("begin :v_result := MINOSUN.UHCDRGPKG.GETPRIVATEFACILITY(:upmcc); end;");
+            statement.registerOutParameter("v_result", OracleTypes.CURSOR);
+            statement.setString("upmcc", upmcc.trim());
+            statement.execute();
+            ResultSet resultSet = (ResultSet) statement.getObject("v_result");
+            if (resultSet.next()) {
+                result.setMessage("OK");
+                result.setResult(resultSet.getString("SOC_SECTOR"));
+                result.setSuccess(true);
+            } else {
+                result.setMessage("Facility sector not found");
+            }
+        } catch (SQLException ex) {
+            result.setMessage("Something went wrong");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;

@@ -19,7 +19,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author MINOSUN
+ * @author DRG_SHADOWBILLING
  */
 @RequestScoped
 public class phic {
@@ -51,7 +51,7 @@ public class phic {
                 }
             }
         } catch (Exception ex) {
-            result.setMessage(ex.toString());
+           result.setMessage("Something went wrong");
             Logger.getLogger(phic.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -132,7 +132,7 @@ public class phic {
                 result.setMessage("CF5 " + seriesnums + " not found in eClaims DB");
             }
         } catch (Exception ex) {
-            result.setMessage(ex.toString());
+            result.setMessage("Something went wrong");
             Logger.getLogger(phic.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
