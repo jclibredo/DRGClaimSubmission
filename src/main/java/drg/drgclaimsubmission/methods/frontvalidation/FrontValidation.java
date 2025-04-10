@@ -271,7 +271,7 @@ public class FrontValidation {
                 } else {
                     //CLEARING PUBLIC FACILITY
                     KeyPerValueError viewerrors = utility.KeyPerValueError();
-                    viewerrors.setErrors("");
+                    viewerrors.setErrors(String.join(",", error));
                     viewerrors.setSeries("");
                     viewerrors.setClaimid(drg.getDRGCLAIM().getClaimNumber() + "");
                     viewerrors.setWarningerror("");
@@ -493,9 +493,7 @@ public class FrontValidation {
                             .getName()).log(Level.SEVERE, null, ex);
         }
         return result;
-
     }
-
     public class ProcAssign {
 
         private String lat;
