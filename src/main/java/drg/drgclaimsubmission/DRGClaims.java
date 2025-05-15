@@ -84,14 +84,17 @@ public class DRGClaims {
         result.setSuccess(false);
         try {
             if (uploadeddrg == null || ClaimSeriesNum == null) {
-                result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
-                result.setResult("Request status :" + new CF5Method().InsertDRGAuditTrail(datasource, "Unreadable file directory or variable name error in FormDataParam", "FAILED", "", "", "CF5 Claim Form").getMessage());
+                new CF5Method().InsertDRGAuditTrail(datasource, "Unreadable file directory or variable name error in FormDataParam", "FAILED", "", "", "UPLOAD CF5 DATA");
+//                result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
+//                result.setResult("Request status :" + new CF5Method().InsertDRGAuditTrail(datasource, "Unreadable file directory or variable name error in FormDataParam", "FAILED", "", "", "CF5 Claim Form").getMessage());
             } else {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
                 if (drgdetail.getFileName().length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-                    result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
+//                    result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
+                    new CF5Method().InsertDRGAuditTrail(datasource, "CF5 DRG XML File  and ClaimSeriesNumber is Empty", "FAILED", "", "", "UPLOAD CF5 DATA");
                 } else if (drgdetail.getFileName().length() == 0) {
-                    result.setMessage("CF5 DRG XML File NOT FOUND");
+//                    result.setMessage("CF5 DRG XML File NOT FOUND");
+                    new CF5Method().InsertDRGAuditTrail(datasource, "CF5 DRG XML File NOT FOUND", "FAILED", "", "", "UPLOAD CF5 DATA");
                 } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                     String details = "";
                     if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
@@ -99,7 +102,8 @@ public class DRGClaims {
                     } else {
                         details = "CF5 Claim Series size is not valid and does not match the 14 digit format";
                     }
-                    result.setMessage(details + " DRG Claims Status " + new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "0", "0", drgdetail.getFileName()).getMessage());
+                    new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "0", "0", drgdetail.getFileName());
+//                    result.setMessage(details + " DRG Claims Status " + new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "0", "0", drgdetail.getFileName()).getMessage());
                 } else {
                     String drgfileline = "";
                     String drgfilecontent = "";
@@ -107,26 +111,21 @@ public class DRGClaims {
                         drgfilecontent += drgfileline;
                     }
                     if (new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess()) {
-                        DRGWSResult validatedData = new Upload().ValidateXMLWithDTD(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getResult(), datasource,
+                        result = new Upload().ValidateXMLWithDTD(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getResult(), datasource,
                                 ClaimSeriesNum.replaceAll("\\s+", "").substring(Math.max(ClaimSeriesNum.replaceAll("\\s+", "").length() - 2, 0)),
                                 ClaimSeriesNum.replaceAll("\\s+", "").substring(0, Math.min(ClaimSeriesNum.replaceAll("\\s+", "").length(), 13)), drgdetail.getFileName());
-                        result.setResult(validatedData.getResult());
-                        result.setMessage(validatedData.getMessage());
-                        result.setSuccess(validatedData.isSuccess());
                     } else {
-                        DRGWSResult auditrail = new CF5Method().InsertDRGAuditTrail(datasource,
+                        result = new CF5Method().InsertDRGAuditTrail(datasource,
                                 new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getMessage(),
                                 String.valueOf(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess()).toUpperCase(),
                                 ClaimSeriesNum.replaceAll("\\s+", "").substring(0, Math.min(ClaimSeriesNum.replaceAll("\\s+", "").length(), 13)),
                                 ClaimSeriesNum.replaceAll("\\s+", ""),
                                 drgdetail.getFileName());
-                        result.setMessage(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).getMessage() + " , " + auditrail.getMessage());
-                        result.setSuccess(new RemoveTrailingSpaces().RemoveTrailingSpaces(drgfilecontent).isSuccess());
                     }
                 }
             }
         } catch (IOException ex) {
-            result.setMessage("Something went wrong");
+            new CF5Method().InsertDRGAuditTrail(datasource, ex.toString(), "FAILED", ClaimSeriesNum, "UPLOADING", "CF5 XML DATA");
             Logger.getLogger(DRGClaims.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -256,12 +255,8 @@ public class DRGClaims {
                             }
                             nclaimsdatalist.add(nclaimsdata);
                         }
-
                         //DATA VALIDATION METHOD
-                        DRGWSResult pedResult = new FrontValidation().ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
-                        result.setResult(pedResult.getResult());
-                        result.setMessage(pedResult.getMessage());
-                        result.setSuccess(pedResult.isSuccess());
+                        result = new FrontValidation().ParseEClaimsDrgXML(datasource, drg, nclaimsdatalist, idlist);
                         //END DATA VALIDATION METHOD
                     } else {
                         if (arrayfatalerror.size() > 0) {

@@ -72,23 +72,19 @@ public class ValidateProcedures {
                     errors.add("208");
                     procedure.setExt1("1");
                 }
-                String rvs_code = procedure.getRvsCode();
-                DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim());
-                if (!checkRVStoICD9cm.isSuccess()) {
+                if (!new CF5Method().CheckICD9cm(datasource, procedure.getRvsCode().trim()).isSuccess()) {
                     int gendercounter = 0;
                     CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                     statement.registerOutParameter("converter", OracleTypes.CURSOR);
-                    statement.setString("rvs_code", rvs_code.trim());
+                    statement.setString("rvs_code", procedure.getRvsCode().trim());
                     statement.execute();
                     ResultSet resultset = (ResultSet) statement.getObject("converter");
                     if (resultset.next()) {
-                        String ProcList = resultset.getString("ICD9CODE");
-                        if (!ProcList.trim().isEmpty()) {
-                            List<String> ConverterResult = Arrays.asList(ProcList.trim().split(","));
-                            for (int ptr = 0; ptr < ConverterResult.size(); ptr++) {
-                                String ICD9Codes = ConverterResult.get(ptr);
-                                if (new CF5Method().CountProc(datasource, ICD9Codes.trim()).isSuccess()) {
-                                    DRGWSResult sexvalidationresult = new CF5Method().GenderConfictValidationProc(datasource, ICD9Codes.trim(), gender);
+                        if (!resultset.getString("ICD9CODE").trim().isEmpty()) {
+                            List<String> listicd9cm = Arrays.asList(resultset.getString("ICD9CODE").trim().split(","));
+                            for (int ptr = 0; ptr < listicd9cm.size(); ptr++) {
+                                if (new CF5Method().CountProc(datasource, listicd9cm.get(ptr).trim()).isSuccess()) {
+                                    DRGWSResult sexvalidationresult = new CF5Method().GenderConfictValidationProc(datasource, listicd9cm.get(ptr).trim(), gender);
                                     if (!sexvalidationresult.isSuccess()) {
                                         gendercounter++;
                                     }

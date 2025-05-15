@@ -48,17 +48,19 @@ public class CF5Method {
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statement = connection.prepareCall("begin :p_validcode := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
-            statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
-            statement.setString("p_icd10_code", utility.CleanCode(p_icd10_code));
-            statement.execute();
-            ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
-            if (resultset.next()) {
-                result.setSuccess(true);
-                result.setResult(resultset.getString("validcode"));
-                result.setMessage("Record Found");
-            } else {
-                result.setMessage("No ICD10 Record Found");
+            if (!p_icd10_code.trim().isEmpty()) {
+                CallableStatement statement = connection.prepareCall("begin :p_validcode := DRG_SHADOWBILLING.DRGPKGFUNCTION.get_valid_icd10(:p_icd10_code); end;");
+                statement.registerOutParameter("p_validcode", OracleTypes.CURSOR);
+                statement.setString("p_icd10_code", utility.CleanCode(p_icd10_code));
+                statement.execute();
+                ResultSet resultset = (ResultSet) statement.getObject("p_validcode");
+                if (resultset.next()) {
+                    result.setSuccess(true);
+                    result.setResult(resultset.getString("validcode"));
+                    result.setMessage("Record Found");
+                } else {
+                    result.setMessage("No ICD10 Record Found");
+                }
             }
         } catch (SQLException ex) {
             result.setMessage("Something went wrong");
@@ -150,55 +152,58 @@ public class CF5Method {
         result.setMessage("");
         result.setResult("");
         try (Connection connection = datasource.getConnection()) {
-            CallableStatement statementA = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
-            statementA.registerOutParameter("accpdxs", OracleTypes.CURSOR);
-            statementA.setString("pdx", utility.CleanCode(pdx));
-            statementA.execute();
-            ResultSet resultsetA = (ResultSet) statementA.getObject("accpdxs");
-            if (resultsetA.next()) {
-                ICD10PreMDCResult premdc = new ICD10PreMDCResult();
-                premdc.setAccPDX(resultsetA.getString("ACCPDX"));
-                premdc.setAgeDMin(resultsetA.getString("AGEDMIN"));
-                premdc.setAgeDUse(resultsetA.getString("AGEDUSE"));
-                premdc.setAgeMax(resultsetA.getString("AGEMAX"));
-                premdc.setAgeMin(resultsetA.getString("AGEMIN"));
-                premdc.setCC(resultsetA.getString("CC"));
-                premdc.setCCRow(resultsetA.getString("CCROW"));
-                premdc.setCode(resultsetA.getString("CODE"));
-                premdc.setHIV_AX(resultsetA.getString("HIV_AX"));
-                premdc.setMDC(resultsetA.getString("MDC"));
-                premdc.setMainCC(resultsetA.getString("MAINCC"));
-                premdc.setPDC(resultsetA.getString("PDC"));
-                premdc.setSex(resultsetA.getString("SEX"));
-                premdc.setTrauma(resultsetA.getString("TRAUMA"));
-                result.setMessage(resultsetA.getString("CCROW"));
-                result.setResult(utility.objectMapper().writeValueAsString(premdc));
-                result.setSuccess(true);
+            if (pdx.trim().isEmpty()) {
             } else {
-                CallableStatement statement = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
-                statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
-                statement.setString("pdx", utility.CleanCode(pdx.substring(0, pdx.length() - 1)));
-                statement.execute();
-                ResultSet resultset = (ResultSet) statement.getObject("accpdxs");
-                if (resultset.next()) {
+                CallableStatement statementA = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
+                statementA.registerOutParameter("accpdxs", OracleTypes.CURSOR);
+                statementA.setString("pdx", utility.CleanCode(pdx));
+                statementA.execute();
+                ResultSet resultsetA = (ResultSet) statementA.getObject("accpdxs");
+                if (resultsetA.next()) {
                     ICD10PreMDCResult premdc = new ICD10PreMDCResult();
-                    premdc.setAccPDX(resultset.getString("ACCPDX"));
-                    premdc.setAgeDMin(resultset.getString("AGEDMIN"));
-                    premdc.setAgeDUse(resultset.getString("AGEDUSE"));
-                    premdc.setAgeMax(resultset.getString("AGEMAX"));
-                    premdc.setAgeMin(resultset.getString("AGEMIN"));
-                    premdc.setCC(resultset.getString("CC"));
-                    premdc.setCCRow(resultset.getString("CCROW"));
-                    premdc.setCode(resultset.getString("CODE"));
-                    premdc.setHIV_AX(resultset.getString("HIV_AX"));
-                    premdc.setMDC(resultset.getString("MDC"));
-                    premdc.setMainCC(resultset.getString("MAINCC"));
-                    premdc.setPDC(resultset.getString("PDC"));
-                    premdc.setSex(resultset.getString("SEX"));
-                    premdc.setTrauma(resultset.getString("TRAUMA"));
-                    result.setMessage(resultset.getString("CCROW"));
+                    premdc.setAccPDX(resultsetA.getString("ACCPDX"));
+                    premdc.setAgeDMin(resultsetA.getString("AGEDMIN"));
+                    premdc.setAgeDUse(resultsetA.getString("AGEDUSE"));
+                    premdc.setAgeMax(resultsetA.getString("AGEMAX"));
+                    premdc.setAgeMin(resultsetA.getString("AGEMIN"));
+                    premdc.setCC(resultsetA.getString("CC"));
+                    premdc.setCCRow(resultsetA.getString("CCROW"));
+                    premdc.setCode(resultsetA.getString("CODE"));
+                    premdc.setHIV_AX(resultsetA.getString("HIV_AX"));
+                    premdc.setMDC(resultsetA.getString("MDC"));
+                    premdc.setMainCC(resultsetA.getString("MAINCC"));
+                    premdc.setPDC(resultsetA.getString("PDC"));
+                    premdc.setSex(resultsetA.getString("SEX"));
+                    premdc.setTrauma(resultsetA.getString("TRAUMA"));
+                    result.setMessage(resultsetA.getString("CCROW"));
                     result.setResult(utility.objectMapper().writeValueAsString(premdc));
                     result.setSuccess(true);
+                } else {
+                    CallableStatement statement = connection.prepareCall("begin :accpdxs := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_ICD10PREMDC(:pdx); end;");
+                    statement.registerOutParameter("accpdxs", OracleTypes.CURSOR);
+                    statement.setString("pdx", utility.CleanCode(pdx.substring(0, pdx.length() - 1)));
+                    statement.execute();
+                    ResultSet resultset = (ResultSet) statement.getObject("accpdxs");
+                    if (resultset.next()) {
+                        ICD10PreMDCResult premdc = new ICD10PreMDCResult();
+                        premdc.setAccPDX(resultset.getString("ACCPDX"));
+                        premdc.setAgeDMin(resultset.getString("AGEDMIN"));
+                        premdc.setAgeDUse(resultset.getString("AGEDUSE"));
+                        premdc.setAgeMax(resultset.getString("AGEMAX"));
+                        premdc.setAgeMin(resultset.getString("AGEMIN"));
+                        premdc.setCC(resultset.getString("CC"));
+                        premdc.setCCRow(resultset.getString("CCROW"));
+                        premdc.setCode(resultset.getString("CODE"));
+                        premdc.setHIV_AX(resultset.getString("HIV_AX"));
+                        premdc.setMDC(resultset.getString("MDC"));
+                        premdc.setMainCC(resultset.getString("MAINCC"));
+                        premdc.setPDC(resultset.getString("PDC"));
+                        premdc.setSex(resultset.getString("SEX"));
+                        premdc.setTrauma(resultset.getString("TRAUMA"));
+                        result.setMessage(resultset.getString("CCROW"));
+                        result.setResult(utility.objectMapper().writeValueAsString(premdc));
+                        result.setSuccess(true);
+                    }
                 }
             }
         } catch (SQLException | IOException ex) {
@@ -358,11 +363,9 @@ public class CF5Method {
             result.setResult(grouperdata.getString("Message"));
             if (grouperdata.getString("Message").equals("SUCC")) {
                 result.setSuccess(true);
-            } else {
-                result.setMessage(grouperdata.getString("Message"));
             }
         } catch (SQLException ex) {
-            result.setMessage("Something went wrong");
+            new CF5Method().InsertDRGAuditTrail(datasource, ex.toString(), "FAILED", series, claimnum, "INSERTING RESULT");
             Logger.getLogger(CF5Method.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -504,8 +507,6 @@ public class CF5Method {
         return result;
     }
 
-    //CHECKING OF ICD9CM CODE IF EXIST IN THE LIBRARY
-    // GET SEX PROC VALIDATION THIS AREA
     public DRGWSResult CheckICD9cm(final DataSource datasource,
             final String rvs) {
         DRGWSResult result = utility.DRGWSResult();
@@ -528,7 +529,8 @@ public class CF5Method {
         return result;
     }
 
-    public DRGWSResult ValidateHcfSector(final DataSource datasource,
+    public DRGWSResult ValidateHcfSector(
+            final DataSource datasource,
             final String upmcc) {
         DRGWSResult result = utility.DRGWSResult();
         result.setMessage("");

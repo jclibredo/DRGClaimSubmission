@@ -44,14 +44,15 @@ public class phic {
             if (resultSet.next()) {
                 if (resultSet.getString("DATEOFBIRTH") == null || resultSet.getString("DATEOFBIRTH").isEmpty() || resultSet.getString("DATEOFBIRTH").equals("")) {
                 } else {
-//                     result.setResult(resultSet.getString("DATEOFBIRTH"));
-                    result.setResult(utility.SimpleDateFormat("MM-dd-yyyy").format(resultSet.getTimestamp("DATEOFBIRTH")));
+//                    utility.SimpleDateFormat("MM-dd-yyyy").format(utility.SimpleDateFormat("MM/dd/yyyy").parse(resultSet.getString("DATEOFBIRTH")));
+                    result.setResult(utility.SimpleDateFormat("MM-dd-yyyy").format(utility.SimpleDateFormat("MM/dd/yyyy").parse(resultSet.getString("DATEOFBIRTH"))));
+//                    result.setResult(utility.SimpleDateFormat("MM-dd-yyyy").format(resultSet.getTimestamp("DATEOFBIRTH")));
                     result.setSuccess(true);
                     result.setMessage("OK");
                 }
             }
         } catch (Exception ex) {
-           result.setMessage("Something went wrong");
+            result.setMessage("Something went wrong");
             Logger.getLogger(phic.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
@@ -98,17 +99,6 @@ public class phic {
                 //DATEOFBIRTH
                 if (this.GETPATIENTBDAY(datasource, seriesnums).isSuccess()) {
                     nclaimsdata.setDateofBirth(this.GETPATIENTBDAY(datasource, seriesnums).getResult());
-//                    if (utility.isParsableDate(this.GETPATIENTBDAY(datasource, seriesnums).getResult(), "MM/dd/yyyy")) {
-//                        nclaimsdata.setDateofBirth(!this.GETPATIENTBDAY(datasource, seriesnums).isSuccess() ? ""
-//                                : utility.SimpleDateFormat("MM-dd-yyyy").format(utility.SimpleDateFormat("MM/dd/yyyy").parse(this.GETPATIENTBDAY(datasource, seriesnums).getResult())));
-//                    nclaimsdata.setDateofBirth(utility.SimpleDateFormat("MM-dd-yyyy").format(utility.SimpleDateFormat("MM/dd/yyyy").parse(this.GETPATIENTBDAY(datasource, seriesnums).getResult())));
-//                    } else if (utility.isParsableDate(this.GETPATIENTBDAY(datasource, seriesnums).getResult(), "MM-dd-yyyy")) {
-//                        nclaimsdata.setDateofBirth(!this.GETPATIENTBDAY(datasource, seriesnums).isSuccess() ? ""
-//                                : utility.SimpleDateFormat("MM-dd-yyyy").format(utility.SimpleDateFormat("MM-dd-yyyy").parse(this.GETPATIENTBDAY(datasource, seriesnums).getResult())));
-//                        nclaimsdata.setDateofBirth(utility.SimpleDateFormat("MM-dd-yyyy").format(utility.SimpleDateFormat("MM-dd-yyyy").parse(this.GETPATIENTBDAY(datasource, seriesnums).getResult())));
-//                    } else {
-//                        nclaimsdata.setDateofBirth("");
-//                    }
                 } else {
                     nclaimsdata.setDateofBirth("");
                 }
@@ -132,7 +122,7 @@ public class phic {
                 result.setMessage("CF5 " + seriesnums + " not found in eClaims DB");
             }
         } catch (Exception ex) {
-            result.setMessage("Something went wrong");
+            result.setMessage(ex.toString());
             Logger.getLogger(phic.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;

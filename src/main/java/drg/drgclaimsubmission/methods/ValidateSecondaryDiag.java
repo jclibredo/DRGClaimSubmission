@@ -29,12 +29,12 @@ public class ValidateSecondaryDiag {
 
     public DRGWSResult ValidateSecondaryDiag(final DataSource datasource, final SECONDARYDIAG secondarydiag, final String pdxS, final NClaimsData nclaimsdata) {
         DRGWSResult result = utility.DRGWSResult();
-        SECONDARYDIAG validatesecondiag;
-        ArrayList<String> errors = new ArrayList<>();
+        result.setSuccess(false);
+        result.setMessage("");
+        result.setResult("");
         try {
-            result.setSuccess(false);
-            result.setMessage("");
-            result.setResult("");
+            SECONDARYDIAG validatesecondiag;
+            ArrayList<String> errors = new ArrayList<>();
             if (!secondarydiag.getSecondaryCode().trim().equals("")) {
 //                if (secondarydiag.getSecondaryCode().trim().length() > 10) {
 //                    errors.add("501");
@@ -43,13 +43,11 @@ public class ValidateSecondaryDiag {
                     errors.add("502");
                 } else {
                     if (!nclaimsdata.getDateofBirth().isEmpty() && !nclaimsdata.getAdmissionDate().isEmpty()) {
-                        String days = String.valueOf(utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
-                        String year = String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()));
                         int finalDays = 0;
-                        if (Integer.parseInt(year) > 0) {
-                            finalDays = Integer.parseInt(year) * 365;
+                        if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) > 0) {
+                            finalDays = utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) * 365;
                         } else {
-                            finalDays = Integer.parseInt(days);
+                            finalDays = utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate());
                         }
                         if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                 && utility.ComputeDay(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0) {
@@ -57,34 +55,28 @@ public class ValidateSecondaryDiag {
                                 if (utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()) >= 0
                                         && utility.ComputeDay(nclaimsdata.getDateofBirth(),
                                                 nclaimsdata.getAdmissionDate()) >= 0 && !secondarydiag.getSecondaryCode().isEmpty()) {
-                                    DRGWSResult SDxResult = new CF5Method().GetICD10(datasource, secondarydiag.getSecondaryCode().trim());
-                                    if (SDxResult.isSuccess()) {
-                                        DRGWSResult icd10preMDC = new CF5Method().GetICD10PreMDC(datasource, secondarydiag.getSecondaryCode().trim());
-                                        if (icd10preMDC.isSuccess()) {
+                                    if (new CF5Method().GetICD10(datasource, secondarydiag.getSecondaryCode().trim()).isSuccess()) {
+                                        if (new CF5Method().GetICD10PreMDC(datasource, secondarydiag.getSecondaryCode().trim()).isSuccess()) {
                                             //CHECKING FOR AGE CONFLICT
-                                            DRGWSResult getAgeConfictResult = new CF5Method().AgeConfictValidation(datasource, secondarydiag.getSecondaryCode().trim(), String.valueOf(finalDays), year);
-                                            if (!getAgeConfictResult.isSuccess()) {
+                                            if (!new CF5Method().AgeConfictValidation(datasource, secondarydiag.getSecondaryCode().trim(), String.valueOf(finalDays),
+                                                    String.valueOf(utility.ComputeYear(nclaimsdata.getDateofBirth(), nclaimsdata.getAdmissionDate()))).isSuccess()) {
                                                 errors.add("504");
                                             }
                                             //CHECKING FOR GENDER CONFLICT
-                                            DRGWSResult getSexConfictResult = new CF5Method().GenderConfictValidation(datasource, secondarydiag.getSecondaryCode().trim(), nclaimsdata.getGender());
-                                            if (!getSexConfictResult.isSuccess()) {
+                                            if (!new CF5Method().GenderConfictValidation(datasource, secondarydiag.getSecondaryCode().trim(), nclaimsdata.getGender()).isSuccess()) {
                                                 errors.add("505");
                                             }
                                         } else {
-                                            System.out.println("HERE A");
                                             errors.add("501");
                                         }
                                     } else {
                                         errors.add("501");
-                                        System.out.println("HERE B");
                                     }
                                 }
                             }
                         }
                     }
                 }
-
             }
             validatesecondiag = secondarydiag;
             if (!errors.isEmpty()) {
