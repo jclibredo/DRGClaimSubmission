@@ -7,7 +7,7 @@ package drg.drgclaimsubmission.seekermethod;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
  public class ENDRGINFO {
 

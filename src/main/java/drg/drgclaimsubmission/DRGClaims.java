@@ -58,7 +58,7 @@ import org.xml.sax.SAXParseException;
 /**
  * REST Web Service
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @Path("DRGClaim")
 @RequestScoped
@@ -85,15 +85,11 @@ public class DRGClaims {
         try {
             if (uploadeddrg == null || ClaimSeriesNum == null) {
                 new CF5Method().InsertDRGAuditTrail(datasource, "Unreadable file directory or variable name error in FormDataParam", "FAILED", "", "", "UPLOAD CF5 DATA");
-//                result.setMessage("Variable name for DRGXML not equal to (drg) OR ClaimSeries not equal to (ClaimSeriesNum) or file directory not found");
-//                result.setResult("Request status :" + new CF5Method().InsertDRGAuditTrail(datasource, "Unreadable file directory or variable name error in FormDataParam", "FAILED", "", "", "CF5 Claim Form").getMessage());
             } else {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(uploadeddrg));
                 if (drgdetail.getFileName().length() == 0 && ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
-//                    result.setMessage("CF5 DRG XML File  and ClaimSeriesNumber is Empty");
                     new CF5Method().InsertDRGAuditTrail(datasource, "CF5 DRG XML File  and ClaimSeriesNumber is Empty", "FAILED", "", "", "UPLOAD CF5 DATA");
                 } else if (drgdetail.getFileName().length() == 0) {
-//                    result.setMessage("CF5 DRG XML File NOT FOUND");
                     new CF5Method().InsertDRGAuditTrail(datasource, "CF5 DRG XML File NOT FOUND", "FAILED", "", "", "UPLOAD CF5 DATA");
                 } else if (ClaimSeriesNum.replaceAll("\\s+", "").length() == 0) {
                     String details = "";
@@ -103,7 +99,6 @@ public class DRGClaims {
                         details = "CF5 Claim Series size is not valid and does not match the 14 digit format";
                     }
                     new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "0", "0", drgdetail.getFileName());
-//                    result.setMessage(details + " DRG Claims Status " + new CF5Method().InsertDRGAuditTrail(datasource, details, "FAILED", "0", "0", drgdetail.getFileName()).getMessage());
                 } else {
                     String drgfileline = "";
                     String drgfilecontent = "";

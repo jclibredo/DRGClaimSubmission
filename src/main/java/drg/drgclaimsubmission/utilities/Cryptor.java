@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 public class Cryptor {
 

@@ -32,7 +32,7 @@ import oracle.jdbc.OracleTypes;
 
 /**
  *
- * @author DRG_SHADOWBILLING
+ * @author MINOSUN
  */
 @RequestScoped
 public class AccessGrouperFrontValidation {
@@ -269,7 +269,7 @@ public class AccessGrouperFrontValidation {
                         DRGWSResult checkRVStoICD9cm = new CF5Method().CheckICD9cm(datasource, rvs_code.trim());
                         if (!checkRVStoICD9cm.isSuccess()) {
                             //===========================================================CONVERTER===============================
-                            CallableStatement statement = connection.prepareCall("begin :converter := DRG_SHADOWBILLING.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
+                            CallableStatement statement = connection.prepareCall("begin :converter := MINOSUN.DRGPKGFUNCTION.GET_CONVERTER(:rvs_code); end;");
                             statement.registerOutParameter("converter", OracleTypes.CURSOR);
                             statement.setString("rvs_code", rvs_code);
                             statement.execute();
