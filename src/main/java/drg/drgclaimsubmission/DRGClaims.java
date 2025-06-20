@@ -173,7 +173,6 @@ public class DRGClaims {
                             int lineno = exception.getLineNumber();
                             arraywarning.add("Line No. " + lineno + " : " + exception.getLocalizedMessage());
                         }
-
                         @Override
                         public void fatalError(SAXParseException exception) throws SAXException {
                             int lineno = exception.getLineNumber();
@@ -193,25 +192,28 @@ public class DRGClaims {
                     StringReader readers = new StringReader(stringdrgxml);
                     CF5 drg = (CF5) jaxbnmarsaller.unmarshal(readers);
                     //E-CLAIMS XML PARSING AREA
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(uploadedeclaims));
-                    String eclaimfileline = "";
-                    String eclaimfilecontent = "";
-                    while ((eclaimfileline = rd.readLine()) != null) {
-                        eclaimfilecontent += eclaimfileline;
-                    }
                     //END E-CLAIMS XML PARSING AREA
                     if ((arrayfatalerror.isEmpty()) && (arrayerror.isEmpty())) {
+                        BufferedReader rd = new BufferedReader(new InputStreamReader(uploadedeclaims));
+                        StringBuilder respoStringBuilder = new StringBuilder();
+                        String eclaimfileline;
+//                        String eclaimfilecontent;
+                        while ((eclaimfileline = rd.readLine()) != null) {
+//                            eclaimfilecontent += eclaimfileline;
+                            respoStringBuilder.append("\n").append(eclaimfileline);
+                        }
+//                        System.out.println(respoStringBuilder.toString());
                         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
                         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                        Document docs = dBuilder.parse(new InputSource(new StringReader(eclaimfilecontent)));
+                        Document docs = dBuilder.parse(new InputSource(new StringReader(respoStringBuilder.toString())));
                         docs.getDocumentElement().normalize();
                         ArrayList<String> idlist = new ArrayList<>();
-                        //-----------------------------------------------
+//                        //-----------------------------------------------
                         NodeList eclaimspHospitalCode = docs.getElementsByTagName("eCLAIMS");
-                        //-----------------------------------------------
+//                        //-----------------------------------------------
                         ArrayList<NClaimsData> nclaimsdatalist = new ArrayList<>();
                         NodeList nList = docs.getElementsByTagName("CLAIM");
-                        //------------------------------------------------
+//                        //------------------------------------------------
                         for (int temp = 0; temp < nList.getLength(); temp++) {
                             NClaimsData nclaimsdata = new NClaimsData();
                             //GET THE HOSPITAL CODE
